@@ -17,6 +17,12 @@ journald_send(PyObject *self, PyObject *args) {
     for (i = 0; i < argc; ++i) {
         PyObject *item = PyTuple_GetItem(args, i);
         char * stritem = PyString_AsString(item);
+        if (stritem == NULL) {
+            // PyString_AsString has already raised TypeError at this
+            // point. We can just free iov and return NULL.
+            free(iov);
+            return NULL;
+        }
         iov[i].iov_base = stritem;
         iov[i].iov_len = strlen(stritem);
     }
