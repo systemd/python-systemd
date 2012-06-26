@@ -14,7 +14,7 @@ journald_send(PyObject *self, PyObject *args)
     //    return NULL;
     //sts = system(command);
     //return Py_BuildValue("i", sts);
-    sd_journal_send("Test message: %s.", "arg1", NULL);
+    sd_journal_print(1, "Test message: %s.", "arg1", NULL);
     Py_INCREF(Py_None);
     return Py_None;
 }
