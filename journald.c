@@ -26,7 +26,7 @@ static PyMethodDef journaldMethods[] = {
 };
 
 PyMODINIT_FUNC
-initjournal(void)
+initjournald(void)
 {
     (void) Py_InitModule("journald", journaldMethods);
 }
