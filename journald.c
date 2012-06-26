@@ -1,15 +1,12 @@
 #include <Python.h>
 #include <systemd/sd-journal.h>
 
-#ifndef journaldpython
-#define journaldpython
-
 static PyObject *
 journald_send(PyObject *self, PyObject *args) {
     struct iovec *iov = NULL;
     int argc = PyTuple_Size(args);
     int i;
-    
+
     // Allocate sufficient iovector space for the arguments.
     iov = malloc(argc * sizeof(struct iovec));
     if (!iov) {
@@ -23,10 +20,10 @@ journald_send(PyObject *self, PyObject *args) {
         iov[i].iov_base = stritem;
         iov[i].iov_len = strlen(stritem);
     }
-  
+
     // Send the iovector to journald.
     sd_journal_sendv(iov, argc);
-    
+
     // Free the iovector. The actual strings
     // are already managed by Python.
     free(iov);
@@ -47,5 +44,3 @@ initjournald(void)
 {
     (void) Py_InitModule("journald", journaldMethods);
 }
-
-#endif
