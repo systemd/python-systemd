@@ -6,8 +6,8 @@
 
 static PyObject *
 journald_send(PyObject *self, PyObject *args) {
-    int argc = PyTuple_Size(args);
     struct iovec *iov = NULL;
+    int argc = PyTuple_Size(args);
     int i;
     
     // Allocate sufficient iovector space for the arguments.
@@ -24,18 +24,14 @@ journald_send(PyObject *self, PyObject *args) {
         iov[i].iov_len = strlen(stritem);
     }
   
+    // Send the iovector to journald.
     sd_journal_sendv(iov, argc);
-    //sd_journal_send("MESSAGE=foobar", "VALUE=%i", 7, NULL);
-
-    //const char *command;
-    //int sts;
-
-    //if (!PyArg_ParseTuple(args, "s", &command))
-    //    return NULL;
-    //sts = system(command);
     
-    //return Py_BuildValue("i", sts);
-    //sd_journal_print(1, "Testing message: %s. ANOTHERFIELD=one", "arg1", NULL);
+    // Free the iovector. The actual strings
+    // are already managed by Python.
+    free(iov);
+
+    // End with success.
     Py_INCREF(Py_None);
     return Py_None;
 }
