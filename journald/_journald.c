@@ -2,7 +2,7 @@
 #include <systemd/sd-journal.h>
 
 static PyObject *
-journald_send(PyObject *self, PyObject *args) {
+journald_sendv(PyObject *self, PyObject *args) {
     struct iovec *iov = NULL;
     int argc = PyTuple_Size(args);
     int i, r;
@@ -79,7 +79,7 @@ out1:
 }
 
 static PyMethodDef methods[] = {
-    {"send",  journald_send, METH_VARARGS,
+    {"sendv",  journald_sendv, METH_VARARGS,
      "Send an entry to journald."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
@@ -87,23 +87,23 @@ static PyMethodDef methods[] = {
 #if PY_MAJOR_VERSION < 3
 
 PyMODINIT_FUNC
-initjournald(void)
+init_journald(void)
 {
-    (void) Py_InitModule("journald", methods);
+    (void) Py_InitModule("_journald", methods);
 }
 
 #else
 
 static struct PyModuleDef module = {
     PyModuleDef_HEAD_INIT,
-    "journald", /* name of module */
+    "_journald", /* name of module */
     NULL, /* module documentation, may be NULL */
     0, /* size of per-interpreter state of the module */
     methods
 };
 
 PyMODINIT_FUNC
-PyInit_journald(void)
+PyInit__journald(void)
 {
     return PyModule_Create(&module);
 }
