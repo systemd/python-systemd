@@ -1,6 +1,9 @@
+import traceback
 from ._journald import sendv
 
-def send(MESSAGE, MESSAGE_ID=None, **kwargs):
+def send(MESSAGE, MESSAGE_ID=None,
+         CODE_FILE=None, CODE_LINE=None, CODE_FUNC=None,
+         **kwargs):
     """Send a message to journald.
 
     >>> journald.send('Hello world')
@@ -16,15 +19,25 @@ def send(MESSAGE, MESSAGE_ID=None, **kwargs):
     CODE_LINE, CODE_FILE, and CODE_FUNC can be specified to identify
     the caller. Unless at least on of the three is given, values are
     extracted from the stack frame of the caller of send(). CODE_FILE
-    and CODE_FUNC should be strings, CODE_LINE should be an integer.
+    and CODE_FUNC must be strings, CODE_LINE must be an integer.
 
     Other useful fields include PRIORITY, SYSLOG_FACILITY,
     SYSLOG_IDENTIFIER, SYSLOG_PID.
     """
 
     args = ['MESSAGE=' + MESSAGE]
+
     if MESSAGE_ID is not None:
         args.append('MESSAGE_ID=' + MESSAGE_ID)
-    for key, val in kwargs.items():
-        args.append(key + '=' + val)
+
+    if CODE_LINE == CODE_FILE == CODE_FUNC == None:
+        CODE_FILE, CODE_LINE, CODE_FUNC = traceback.extract_stack(limit=2)[0][:3]
+    if CODE_FILE is not None:
+        args.append('CODE_FILE=' + CODE_FILE)
+    if CODE_LINE is not None:
+        args.append('CODE_LINE={:d}'.format(CODE_LINE))
+    if CODE_FUNC is not None:
+        args.append('CODE_FUNC=' + CODE_FUNC)
+
+    args.extend(key + '=' + val for key, val in kwargs.items())
     return sendv(*args)
