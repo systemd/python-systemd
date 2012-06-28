@@ -8,6 +8,14 @@ journald_send(PyObject *self, PyObject *args) {
     int i, r;
     PyObject *ret = NULL;
 
+#if PY_MAJOR_VERSION >= 3
+    PyObject **ascii = calloc(argc, sizeof(PyObject*));
+    if (!ascii) {
+        ret = PyErr_NoMemory();
+        goto out1;
+    }
+#endif
+
     // Allocate sufficient iovector space for the arguments.
     iov = malloc(argc * sizeof(struct iovec));
     if (!iov) {
@@ -20,11 +28,17 @@ journald_send(PyObject *self, PyObject *args) {
         PyObject *item = PyTuple_GetItem(args, i);
         char *stritem;
         Py_ssize_t length;
-        if (PyString_AsStringAndSize(item, &stritem, &length)) {
+#if PY_MAJOR_VERSION < 3
+        if (PyString_AsStringAndSize(item, &stritem, &length))
             // PyString_AsS&S has already raised TypeError at this
             // point. We can just free iov and return NULL.
             goto out;
-	}
+#else
+        ascii[i] = PyUnicode_AsASCIIString(item);
+        if (ascii[i] == NULL ||
+            PyBytes_AsStringAndSize(ascii[i], &stritem, &length))
+            goto out;
+#endif
         iov[i].iov_base = stritem;
         iov[i].iov_len = length;
     }
@@ -48,7 +62,15 @@ journald_send(PyObject *self, PyObject *args) {
     Py_INCREF(Py_None);
     ret = Py_None;
 
- out:
+out:
+#if PY_MAJOR_VERSION >= 3
+    for (i = 0; i < argc; ++i)
+        Py_XDECREF(ascii[i]);
+
+    free(ascii);
+#endif
+
+out1:
     // Free the iovector. The actual strings
     // are already managed by Python.
     free(iov);
@@ -56,14 +78,34 @@ journald_send(PyObject *self, PyObject *args) {
     return ret;
 }
 
-static PyMethodDef journaldMethods[] = {
+static PyMethodDef methods[] = {
     {"send",  journald_send, METH_VARARGS,
      "Send an entry to journald."},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
+#if PY_MAJOR_VERSION < 3
+
 PyMODINIT_FUNC
 initjournald(void)
 {
-    (void) Py_InitModule("journald", journaldMethods);
+    (void) Py_InitModule("journald", methods);
 }
+
+#else
+
+static struct PyModuleDef module = {
+    PyModuleDef_HEAD_INIT,
+    "journald", /* name of module */
+    NULL, /* module documentation, may be NULL */
+    0, /* size of per-interpreter state of the module */
+    methods
+};
+
+PyMODINIT_FUNC
+PyInit_journald(void)
+{
+    return PyModule_Create(&module);
+}
+
+#endif

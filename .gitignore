@@ -1,5 +1,6 @@
 *.py[co]
 /journald.so
+/journald.*.so
 
 # Packages
 *.egg
