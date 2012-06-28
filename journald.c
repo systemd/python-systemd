@@ -5,7 +5,7 @@ static PyObject *
 journald_send(PyObject *self, PyObject *args) {
     struct iovec *iov = NULL;
     int argc = PyTuple_Size(args);
-    int i;
+    int i, r;
 
     // Allocate sufficient iovector space for the arguments.
     iov = malloc(argc * sizeof(struct iovec));
@@ -28,12 +28,24 @@ journald_send(PyObject *self, PyObject *args) {
         iov[i].iov_len = length;
     }
 
+    // Clear errno, because sd_journal_sendv will not set it by
+    // itself, unless an error occurs in one of the system calls.
+    errno = 0;
+
     // Send the iovector to journald.
-    sd_journal_sendv(iov, argc);
+    r = sd_journal_sendv(iov, argc);
 
     // Free the iovector. The actual strings
     // are already managed by Python.
     free(iov);
+
+    if (r) {
+        if (errno)
+            PyErr_SetFromErrno(PyExc_IOError);
+        else
+            PyErr_SetString(PyExc_ValueError, "invalid message format");
+        return NULL;
+    }
 
     // End with success.
     Py_INCREF(Py_None);

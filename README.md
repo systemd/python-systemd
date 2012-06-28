@@ -33,7 +33,9 @@ Notes:
    first.
  * The base message is usually sent in the form MESSAGE=hello. The
    MESSAGE field is, however, not required.
- * Invalid or zero arguments results in nothing recorded in journald.
+ * A ValueError is thrown is thrown if sd_journald_sendv() results in
+   an error. This might happen if there are no arguments or one of them
+   is invalid.
 
 Viewing Output
 ==============
