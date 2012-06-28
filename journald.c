@@ -6,11 +6,13 @@ journald_send(PyObject *self, PyObject *args) {
     struct iovec *iov = NULL;
     int argc = PyTuple_Size(args);
     int i, r;
+    PyObject *ret = NULL;
 
     // Allocate sufficient iovector space for the arguments.
     iov = malloc(argc * sizeof(struct iovec));
     if (!iov) {
-        return PyErr_NoMemory();
+        ret = PyErr_NoMemory();
+        goto out;
     }
 
     // Iterate through the Python arguments and fill the iovector.
@@ -21,9 +23,8 @@ journald_send(PyObject *self, PyObject *args) {
         if (PyString_AsStringAndSize(item, &stritem, &length)) {
             // PyString_AsS&S has already raised TypeError at this
             // point. We can just free iov and return NULL.
-            free(iov);
-            return NULL;
-        }
+            goto out;
+	}
         iov[i].iov_base = stritem;
         iov[i].iov_len = length;
     }
@@ -35,21 +36,24 @@ journald_send(PyObject *self, PyObject *args) {
     // Send the iovector to journald.
     r = sd_journal_sendv(iov, argc);
 
-    // Free the iovector. The actual strings
-    // are already managed by Python.
-    free(iov);
-
     if (r) {
         if (errno)
             PyErr_SetFromErrno(PyExc_IOError);
         else
             PyErr_SetString(PyExc_ValueError, "invalid message format");
-        return NULL;
+        goto out;
     }
 
     // End with success.
     Py_INCREF(Py_None);
-    return Py_None;
+    ret = Py_None;
+
+ out:
+    // Free the iovector. The actual strings
+    // are already managed by Python.
+    free(iov);
+
+    return ret;
 }
 
 static PyMethodDef journaldMethods[] = {
