@@ -9,13 +9,11 @@ journald_sendv(PyObject *self, PyObject *args) {
     int i, r;
     PyObject *ret = NULL;
 
-#if PY_MAJOR_VERSION >= 3
-    PyObject **ascii = calloc(argc, sizeof(PyObject*));
-    if (!ascii) {
+    PyObject **encoded = calloc(argc, sizeof(PyObject*));
+    if (!encoded) {
         ret = PyErr_NoMemory();
         goto out1;
     }
-#endif
 
     // Allocate sufficient iovector space for the arguments.
     iov = malloc(argc * sizeof(struct iovec));
@@ -29,17 +27,16 @@ journald_sendv(PyObject *self, PyObject *args) {
         PyObject *item = PyTuple_GetItem(args, i);
         char *stritem;
         Py_ssize_t length;
-#if PY_MAJOR_VERSION < 3
-        if (PyString_AsStringAndSize(item, &stritem, &length))
-            // PyString_AsS&S has already raised TypeError at this
-            // point. We can just free iov and return NULL.
+
+        if (PyUnicode_Check(item)) {
+            encoded[i] = PyUnicode_AsEncodedString(item, "utf-8", "strict");
+            if (encoded[i] == NULL)
+                goto out;
+            item = encoded[i];
+        }
+        if (PyBytes_AsStringAndSize(item, &stritem, &length))
             goto out;
-#else
-        ascii[i] = PyUnicode_AsASCIIString(item);
-        if (ascii[i] == NULL ||
-            PyBytes_AsStringAndSize(ascii[i], &stritem, &length))
-            goto out;
-#endif
+
         iov[i].iov_base = stritem;
         iov[i].iov_len = length;
     }
@@ -64,12 +61,10 @@ journald_sendv(PyObject *self, PyObject *args) {
     ret = Py_None;
 
 out:
-#if PY_MAJOR_VERSION >= 3
     for (i = 0; i < argc; ++i)
-        Py_XDECREF(ascii[i]);
+        Py_XDECREF(encoded[i]);
 
-    free(ascii);
-#endif
+    free(encoded);
 
 out1:
     // Free the iovector. The actual strings

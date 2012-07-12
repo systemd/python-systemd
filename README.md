@@ -21,7 +21,7 @@ Quick example:
     import journald
     journald.send('Hello world')
     journald.send('Hello, again, world', FIELD2='Greetings!', FIELD3='Guten tag')
-    journald.send('Binary message', BINARY='\xde\xad\xbe\xef')
+    journald.send('Binary message', BINARY=b'\xde\xad\xbe\xef')
 
 There is one required argument -- the message, and additional fields
 can be specified as keyword arguments. Following the journald API, all
@@ -33,7 +33,7 @@ The journald sendv call can also be accessed directly:
     journald.sendv('MESSAGE=Hello world')
     journald.sendv('MESSAGE=Hello, again, world', 'FIELD2=Greetings!',
                    'FIELD3=Guten tag')
-    journald.sendv('MESSAGE=Binary message', 'BINARY=\xde\xad\xbe\xef')
+    journald.sendv('MESSAGE=Binary message', b'BINARY=\xde\xad\xbe\xef')
 
 The two examples should give the same results in the log.
 
