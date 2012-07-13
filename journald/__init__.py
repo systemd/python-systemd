@@ -1,5 +1,8 @@
-from ._journald import sendv
 import traceback as _traceback
+import os as _os
+from syslog import (LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR,
+                    LOG_WARNING, LOG_NOTICE, LOG_INFO, LOG_DEBUG)
+from ._journald import sendv, stream_fd
 
 def _make_line(field, value):
     if isinstance(value, bytes):
@@ -52,3 +55,39 @@ def send(MESSAGE, MESSAGE_ID=None,
 
     args.extend(_make_line(key, val) for key, val in kwargs.items())
     return sendv(*args)
+
+def stream(identifier, priority=LOG_DEBUG, level_prefix=False):
+    r"""Return a file object wrapping a stream to journald.
+
+    Log messages written to this file as simple newline sepearted
+    text strings are written to the journal.
+
+    The file will be line buffered, so messages are actually sent
+    after a newline character is written.
+
+    >>> stream = journald.stream('myapp')
+    >>> stream
+    <open file '<fdopen>', mode 'w' at 0x...>
+    >>> stream.write('message...\n')
+
+    will produce the following message in the journal:
+
+    PRIORITY=7
+    SYSLOG_IDENTIFIER=myapp
+    MESSAGE=message...
+
+    Using the interface with print might be more convinient:
+
+    >>> from __future__ import print_function
+    >>> print('message...', file=stream)
+
+    priority is the syslog priority, one of LOG_EMERG, LOG_ALERT,
+    LOG_CRIT, LOG_ERR, LOG_WARNING, LOG_NOTICE, LOG_INFO, LOG_DEBUG.
+
+    level_prefix is a boolean. If true, kernel-style log priority
+    level prefixes (such as '<1>') are interpreted. See sd-daemon(3)
+    for more information.
+    """
+
+    fd = stream_fd(identifier, priority, level_prefix)
+    return _os.fdopen(fd, 'w', 1)
