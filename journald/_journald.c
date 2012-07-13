@@ -2,6 +2,11 @@
 #define SD_JOURNAL_SUPPRESS_LOCATION
 #include <systemd/sd-journal.h>
 
+PyDoc_STRVAR(journald_sendv__doc__,
+             "sendv('FIELD=value', 'FIELD=value', ...) -> None\n\n"
+             "Send an entry to journald."
+             );
+
 static PyObject *
 journald_sendv(PyObject *self, PyObject *args) {
     struct iovec *iov = NULL;
@@ -75,8 +80,7 @@ out1:
 }
 
 static PyMethodDef methods[] = {
-    {"sendv",  journald_sendv, METH_VARARGS,
-     "Send an entry to journald."},
+    {"sendv",  journald_sendv, METH_VARARGS, journald_sendv__doc__},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 

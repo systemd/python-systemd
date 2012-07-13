@@ -10,7 +10,7 @@ def _make_line(field, value):
 def send(MESSAGE, MESSAGE_ID=None,
          CODE_FILE=None, CODE_LINE=None, CODE_FUNC=None,
          **kwargs):
-    """Send a message to journald.
+    r"""Send a message to journald.
 
     >>> journald.send('Hello world')
     >>> journald.send('Hello, again, world', FIELD2='Greetings!')
