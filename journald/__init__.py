@@ -1,5 +1,5 @@
-import traceback
 from ._journald import sendv
+import traceback as _traceback
 
 def _make_line(field, value):
     if isinstance(value, bytes):
@@ -41,7 +41,8 @@ def send(MESSAGE, MESSAGE_ID=None,
         args.append('MESSAGE_ID=' + MESSAGE_ID)
 
     if CODE_LINE == CODE_FILE == CODE_FUNC == None:
-        CODE_FILE, CODE_LINE, CODE_FUNC = traceback.extract_stack(limit=2)[0][:3]
+        CODE_FILE, CODE_LINE, CODE_FUNC = \
+            _traceback.extract_stack(limit=2)[0][:3]
     if CODE_FILE is not None:
         args.append('CODE_FILE=' + CODE_FILE)
     if CODE_LINE is not None:
