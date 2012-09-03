@@ -79,8 +79,31 @@ out1:
     return ret;
 }
 
+PyDoc_STRVAR(journald_stream_fd__doc__,
+             "stream_fd(identifier, priority, level_prefix) -> fd\n\n"
+             "Open a stream to journald by calling sd_journal_stream_fd(3)."
+             );
+
+static PyObject*
+journald_stream_fd(PyObject *self, PyObject *args) {
+    const char* identifier;
+    int priority, level_prefix;
+    int fd;
+    if (!PyArg_ParseTuple(args, "sii:stream_fd",
+                          &identifier, &priority, &level_prefix))
+        return NULL;
+
+    fd = sd_journal_stream_fd(identifier, priority, level_prefix);
+    if (fd < 0)
+        return PyErr_SetFromErrno(PyExc_IOError);
+
+    return PyLong_FromLong(fd);
+}
+
 static PyMethodDef methods[] = {
     {"sendv",  journald_sendv, METH_VARARGS, journald_sendv__doc__},
+    {"stream_fd", journald_stream_fd, METH_VARARGS,
+     journald_stream_fd__doc__},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
