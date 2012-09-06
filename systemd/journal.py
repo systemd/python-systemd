@@ -2,7 +2,7 @@ import traceback as _traceback
 import os as _os
 from syslog import (LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR,
                     LOG_WARNING, LOG_NOTICE, LOG_INFO, LOG_DEBUG)
-from ._journald import sendv, stream_fd
+from ._journal import sendv, stream_fd
 
 def _make_line(field, value):
     if isinstance(value, bytes):
@@ -15,9 +15,9 @@ def send(MESSAGE, MESSAGE_ID=None,
          **kwargs):
     r"""Send a message to journald.
 
-    >>> journald.send('Hello world')
-    >>> journald.send('Hello, again, world', FIELD2='Greetings!')
-    >>> journald.send('Binary message', BINARY=b'\xde\xad\xbe\xef')
+    >>> journal.send('Hello world')
+    >>> journal.send('Hello, again, world', FIELD2='Greetings!')
+    >>> journal.send('Binary message', BINARY=b'\xde\xad\xbe\xef')
 
     Value of the MESSAGE argument will be used for the MESSAGE= field.
 
@@ -26,8 +26,8 @@ def send(MESSAGE, MESSAGE_ID=None,
     Other parts of the message can be specified as keyword arguments.
 
     Both MESSAGE and MESSAGE_ID, if present, must be strings, and will
-    be sent as UTF-8 to journald. Other arguments can be bytes, in
-    which case they will be sent as-is to journald.
+    be sent as UTF-8 to journal. Other arguments can be bytes, in
+    which case they will be sent as-is to journal.
 
     CODE_LINE, CODE_FILE, and CODE_FUNC can be specified to identify
     the caller. Unless at least on of the three is given, values are
@@ -57,7 +57,7 @@ def send(MESSAGE, MESSAGE_ID=None,
     return sendv(*args)
 
 def stream(identifier, priority=LOG_DEBUG, level_prefix=False):
-    r"""Return a file object wrapping a stream to journald.
+    r"""Return a file object wrapping a stream to journal.
 
     Log messages written to this file as simple newline sepearted
     text strings are written to the journal.
@@ -65,7 +65,7 @@ def stream(identifier, priority=LOG_DEBUG, level_prefix=False):
     The file will be line buffered, so messages are actually sent
     after a newline character is written.
 
-    >>> stream = journald.stream('myapp')
+    >>> stream = journal.stream('myapp')
     >>> stream
     <open file '<fdopen>', mode 'w' at 0x...>
     >>> stream.write('message...\n')

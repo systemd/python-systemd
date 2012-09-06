@@ -2,13 +2,13 @@
 #define SD_JOURNAL_SUPPRESS_LOCATION
 #include <systemd/sd-journal.h>
 
-PyDoc_STRVAR(journald_sendv__doc__,
+PyDoc_STRVAR(journal_sendv__doc__,
              "sendv('FIELD=value', 'FIELD=value', ...) -> None\n\n"
-             "Send an entry to journald."
+             "Send an entry to the journal."
              );
 
 static PyObject *
-journald_sendv(PyObject *self, PyObject *args) {
+journal_sendv(PyObject *self, PyObject *args) {
     struct iovec *iov = NULL;
     int argc = PyTuple_Size(args);
     int i, r;
@@ -50,7 +50,7 @@ journald_sendv(PyObject *self, PyObject *args) {
     // itself, unless an error occurs in one of the system calls.
     errno = 0;
 
-    // Send the iovector to journald.
+    // Send the iovector to the journal.
     r = sd_journal_sendv(iov, argc);
 
     if (r) {
@@ -79,13 +79,13 @@ out1:
     return ret;
 }
 
-PyDoc_STRVAR(journald_stream_fd__doc__,
+PyDoc_STRVAR(journal_stream_fd__doc__,
              "stream_fd(identifier, priority, level_prefix) -> fd\n\n"
-             "Open a stream to journald by calling sd_journal_stream_fd(3)."
+             "Open a stream to journal by calling sd_journal_stream_fd(3)."
              );
 
 static PyObject*
-journald_stream_fd(PyObject *self, PyObject *args) {
+journal_stream_fd(PyObject *self, PyObject *args) {
     const char* identifier;
     int priority, level_prefix;
     int fd;
@@ -101,32 +101,32 @@ journald_stream_fd(PyObject *self, PyObject *args) {
 }
 
 static PyMethodDef methods[] = {
-    {"sendv",  journald_sendv, METH_VARARGS, journald_sendv__doc__},
-    {"stream_fd", journald_stream_fd, METH_VARARGS,
-     journald_stream_fd__doc__},
+    {"sendv",  journal_sendv, METH_VARARGS, journal_sendv__doc__},
+    {"stream_fd", journal_stream_fd, METH_VARARGS,
+     journal_stream_fd__doc__},
     {NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
 #if PY_MAJOR_VERSION < 3
 
 PyMODINIT_FUNC
-init_journald(void)
+init_journal(void)
 {
-    (void) Py_InitModule("_journald", methods);
+    (void) Py_InitModule("_journal", methods);
 }
 
 #else
 
 static struct PyModuleDef module = {
     PyModuleDef_HEAD_INIT,
-    "_journald", /* name of module */
+    "_journal", /* name of module */
     NULL, /* module documentation, may be NULL */
     0, /* size of per-interpreter state of the module */
     methods
 };
 
 PyMODINIT_FUNC
-PyInit__journald(void)
+PyInit_journal(void)
 {
     return PyModule_Create(&module);
 }
