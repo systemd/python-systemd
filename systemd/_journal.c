@@ -126,7 +126,7 @@ static struct PyModuleDef module = {
 };
 
 PyMODINIT_FUNC
-PyInit_journal(void)
+PyInit__journal(void)
 {
     return PyModule_Create(&module);
 }
