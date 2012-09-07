@@ -1,17 +1,24 @@
-journald-python
+python-systemd
 ===============
 
-Python module for native access to the journald facilities in recent
-versions of systemd. In particular, this capability includes passing
-key/value pairs as fields that journald can use for filtering.
+Python module for native access to the systemd facilities in recent versions
+of Fedora and other distributions. In particular, this capability includes
+passing key/value pairs as fields that the journal can display and use for
+filtering. There are also utilities to forward journal entries to aggregators
+like Graylog2 via GELF.
 
 Installation
 ============
 
-On Fedora 17+:
+On Fedora 17+ with Python 2:
 
     sudo yum install git python-pip gcc python-devel systemd-devel
     pip-python install git+http://github.com/systemd/python-systemd.git#egg=systemd
+
+On Fedora 17+ with Python 3:
+
+    sudo yum install git python3-pip gcc python3-devel systemd-devel
+    pip-python3 install git+http://github.com/systemd/python-systemd.git#egg=systemd
 
 Usage
 =====
@@ -43,8 +50,6 @@ Notes:
    printf-style substitution is not supported. Perform any
    substitution using Python's % operator or .format() capabilities
    first.
- * The base message is usually sent in the form MESSAGE=hello. The
-   MESSAGE field is, however, not required.
  * A ValueError is thrown is thrown if sd_journald_sendv() results in
    an error. This might happen if there are no arguments or one of them
    is invalid.
