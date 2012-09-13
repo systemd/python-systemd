@@ -1,6 +1,9 @@
 #include <Python.h>
+
 #define SD_JOURNAL_SUPPRESS_LOCATION
 #include <systemd/sd-journal.h>
+
+#include "macro.h"
 
 PyDoc_STRVAR(journal_sendv__doc__,
              "sendv('FIELD=value', 'FIELD=value', ...) -> None\n\n"
