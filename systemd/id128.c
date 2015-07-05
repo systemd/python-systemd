@@ -24,8 +24,6 @@
 #include "systemd/sd-messages.h"
 
 #include "pyutil.h"
-#include "log.h"
-#include "util.h"
 #include "macro.h"
 
 PyDoc_STRVAR(module__doc__,

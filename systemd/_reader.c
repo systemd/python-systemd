@@ -24,14 +24,13 @@
 #include <datetime.h>
 #include <time.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 #include "systemd/sd-journal.h"
 
 #include "pyutil.h"
 #include "macro.h"
-#include "util.h"
 #include "strv.h"
-#include "build.h"
 
 typedef struct {
         PyObject_HEAD
@@ -113,8 +112,10 @@ static int strv_converter(PyObject* obj, void *_result) {
                         goto cleanup;
 
                 s2 = strdup(s);
-                if (!s2)
-                        log_oom();
+                if (!s2) {
+                        set_error(-ENOMEM, NULL, NULL);
+                        goto cleanup;
+                }
 
                 (*result)[i] = s2;
         }
@@ -343,7 +344,7 @@ static PyObject* Reader_next(Reader *self, PyObject *args) {
         else if (skip < -1LL)
                 r = sd_journal_previous_skip(self->j, -skip);
         else
-                assert_not_reached("should not be here");
+                assert(!"should be here");
         Py_END_ALLOW_THREADS
 
         if (set_error(r, NULL, NULL) < 0)

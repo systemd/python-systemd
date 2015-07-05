@@ -27,7 +27,6 @@
 
 #include "systemd/sd-login.h"
 #include "pyutil.h"
-#include "util.h"
 #include "strv.h"
 
 PyDoc_STRVAR(module__doc__,
