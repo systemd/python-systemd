@@ -30,7 +30,7 @@ login = Extension('systemd/login',
                      sources = ['systemd/login.c',
                                 'systemd/pyutil.c',
                                 'systemd/strv.c'])
-setup (name = 'systemd',
+setup (name = 'python-systemd',
        version = version,
        description = 'Native interface to the facilities of systemd',
        author_email = 'david@davidstrauss.net',
