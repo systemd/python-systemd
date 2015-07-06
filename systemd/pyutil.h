@@ -3,7 +3,6 @@
 #pragma once
 
 /***
-  This file is part of systemd.
 
   Copyright 2013 Zbigniew Jędrzejewski-Szmek <zbyszek@in.waw.pl>
 

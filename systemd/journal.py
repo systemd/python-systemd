@@ -1,6 +1,5 @@
 #  -*- Mode: python; coding:utf-8; indent-tabs-mode: nil -*- */
 #
-#  This file is part of systemd.
 #
 #  Copyright 2012 David Strauss <david@davidstrauss.net>
 #  Copyright 2012 Zbigniew Jędrzejewski-Szmek <zbyszek@in.waw.pl>

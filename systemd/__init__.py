@@ -1,6 +1,5 @@
 #  -*- Mode: python; indent-tabs-mode: nil -*- */
 #
-#  This file is part of systemd.
 #
 #  Copyright 2012 David Strauss
 #

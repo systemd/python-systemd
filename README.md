@@ -1,23 +1,40 @@
 python-systemd
 ===============
 
-Python module for native access to the systemd facilities in recent versions
-of Fedora and other distributions. In particular, this capability includes
-passing key/value pairs as fields that the journal can display and use for
-filtering. There are also utilities to forward journal entries to aggregators
-like Graylog2 via GELF.
+Python module for native access to the systemd facilities. Functionality
+is seperated into a number of modules:
+- systemd.journal supports sending of structured messages to the journal
+  and reading journal files,
+- systemd.daemon wraps parts of libsystemd useful for writing daemons
+  and socket activation,
+- systemd.id128 provides functions for querying machine and boot identifiers
+  and a lists of message identifiers provided by systemd,
+- systemd.login wraps parts of libsystemd used to query logged in users
+  and available seats and machines.
 
 Installation
 ============
 
+This module should be packaged for almost all Linux distributions. Use
+
+On Fedora/RHEL/CentOS
+
+    dnf install python-systemd python3-systemd
+
+On Debian/Ubuntu/Mint
+
+    apt-get install python-systemd python3-systemd
+
+To build from source
+
 On Fedora 17+ with Python 2:
 
-    sudo yum install git python-pip gcc python-devel systemd-devel
+    sudo dnf install git python-pip gcc python-devel systemd-devel
     pip-python install git+http://github.com/systemd/python-systemd.git#egg=systemd
 
 On Fedora 17+ with Python 3:
 
-    sudo yum install git python3-pip gcc python3-devel systemd-devel
+    sudo dnf install git python3-pip gcc python3-devel systemd-devel
     pip-python3 install git+http://github.com/systemd/python-systemd.git#egg=systemd
 
 Usage
@@ -64,8 +81,7 @@ Quick way to view output with all fields as it comes in:
 Test Builds (for Development)
 =============================
 
-    python setup.py build
-    cd builds/lib.*
+    python setup.py build_ext -i
     python
     >>> from systemd import journal
     >>> journal.send("Test")
