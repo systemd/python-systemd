@@ -1,6 +1,6 @@
 from distutils.core import setup, Extension
 
-version = '221'
+version = '230'
 defines = [('PACKAGE_VERSION', '"{}"'.format(version))]
 
 _journal = Extension('systemd/_journal',
