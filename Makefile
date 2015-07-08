@@ -11,10 +11,17 @@ endef
 
 builddir := $(shell $(PYTHON) -c '$(buildscript)')
 
+all: build
+
 systemd/id128-constants.h: $(INCLUDE_DIR)/systemd/sd-messages.h
 	$(SED) -n -r 's/,//g; s/#define (SD_MESSAGE_[A-Z0-9_]+)\s.*/add_id(m, "\1", \1) JOINER/p' <$< >$@
 
+build: systemd/id128-constants.h
+	$(PYTHON) setup.py build
+
 SPHINXOPTS = -D version=$(VERSION) -D release=$(VERSION)
-sphinx-%:
+sphinx-%: build
 	PYTHONPATH=$(builddir) $(SPHINX_BUILD) -b $* $(SPHINXOPTS) docs build/docs
 	@echo Output has been generated in build/docs
+
+.PHONY: build
