@@ -3,8 +3,10 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to python-systemd's documentation!
-==========================================
+.. _index:
+
+python-systemd package
+======================
 
 Contents:
 
@@ -15,6 +17,15 @@ Contents:
    id128
    daemon
    login
+
+Links
+=====
+
+* `systemd man pages <http://www.freedesktop.org/software/systemd/man/index.html>`_
+* `systemd directives <http://www.freedesktop.org/software/systemd/man/systemd.directives.html>`_
+* git `repository <https://github.com/systemd/python-systemd>`_ of this package
+* `systemd <http://www.freedesktop.org/wiki/Software/systemd/>`_ home page
+* systemd git `repository <https://github.com/systemd/systemd>`_
 
 Indices and tables
 ==================
