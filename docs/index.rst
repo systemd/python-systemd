@@ -25,7 +25,7 @@ Links
 * `systemd directives <http://www.freedesktop.org/software/systemd/man/systemd.directives.html>`_
 * git `repository <https://github.com/systemd/python-systemd>`_ of this package
 * `systemd <http://www.freedesktop.org/wiki/Software/systemd/>`_ home page
-* systemd git `repository <https://github.com/systemd/systemd>`_
+* systemd git `repository <https://github.com/systemd/systemd>`__
 
 Indices and tables
 ==================
