@@ -1,5 +1,5 @@
-include systemd/id128-constants.h
 include systemd/*.h
+exclude systemd/id128-constants.h
 include README.md
 include LICENSE.txt
 graft docs
