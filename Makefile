@@ -19,9 +19,15 @@ systemd/id128-constants.h: $(INCLUDE_DIR)/systemd/sd-messages.h
 build: systemd/id128-constants.h
 	$(PYTHON) setup.py build
 
+install:
+	$(PYTHON) setup.py install --skip-build $(if $(DESTDIR),--root $(DESTDIR))
+
+dist:
+	$(PYTHON) setup.py sdist
+
 SPHINXOPTS = -D version=$(VERSION) -D release=$(VERSION)
 sphinx-%: build
 	PYTHONPATH=$(builddir) $(SPHINX_BUILD) -b $* $(SPHINXOPTS) docs build/docs
 	@echo Output has been generated in build/docs
 
-.PHONY: build
+.PHONY: build install dist
