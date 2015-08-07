@@ -25,9 +25,15 @@ install:
 dist:
 	$(PYTHON) setup.py sdist
 
+clean:
+	rm -rf build systemd/*.so systemd/*.py[co] *.py[co] systemd/__pycache__
+
+distclean: clean
+	rm -rf dist MANIFEST systemd/id128-constants.h
+
 SPHINXOPTS = -D version=$(VERSION) -D release=$(VERSION)
 sphinx-%: build
 	PYTHONPATH=$(builddir) $(SPHINX_BUILD) -b $* $(SPHINXOPTS) docs build/docs
 	@echo Output has been generated in build/docs
 
-.PHONY: build install dist
+.PHONY: build install dist clean distclean
