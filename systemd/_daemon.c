@@ -142,9 +142,12 @@ static PyObject* is_fifo(PyObject *self, PyObject *args) {
         const char *path = NULL;
 
 #if PY_MAJOR_VERSION >=3 && PY_MINOR_VERSION >= 1
+        _cleanup_Py_DECREF_ PyObject *_path = NULL;
         if (!PyArg_ParseTuple(args, "i|O&:_is_fifo",
-                              &fd, Unicode_FSConverter, &path))
+                              &fd, Unicode_FSConverter, &_path))
                 return NULL;
+        if (_path)
+                path = PyBytes_AsString(_path);
 #else
         if (!PyArg_ParseTuple(args, "i|z:_is_fifo", &fd, &path))
                 return NULL;
@@ -170,9 +173,12 @@ static PyObject* is_mq(PyObject *self, PyObject *args) {
         const char *path = NULL;
 
 #if PY_MAJOR_VERSION >=3 && PY_MINOR_VERSION >= 1
+        _cleanup_Py_DECREF_ PyObject *_path = NULL;
         if (!PyArg_ParseTuple(args, "i|O&:_is_mq",
-                              &fd, Unicode_FSConverter, &path))
+                              &fd, Unicode_FSConverter, &_path))
                 return NULL;
+	if (_path)
+		path = PyBytes_AsString(_path);
 #else
         if (!PyArg_ParseTuple(args, "i|z:_is_mq", &fd, &path))
                 return NULL;
