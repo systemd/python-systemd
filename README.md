@@ -85,3 +85,5 @@ Test Builds (for Development)
     python
     >>> from systemd import journal
     >>> journal.send("Test")
+
+[![Build Status](https://semaphoreci.com/api/v1/projects/42d43c62-f6e5-4fd5-a93a-2b165e6be575/530946/badge.svg)](https://semaphoreci.com/zbyszek/python-systemd)
