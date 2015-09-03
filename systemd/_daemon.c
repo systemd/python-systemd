@@ -43,7 +43,7 @@ PyDoc_STRVAR(module__doc__,
 PyDoc_STRVAR(booted__doc__,
              "booted() -> bool\n\n"
              "Return True iff this system is running under systemd.\n"
-             "Wraps sd_daemon_booted(3)."
+             "Wraps sd_booted(3)."
 );
 
 static PyObject* booted(PyObject *self, PyObject *args) {
