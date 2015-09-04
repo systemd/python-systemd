@@ -1,35 +1,50 @@
 from distutils.core import setup, Extension
+import subprocess
+
+def pkgconfig(package, **kw):
+    flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
+    output = subprocess.check_output(['pkg-config', '--libs', '--cflags', package],
+                                     universal_newlines=True)
+    for token in output.split():
+        kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
+    return kw
+
+def lib(name, fallback):
+    try:
+        return pkgconfig(name)
+    except subprocess.CalledProcessError:
+        return pkgconfig(fallback)
 
 version = '230'
 defines = [('PACKAGE_VERSION', '"{}"'.format(version))]
 
 _journal = Extension('systemd/_journal',
                      define_macros = defines,
-                     libraries = ['systemd'],
                      sources = ['systemd/_journal.c',
-                                'systemd/pyutil.c'])
+                                'systemd/pyutil.c'],
+                     **lib('libsystemd', 'libsystemd-journal'))
 _reader = Extension('systemd/_reader',
                      define_macros = defines,
-                     libraries = ['systemd'],
                      sources = ['systemd/_reader.c',
                                 'systemd/pyutil.c',
-                                'systemd/strv.c'])
+                                'systemd/strv.c'],
+                     **lib('libsystemd', 'libsystemd-journal'))
 _daemon = Extension('systemd/_daemon',
                      define_macros = defines,
-                     libraries = ['systemd'],
                      sources = ['systemd/_daemon.c',
-                                'systemd/pyutil.c'])
+                                'systemd/pyutil.c'],
+                     **lib('libsystemd', 'libsystemd-daemon'))
 id128 = Extension('systemd/id128',
                      define_macros = defines,
-                     libraries = ['systemd'],
                      sources = ['systemd/id128.c',
-                                'systemd/pyutil.c'])
+                                'systemd/pyutil.c'],
+                     **lib('libsystemd', 'libsystemd-id128'))
 login = Extension('systemd/login',
                      define_macros = defines,
-                     libraries = ['systemd'],
                      sources = ['systemd/login.c',
                                 'systemd/pyutil.c',
-                                'systemd/strv.c'])
+                                'systemd/strv.c'],
+                     **lib('libsystemd', 'libsystemd-login'))
 setup (name = 'python-systemd',
        version = version,
        description = 'Native interface to the facilities of systemd',

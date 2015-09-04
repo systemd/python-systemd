@@ -37,6 +37,14 @@ On Fedora 21+ with Python 3:
     dnf install git python3-pip gcc python3-devel systemd-devel
     pip3 install git+https://github.com/systemd/python-systemd.git#egg=systemd
 
+On Debian or Ubuntu with Python 2:
+
+   apt-get install libsystemd-{journal,daemon,login,id128}-dev gcc python-dev
+
+On Debian or Ubuntu with Python 3:
+
+   apt-get install libsystemd-{journal,daemon,login,id128}-dev gcc python3-dev
+
 Usage
 =====
 
