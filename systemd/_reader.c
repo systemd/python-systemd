@@ -31,6 +31,13 @@
 #include "macro.h"
 #include "strv.h"
 
+#if defined(LIBSYSTEMD_VERSION) || LIBSYSTEMD_JOURNAL_VERSION > 204
+#  define HAVE_JOURNAL_OPEN_FILES
+#else
+#  define SD_JOURNAL_SYSTEM 4
+#  define SD_JOURNAL_CURRENT_USER 8
+#endif
+
 typedef struct {
         PyObject_HEAD
         sd_journal *j;
@@ -170,9 +177,13 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
         Py_BEGIN_ALLOW_THREADS
         if (path)
                 r = sd_journal_open_directory(&self->j, path, 0);
-        else if (files)
+        else if (files) {
+#ifdef HAVE_JOURNAL_OPEN_FILES
                 r = sd_journal_open_files(&self->j, (const char**) files, 0);
-        else
+#else
+                r = -ENOSYS;
+#endif
+        } else
                 r = sd_journal_open(&self->j, flags);
         Py_END_ALLOW_THREADS
 

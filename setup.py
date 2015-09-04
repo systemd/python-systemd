@@ -1,6 +1,6 @@
 import sys, os
 from distutils.core import setup, Extension
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, check_output
 
 def call(*cmd):
     cmd = Popen(cmd,
@@ -18,14 +18,20 @@ def pkgconfig(package, **kw):
         return status, result
     for token in result.split():
         kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
+    version = check_output(['pkg-config', '--modversion', package],
+                           universal_newlines=True).strip()
+    pair = (package.replace('-', '_').upper() + '_VERSION', version)
+    defines = kw.setdefault('define_macros', [])
+    if pair not in defines:
+        defines.append(pair)
     return status, kw
 
-def lib(*names):
+def lib(*names, **kw):
     if '--version' in sys.argv:
         return {}
     results = []
     for name in names:
-        status, result = pkgconfig(name)
+        status, result = pkgconfig(name, **kw)
         if status == 0:
             return result
         results.append(result)
@@ -34,35 +40,30 @@ def lib(*names):
     sys.exit(status)
 
 version = '230'
-defines = [('PACKAGE_VERSION', '"{}"'.format(version))]
+defines = {'define_macros':[('PACKAGE_VERSION', '"{}"'.format(version))]}
 
 _journal = Extension('systemd/_journal',
-                     define_macros = defines,
                      sources = ['systemd/_journal.c',
                                 'systemd/pyutil.c'],
-                     **lib('libsystemd', 'libsystemd-journal'))
+                     **lib('libsystemd', 'libsystemd-journal', **defines))
 _reader = Extension('systemd/_reader',
-                     define_macros = defines,
                      sources = ['systemd/_reader.c',
                                 'systemd/pyutil.c',
                                 'systemd/strv.c'],
-                     **lib('libsystemd', 'libsystemd-journal'))
+                     **lib('libsystemd', 'libsystemd-journal', **defines))
 _daemon = Extension('systemd/_daemon',
-                     define_macros = defines,
                      sources = ['systemd/_daemon.c',
                                 'systemd/pyutil.c'],
-                     **lib('libsystemd', 'libsystemd-daemon'))
+                     **lib('libsystemd', 'libsystemd-daemon', **defines))
 id128 = Extension('systemd/id128',
-                     define_macros = defines,
                      sources = ['systemd/id128.c',
                                 'systemd/pyutil.c'],
-                     **lib('libsystemd', 'libsystemd-id128'))
+                     **lib('libsystemd', 'libsystemd-id128', **defines))
 login = Extension('systemd/login',
-                     define_macros = defines,
                      sources = ['systemd/login.c',
                                 'systemd/pyutil.c',
                                 'systemd/strv.c'],
-                     **lib('libsystemd', 'libsystemd-login'))
+                     **lib('libsystemd', 'libsystemd-login', **defines))
 setup (name = 'python-systemd',
        version = version,
        description = 'Native interface to the facilities of systemd',
