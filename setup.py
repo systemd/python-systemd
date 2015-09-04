@@ -1,19 +1,37 @@
+import sys, os
 from distutils.core import setup, Extension
-import subprocess
+from subprocess import Popen, PIPE
+
+def call(*cmd):
+    cmd = Popen(cmd,
+                stdout=PIPE, stderr=PIPE,
+                universal_newlines=True)
+    if cmd.wait() == 0:
+        return cmd.returncode, cmd.stdout.read()
+    else:
+        return cmd.returncode, cmd.stderr.read()
 
 def pkgconfig(package, **kw):
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
-    output = subprocess.check_output(['pkg-config', '--libs', '--cflags', package],
-                                     universal_newlines=True)
-    for token in output.split():
+    status, result = call('pkg-config', '--libs', '--cflags', package)
+    if status != 0:
+        return status, result
+    for token in result.split():
         kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
-    return kw
+    return status, kw
 
-def lib(name, fallback):
-    try:
-        return pkgconfig(name)
-    except subprocess.CalledProcessError:
-        return pkgconfig(fallback)
+def lib(*names):
+    if '--version' in sys.argv:
+        return {}
+    results = []
+    for name in names:
+        status, result = pkgconfig(name)
+        if status == 0:
+            return result
+        results.append(result)
+    sys.stderr.write('Cannot find ' + ' or '.join(names) + ':\n\n'
+                     + '\n'.join(results) + '\n')
+    sys.exit(status)
 
 version = '230'
 defines = [('PACKAGE_VERSION', '"{}"'.format(version))]
