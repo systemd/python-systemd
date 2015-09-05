@@ -1,7 +1,7 @@
 import sys
 import os
 import posix
-from systemd.daemon import _is_fifo, is_fifo
+from systemd.daemon import _is_fifo, is_fifo, listen_fds
 
 import pytest
 
@@ -62,3 +62,28 @@ def test_is_fifo_bad_fd(tmpdir):
 
     with pytest.raises(OSError):
         assert not is_fifo(-1, path)
+
+def test_listen_fds_no_fds():
+    # make sure we have no fds to listen to
+    os.unsetenv('LISTEN_FDS')
+    os.unsetenv('LISTEN_PID')
+
+    assert listen_fds() == []
+    assert listen_fds(True) == []
+    assert listen_fds(False) == []
+
+def test_listen_fds():
+    os.environ['LISTEN_FDS'] = '3'
+    os.environ['LISTEN_PID'] = str(os.getpid())
+
+    assert listen_fds(False) == [3, 4, 5]
+    assert listen_fds(True) == [3, 4, 5]
+    assert listen_fds() == []
+
+def test_listen_fds_default_unset():
+    os.environ['LISTEN_FDS'] = '1'
+    os.environ['LISTEN_PID'] = str(os.getpid())
+
+    assert listen_fds(False) == [3]
+    assert listen_fds() == [3]
+    assert listen_fds() == []
