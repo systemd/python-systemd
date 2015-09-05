@@ -1,9 +1,17 @@
 import sys
 import os
 import posix
-from systemd.daemon import _is_fifo, is_fifo, listen_fds
+from systemd.daemon import _is_fifo, is_fifo, listen_fds, booted
 
 import pytest
+
+def test_booted():
+    if os.path.exists('/run/systemd'):
+        # assume we are running under systemd
+        assert booted()
+    else:
+        # don't assume anything
+        assert booted() in {False, True}
 
 def test__is_fifo(tmpdir):
     path = tmpdir.join('test.fifo').strpath
