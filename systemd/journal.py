@@ -421,8 +421,7 @@ def stream(identifier, priority=LOG_DEBUG, level_prefix=False):
 
         >>> from systemd import journal
         >>> stream = journal.stream('myapp')
-        >>> stream.write('message...\n')
-        11
+        >>> res = stream.write('message...\n')
 
         will produce the following message in the journal::
 
@@ -433,7 +432,7 @@ def stream(identifier, priority=LOG_DEBUG, level_prefix=False):
         Using the interface with print might be more convinient:
 
         >>> from __future__ import print_function
-        >>> print('message...', file=stream)
+        >>> print('message...', file=stream)                 # doctest: +SKIP
 
         priority is the syslog priority, one of `LOG_EMERG`,
         `LOG_ALERT`, `LOG_CRIT`, `LOG_ERR`, `LOG_WARNING`,
