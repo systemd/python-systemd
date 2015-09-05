@@ -113,12 +113,15 @@ class Reader(_Reader):
     Example usage to print out all informational or higher level
     messages for systemd-udevd for this boot:
 
+    >>> from systemd import journal
     >>> j = journal.Reader()
     >>> j.this_boot()
     >>> j.log_level(journal.LOG_INFO)
     >>> j.add_match(_SYSTEMD_UNIT="systemd-udevd.service")
     >>> for entry in j:
     ...    print(entry['MESSAGE'])
+    starting version ...
+    ...
 
     See systemd.journal-fields(7) for more info on typical fields
     found in the journal.
@@ -361,6 +364,7 @@ def send(MESSAGE, MESSAGE_ID=None,
          **kwargs):
         r"""Send a message to the journal.
 
+        >>> from systemd import journal
         >>> journal.send('Hello world')
         >>> journal.send('Hello, again, world', FIELD2='Greetings!')
         >>> journal.send('Binary message', BINARY=b'\xde\xad\xbe\xef')
@@ -415,10 +419,10 @@ def stream(identifier, priority=LOG_DEBUG, level_prefix=False):
         The file will be line buffered, so messages are actually sent
         after a newline character is written.
 
+        >>> from systemd import journal
         >>> stream = journal.stream('myapp')
-        >>> stream
-        <open file '<fdopen>', mode 'w' at 0x...>
         >>> stream.write('message...\n')
+        11
 
         will produce the following message in the journal::
 
@@ -451,10 +455,11 @@ class JournalHandler(_logging.Handler):
 
         To create a custom logger whose messages go only to journal:
 
+        >>> import logging
         >>> log = logging.getLogger('custom_logger_name')
         >>> log.propagate = False
-        >>> log.addHandler(journal.JournalHandler())
-        >>> log.warn("Some message: %s", detail)
+        >>> log.addHandler(JournalHandler())
+        >>> log.warn("Some message: %s", 'detail')
 
         Note that by default, message levels `INFO` and `DEBUG` are
         ignored by the logging framework. To enable those log levels:
@@ -464,7 +469,7 @@ class JournalHandler(_logging.Handler):
         To redirect all logging messages to journal regardless of where
         they come from, attach it to the root logger:
 
-        >>> logging.root.addHandler(journal.JournalHandler())
+        >>> logging.root.addHandler(JournalHandler())
 
         For more complex configurations when using `dictConfig` or
         `fileConfig`, specify `systemd.journal.JournalHandler` as the
@@ -482,7 +487,8 @@ class JournalHandler(_logging.Handler):
         makes sense only for SYSLOG_IDENTIFIER and similar fields
         which are constant for the whole program:
 
-        >>> journal.JournalHandler(SYSLOG_IDENTIFIER='my-cool-app')
+        >>> JournalHandler(SYSLOG_IDENTIFIER='my-cool-app')
+        <systemd.journal.JournalHandler object at ...>
 
         The following journal fields will be sent:
         `MESSAGE`, `PRIORITY`, `THREAD_NAME`, `CODE_FILE`, `CODE_LINE`,
