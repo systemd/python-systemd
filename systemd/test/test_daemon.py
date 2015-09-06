@@ -1,9 +1,27 @@
 import sys
 import os
 import posix
-from systemd.daemon import _is_fifo, is_fifo, listen_fds, booted
+import socket
+import contextlib
+from systemd.daemon import (booted,
+                            is_fifo, _is_fifo,
+                            is_socket, _is_socket,
+                            is_socket_inet, _is_socket_inet,
+                            is_socket_unix, _is_socket_unix,
+                            is_mq, _is_mq,
+                            listen_fds)
 
 import pytest
+
+@contextlib.contextmanager
+def closing_socketpair(family):
+    pair = socket.socketpair(family)
+    try:
+        yield pair
+    finally:
+        pair[0].close()
+        pair[1].close()
+
 
 def test_booted():
     if os.path.exists('/run/systemd'):
@@ -70,6 +88,72 @@ def test_is_fifo_bad_fd(tmpdir):
 
     with pytest.raises(OSError):
         assert not is_fifo(-1, path)
+
+def test_no_mismatch():
+    with closing_socketpair(socket.AF_UNIX) as pair:
+        for sock in pair:
+            assert not is_fifo(sock)
+            assert not is_mq(sock)
+            assert not is_socket_inet(sock)
+
+            fd = sock.fileno()
+            assert not is_fifo(fd)
+            assert not is_mq(fd)
+            assert not is_socket_inet(fd)
+
+            assert not _is_fifo(fd)
+            assert not _is_mq(fd)
+            assert not _is_socket_inet(fd)
+
+def test_is_socket():
+    with closing_socketpair(socket.AF_UNIX) as pair:
+        for sock in pair:
+            for arg in (sock, sock.fileno()):
+                assert is_socket(arg)
+                assert is_socket(arg, socket.AF_UNIX)
+                assert not is_socket(arg, socket.AF_INET)
+                assert is_socket(arg, socket.AF_UNIX, socket.SOCK_STREAM)
+                assert not is_socket(arg, socket.AF_INET, socket.SOCK_DGRAM)
+
+                assert is_socket(sock)
+                assert is_socket(arg, socket.AF_UNIX)
+                assert not is_socket(arg, socket.AF_INET)
+                assert is_socket(arg, socket.AF_UNIX, socket.SOCK_STREAM)
+                assert not is_socket(arg, socket.AF_INET, socket.SOCK_DGRAM)
+
+def test__is_socket():
+    with closing_socketpair(socket.AF_UNIX) as pair:
+        for sock in pair:
+            fd = sock.fileno()
+            assert _is_socket(fd)
+            assert _is_socket(fd, socket.AF_UNIX)
+            assert not _is_socket(fd, socket.AF_INET)
+            assert _is_socket(fd, socket.AF_UNIX, socket.SOCK_STREAM)
+            assert not _is_socket(fd, socket.AF_INET, socket.SOCK_DGRAM)
+
+            assert _is_socket(fd)
+            assert _is_socket(fd, socket.AF_UNIX)
+            assert not _is_socket(fd, socket.AF_INET)
+            assert _is_socket(fd, socket.AF_UNIX, socket.SOCK_STREAM)
+            assert not _is_socket(fd, socket.AF_INET, socket.SOCK_DGRAM)
+
+def test_is_socket_unix():
+    with closing_socketpair(socket.AF_UNIX) as pair:
+        for sock in pair:
+            for arg in (sock, sock.fileno()):
+                assert is_socket_unix(arg)
+                assert not is_socket_unix(arg, path="/no/such/path")
+                assert is_socket_unix(arg, socket.SOCK_STREAM)
+                assert not is_socket_unix(arg, socket.SOCK_DGRAM)
+
+def test__is_socket_unix():
+    with closing_socketpair(socket.AF_UNIX) as pair:
+        for sock in pair:
+            fd = sock.fileno()
+            assert _is_socket_unix(fd)
+            assert not _is_socket_unix(fd, 0, -1, "/no/such/path")
+            assert _is_socket_unix(fd, socket.SOCK_STREAM)
+            assert not _is_socket_unix(fd, socket.SOCK_DGRAM)
 
 def test_listen_fds_no_fds():
     # make sure we have no fds to listen to
