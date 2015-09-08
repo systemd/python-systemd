@@ -232,9 +232,9 @@ class Reader(_Reader):
         if super(Reader, self)._next(skip):
             entry = super(Reader, self)._get_all()
             if entry:
-                entry['__REALTIME_TIMESTAMP'] =  self._get_realtime()
-                entry['__MONOTONIC_TIMESTAMP']  = self._get_monotonic()
-                entry['__CURSOR']  = self._get_cursor()
+                entry['__REALTIME_TIMESTAMP'] = self._get_realtime()
+                entry['__MONOTONIC_TIMESTAMP'] = self._get_monotonic()
+                entry['__CURSOR'] = self._get_cursor()
                 return self._convert_entry(entry)
         return dict()
 
@@ -260,7 +260,7 @@ class Reader(_Reader):
         Reader creation.
         """
         return set(self._convert_field(field, value)
-            for value in super(Reader, self).query_unique(field))
+                   for value in super(Reader, self).query_unique(field))
 
     def wait(self, timeout=None):
         """Wait for a change in the journal. `timeout` is the maximum
@@ -335,7 +335,8 @@ class Reader(_Reader):
     def this_machine(self, machineid=None):
         """Add match for _MACHINE_ID equal to the ID of this machine.
 
-        If specified, machineid should be either a UUID or a 32 digit hex number.
+        If specified, machineid should be either a UUID or a 32 digit
+        hex number.
 
         Equivalent to add_match(_MACHINE_ID='machineid').
         """
@@ -398,8 +399,8 @@ def send(MESSAGE, MESSAGE_ID=None,
                 args.append('MESSAGE_ID=' + id)
 
         if CODE_LINE == CODE_FILE == CODE_FUNC == None:
-                CODE_FILE, CODE_LINE, CODE_FUNC = \
-                        _traceback.extract_stack(limit=2)[0][:3]
+            CODE_FILE, CODE_LINE, CODE_FUNC = \
+                    _traceback.extract_stack(limit=2)[0][:3]
         if CODE_FILE is not None:
                 args.append('CODE_FILE=' + CODE_FILE)
         if CODE_LINE is not None:
