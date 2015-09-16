@@ -100,10 +100,10 @@ DEFAULT_CONVERTERS = {
     'COREDUMP_TIMESTAMP': _convert_timestamp,
 }
 
-_IDENT_LETTER = set('ABCDEFGHIJKLMNOPQRTSUVWXYZ_')
+_IDENT_CHARACTER = set('ABCDEFGHIJKLMNOPQRTSUVWXYZ_0123456789')
 
 def _valid_field_name(s):
-    return not (set(s) - _IDENT_LETTER)
+    return not (set(s) - _IDENT_CHARACTER)
 
 class Reader(_Reader):
     """Reader allows the access and filtering of systemd journal
