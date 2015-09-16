@@ -179,7 +179,7 @@ class Reader(_Reader):
             return value
 
     def _convert_entry(self, entry):
-        """Convert entire journal entry utilising _covert_field"""
+        """Convert entire journal entry utilising _convert_field"""
         result = {}
         for key, value in entry.items():
             if isinstance(value, list):
