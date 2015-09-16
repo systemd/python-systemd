@@ -1,7 +1,10 @@
 import logging
-from systemd import journal
+import uuid
+from systemd import journal, id128
 
 import pytest
+
+TEST_MID = uuid.UUID('8441372f8dca4ca98694a6091fd8519f')
 
 def test_priorities():
     p = journal.JournalHandler.mapPriority
@@ -47,6 +50,35 @@ def test_reader_init_path(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)
     with pytest.raises(ValueError):
         journal.Reader(journal.LOCAL_ONLY, path=tmpdir.strpath)
+
+def test_reader_as_cm(tmpdir):
+    j = journal.Reader(path=tmpdir.strpath)
+    with j:
+        assert not j.closed
+    assert j.closed
+    # make sure that operations on the Reader fail
+    with pytest.raises(OSError):
+        next(j)
+
+def test_reader_messageid_match(tmpdir):
+    j = journal.Reader(path=tmpdir.strpath)
+    with j:
+        j.messageid_match(id128.SD_MESSAGE_JOURNAL_START)
+        j.messageid_match(id128.SD_MESSAGE_JOURNAL_STOP.hex)
+
+def test_reader_this_boot(tmpdir):
+    j = journal.Reader(path=tmpdir.strpath)
+    with j:
+        j.this_boot()
+        j.this_boot(TEST_MID)
+        j.this_boot(TEST_MID.hex)
+
+def test_reader_this_machine(tmpdir):
+    j = journal.Reader(path=tmpdir.strpath)
+    with j:
+        j.this_machine()
+        j.this_machine(TEST_MID)
+        j.this_machine(TEST_MID.hex)
 
 def test_reader_converters(tmpdir):
     converters = {'xxx' : lambda arg: 'yyy'}
