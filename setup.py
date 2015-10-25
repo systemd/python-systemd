@@ -7,11 +7,9 @@ from subprocess import Popen, PIPE, check_output
 class build_ext_generate_id128_header(build_ext):
     def run(self):
         if not self.dry_run and not os.path.exists("systemd/id128-constants.h"):
-            constants = []
-            with open("/usr/include/systemd/sd-messages.h") as f:
-                for line in f:
-                    if line.startswith('#define SD'):
-                        constants.append(line.split()[1])
+            constants = [line.split()[1]
+                         for line in open("/usr/include/systemd/sd-messages.h")
+                         if line.startswith('#define SD_MESSAGE_')]
 
             with open("systemd/id128-constants.h", "w") as f:
                 for c in constants:
