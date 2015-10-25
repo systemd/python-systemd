@@ -118,10 +118,9 @@ class Reader(_Reader):
     >>> j.this_boot()
     >>> j.log_level(journal.LOG_INFO)
     >>> j.add_match(_SYSTEMD_UNIT="systemd-udevd.service")
-    >>> for entry in j:
+    >>> for entry in j:                                 # doctest: +SKIP
     ...    print(entry['MESSAGE'])
     starting version ...
-    ...
 
     See systemd.journal-fields(7) for more info on typical fields
     found in the journal.
