@@ -100,10 +100,10 @@ DEFAULT_CONVERTERS = {
     'COREDUMP_TIMESTAMP': _convert_timestamp,
 }
 
-_IDENT_LETTER = set('ABCDEFGHIJKLMNOPQRTSUVWXYZ_')
+_IDENT_CHARACTER = set('ABCDEFGHIJKLMNOPQRTSUVWXYZ_0123456789')
 
 def _valid_field_name(s):
-    return not (set(s) - _IDENT_LETTER)
+    return not (set(s) - _IDENT_CHARACTER)
 
 class Reader(_Reader):
     """Reader allows the access and filtering of systemd journal
@@ -113,12 +113,14 @@ class Reader(_Reader):
     Example usage to print out all informational or higher level
     messages for systemd-udevd for this boot:
 
+    >>> from systemd import journal
     >>> j = journal.Reader()
     >>> j.this_boot()
     >>> j.log_level(journal.LOG_INFO)
     >>> j.add_match(_SYSTEMD_UNIT="systemd-udevd.service")
-    >>> for entry in j:
+    >>> for entry in j:                                 # doctest: +SKIP
     ...    print(entry['MESSAGE'])
+    starting version ...
 
     See systemd.journal-fields(7) for more info on typical fields
     found in the journal.
@@ -176,7 +178,7 @@ class Reader(_Reader):
             return value
 
     def _convert_entry(self, entry):
-        """Convert entire journal entry utilising _covert_field"""
+        """Convert entire journal entry utilising _convert_field"""
         result = {}
         for key, value in entry.items():
             if isinstance(value, list):
@@ -229,9 +231,9 @@ class Reader(_Reader):
         if super(Reader, self)._next(skip):
             entry = super(Reader, self)._get_all()
             if entry:
-                entry['__REALTIME_TIMESTAMP'] =  self._get_realtime()
-                entry['__MONOTONIC_TIMESTAMP']  = self._get_monotonic()
-                entry['__CURSOR']  = self._get_cursor()
+                entry['__REALTIME_TIMESTAMP'] = self._get_realtime()
+                entry['__MONOTONIC_TIMESTAMP'] = self._get_monotonic()
+                entry['__CURSOR'] = self._get_cursor()
                 return self._convert_entry(entry)
         return dict()
 
@@ -257,7 +259,7 @@ class Reader(_Reader):
         Reader creation.
         """
         return set(self._convert_field(field, value)
-            for value in super(Reader, self).query_unique(field))
+                   for value in super(Reader, self).query_unique(field))
 
     def wait(self, timeout=None):
         """Wait for a change in the journal. `timeout` is the maximum
@@ -317,9 +319,11 @@ class Reader(_Reader):
         self.add_match(MESSAGE_ID=messageid)
 
     def this_boot(self, bootid=None):
-        """Add match for _BOOT_ID equal to current boot ID or the specified boot ID.
+        """Add match for _BOOT_ID equal to current boot ID or the specified
+        boot ID.
 
-        If specified, bootid should be either a UUID or a 32 digit hex number.
+        If specified, bootid should be either a UUID or a 32 digit hex
+        number.
 
         Equivalent to add_match(_BOOT_ID='bootid').
         """
@@ -332,7 +336,8 @@ class Reader(_Reader):
     def this_machine(self, machineid=None):
         """Add match for _MACHINE_ID equal to the ID of this machine.
 
-        If specified, machineid should be either a UUID or a 32 digit hex number.
+        If specified, machineid should be either a UUID or a 32 digit
+        hex number.
 
         Equivalent to add_match(_MACHINE_ID='machineid').
         """
@@ -349,199 +354,197 @@ def get_catalog(mid):
     return _get_catalog(mid)
 
 def _make_line(field, value):
-        if isinstance(value, bytes):
-                return field.encode('utf-8') + b'=' + value
-        elif isinstance(value, int):
-                return field + '=' + str(value)
-        else:
-                return field + '=' + value
+    if isinstance(value, bytes):
+        return field.encode('utf-8') + b'=' + value
+    elif isinstance(value, int):
+        return field + '=' + str(value)
+    else:
+        return field + '=' + value
 
 def send(MESSAGE, MESSAGE_ID=None,
          CODE_FILE=None, CODE_LINE=None, CODE_FUNC=None,
          **kwargs):
-        r"""Send a message to the journal.
+    r"""Send a message to the journal.
 
-        >>> journal.send('Hello world')
-        >>> journal.send('Hello, again, world', FIELD2='Greetings!')
-        >>> journal.send('Binary message', BINARY=b'\xde\xad\xbe\xef')
+    >>> from systemd import journal
+    >>> journal.send('Hello world')
+    >>> journal.send('Hello, again, world', FIELD2='Greetings!')
+    >>> journal.send('Binary message', BINARY=b'\xde\xad\xbe\xef')
 
-        Value of the MESSAGE argument will be used for the MESSAGE=
-        field. MESSAGE must be a string and will be sent as UTF-8 to
-        the journal.
+    Value of the MESSAGE argument will be used for the MESSAGE=
+    field. MESSAGE must be a string and will be sent as UTF-8 to the
+    journal.
 
-        MESSAGE_ID can be given to uniquely identify the type of
-        message. It must be a string or a uuid.UUID object.
+    MESSAGE_ID can be given to uniquely identify the type of
+    message. It must be a string or a uuid.UUID object.
 
-        CODE_LINE, CODE_FILE, and CODE_FUNC can be specified to
-        identify the caller. Unless at least on of the three is given,
-        values are extracted from the stack frame of the caller of
-        send(). CODE_FILE and CODE_FUNC must be strings, CODE_LINE
-        must be an integer.
+    CODE_LINE, CODE_FILE, and CODE_FUNC can be specified to identify
+    the caller. Unless at least on of the three is given, values are
+    extracted from the stack frame of the caller of send(). CODE_FILE
+    and CODE_FUNC must be strings, CODE_LINE must be an integer.
 
-        Additional fields for the journal entry can only be specified
-        as keyword arguments. The payload can be either a string or
-        bytes. A string will be sent as UTF-8, and bytes will be sent
-        as-is to the journal.
+    Additional fields for the journal entry can only be specified as
+    keyword arguments. The payload can be either a string or bytes. A
+    string will be sent as UTF-8, and bytes will be sent as-is to the
+    journal.
 
-        Other useful fields include PRIORITY, SYSLOG_FACILITY,
-        SYSLOG_IDENTIFIER, SYSLOG_PID.
-        """
+    Other useful fields include PRIORITY, SYSLOG_FACILITY,
+    SYSLOG_IDENTIFIER, SYSLOG_PID.
+    """
 
-        args = ['MESSAGE=' + MESSAGE]
+    args = ['MESSAGE=' + MESSAGE]
 
-        if MESSAGE_ID is not None:
-                id = getattr(MESSAGE_ID, 'hex', MESSAGE_ID)
-                args.append('MESSAGE_ID=' + id)
+    if MESSAGE_ID is not None:
+        id = getattr(MESSAGE_ID, 'hex', MESSAGE_ID)
+        args.append('MESSAGE_ID=' + id)
 
-        if CODE_LINE == CODE_FILE == CODE_FUNC == None:
-                CODE_FILE, CODE_LINE, CODE_FUNC = \
-                        _traceback.extract_stack(limit=2)[0][:3]
-        if CODE_FILE is not None:
-                args.append('CODE_FILE=' + CODE_FILE)
-        if CODE_LINE is not None:
-                args.append('CODE_LINE={:d}'.format(CODE_LINE))
-        if CODE_FUNC is not None:
-                args.append('CODE_FUNC=' + CODE_FUNC)
+    if CODE_LINE == CODE_FILE == CODE_FUNC == None:
+        CODE_FILE, CODE_LINE, CODE_FUNC = _traceback.extract_stack(limit=2)[0][:3]
+    if CODE_FILE is not None:
+        args.append('CODE_FILE=' + CODE_FILE)
+    if CODE_LINE is not None:
+        args.append('CODE_LINE={:d}'.format(CODE_LINE))
+    if CODE_FUNC is not None:
+        args.append('CODE_FUNC=' + CODE_FUNC)
 
-        args.extend(_make_line(key, val) for key, val in kwargs.items())
-        return sendv(*args)
+    args.extend(_make_line(key, val) for key, val in kwargs.items())
+    return sendv(*args)
 
 def stream(identifier, priority=LOG_DEBUG, level_prefix=False):
-        r"""Return a file object wrapping a stream to journal.
+    r"""Return a file object wrapping a stream to journal.
 
-        Log messages written to this file as simple newline sepearted
-        text strings are written to the journal.
+    Log messages written to this file as simple newline sepearted text
+    strings are written to the journal.
 
-        The file will be line buffered, so messages are actually sent
-        after a newline character is written.
+    The file will be line buffered, so messages are actually sent
+    after a newline character is written.
 
-        >>> stream = journal.stream('myapp')
-        >>> stream
-        <open file '<fdopen>', mode 'w' at 0x...>
-        >>> stream.write('message...\n')
+    >>> from systemd import journal
+    >>> stream = journal.stream('myapp')
+    >>> res = stream.write('message...\n')
 
-        will produce the following message in the journal::
+    will produce the following message in the journal::
 
-          PRIORITY=7
-          SYSLOG_IDENTIFIER=myapp
-          MESSAGE=message...
+    PRIORITY=7
+    SYSLOG_IDENTIFIER=myapp
+    MESSAGE=message...
 
-        Using the interface with print might be more convinient:
+    Using the interface with print might be more convinient:
 
-        >>> from __future__ import print_function
-        >>> print('message...', file=stream)
+    >>> from __future__ import print_function
+    >>> print('message...', file=stream)                 # doctest: +SKIP
 
-        priority is the syslog priority, one of `LOG_EMERG`,
-        `LOG_ALERT`, `LOG_CRIT`, `LOG_ERR`, `LOG_WARNING`,
-        `LOG_NOTICE`, `LOG_INFO`, `LOG_DEBUG`.
+    priority is the syslog priority, one of `LOG_EMERG`,
+    `LOG_ALERT`, `LOG_CRIT`, `LOG_ERR`, `LOG_WARNING`,
+    `LOG_NOTICE`, `LOG_INFO`, `LOG_DEBUG`.
 
-        level_prefix is a boolean. If true, kernel-style log priority
-        level prefixes (such as '<1>') are interpreted. See
-        sd-daemon(3) for more information.
-        """
+    level_prefix is a boolean. If true, kernel-style log priority
+    level prefixes (such as '<1>') are interpreted. See
+    sd-daemon(3) for more information.
+    """
 
-        fd = stream_fd(identifier, priority, level_prefix)
-        return _os.fdopen(fd, 'w', 1)
+    fd = stream_fd(identifier, priority, level_prefix)
+    return _os.fdopen(fd, 'w', 1)
 
 class JournalHandler(_logging.Handler):
-        """Journal handler class for the Python logging framework.
+    """Journal handler class for the Python logging framework.
 
-        Please see the Python logging module documentation for an
-        overview: http://docs.python.org/library/logging.html.
+    Please see the Python logging module documentation for an
+    overview: http://docs.python.org/library/logging.html.
 
-        To create a custom logger whose messages go only to journal:
+    To create a custom logger whose messages go only to journal:
 
-        >>> log = logging.getLogger('custom_logger_name')
-        >>> log.propagate = False
-        >>> log.addHandler(journal.JournalHandler())
-        >>> log.warn("Some message: %s", detail)
+    >>> import logging
+    >>> log = logging.getLogger('custom_logger_name')
+    >>> log.propagate = False
+    >>> log.addHandler(JournalHandler())
+    >>> log.warn("Some message: %s", 'detail')
 
-        Note that by default, message levels `INFO` and `DEBUG` are
-        ignored by the logging framework. To enable those log levels:
+    Note that by default, message levels `INFO` and `DEBUG` are
+    ignored by the logging framework. To enable those log levels:
 
-        >>> log.setLevel(logging.DEBUG)
+    >>> log.setLevel(logging.DEBUG)
 
-        To redirect all logging messages to journal regardless of where
-        they come from, attach it to the root logger:
+    To redirect all logging messages to journal regardless of where
+    they come from, attach it to the root logger:
 
-        >>> logging.root.addHandler(journal.JournalHandler())
+    >>> logging.root.addHandler(JournalHandler())
 
-        For more complex configurations when using `dictConfig` or
-        `fileConfig`, specify `systemd.journal.JournalHandler` as the
-        handler class.  Only standard handler configuration options
-        are supported: `level`, `formatter`, `filters`.
+    For more complex configurations when using `dictConfig` or
+    `fileConfig`, specify `systemd.journal.JournalHandler` as the
+    handler class.  Only standard handler configuration options
+    are supported: `level`, `formatter`, `filters`.
 
-        To attach journal MESSAGE_ID, an extra field is supported:
+    To attach journal MESSAGE_ID, an extra field is supported:
 
-        >>> import uuid
-        >>> mid = uuid.UUID('0123456789ABCDEF0123456789ABCDEF')
-        >>> log.warn("Message with ID", extra={'MESSAGE_ID': mid})
+    >>> import uuid
+    >>> mid = uuid.UUID('0123456789ABCDEF0123456789ABCDEF')
+    >>> log.warn("Message with ID", extra={'MESSAGE_ID': mid})
 
-        Fields to be attached to all messages sent through this
-        handler can be specified as keyword arguments. This probably
-        makes sense only for SYSLOG_IDENTIFIER and similar fields
-        which are constant for the whole program:
+    Fields to be attached to all messages sent through this handler
+    can be specified as keyword arguments. This probably makes sense
+    only for SYSLOG_IDENTIFIER and similar fields which are constant
+    for the whole program:
 
-        >>> journal.JournalHandler(SYSLOG_IDENTIFIER='my-cool-app')
+    >>> JournalHandler(SYSLOG_IDENTIFIER='my-cool-app')
+    <systemd.journal.JournalHandler object at ...>
 
-        The following journal fields will be sent:
-        `MESSAGE`, `PRIORITY`, `THREAD_NAME`, `CODE_FILE`, `CODE_LINE`,
-        `CODE_FUNC`, `LOGGER` (name as supplied to getLogger call),
-        `MESSAGE_ID` (optional, see above), `SYSLOG_IDENTIFIER` (defaults
-        to sys.argv[0]).
+    The following journal fields will be sent: `MESSAGE`, `PRIORITY`,
+    `THREAD_NAME`, `CODE_FILE`, `CODE_LINE`, `CODE_FUNC`, `LOGGER`
+    (name as supplied to getLogger call), `MESSAGE_ID` (optional, see
+    above), `SYSLOG_IDENTIFIER` (defaults to sys.argv[0]).
+    """
+
+    def __init__(self, level=_logging.NOTSET, **kwargs):
+        super(JournalHandler, self).__init__(level)
+
+        for name in kwargs:
+            if not _valid_field_name(name):
+                raise ValueError('Invalid field name: ' + name)
+        if 'SYSLOG_IDENTIFIER' not in kwargs:
+            kwargs['SYSLOG_IDENTIFIER'] = _sys.argv[0]
+        self._extra = kwargs
+
+    def emit(self, record):
+        """Write record as journal event.
+
+        MESSAGE is taken from the message provided by the user, and
+        PRIORITY, LOGGER, THREAD_NAME, CODE_{FILE,LINE,FUNC} fields
+        are appended automatically. In addition, record.MESSAGE_ID
+        will be used if present.
         """
+        try:
+            msg = self.format(record)
+            pri = self.mapPriority(record.levelno)
+            mid = getattr(record, 'MESSAGE_ID', None)
+            send(msg,
+                 MESSAGE_ID=mid,
+                 PRIORITY=format(pri),
+                 LOGGER=record.name,
+                 THREAD_NAME=record.threadName,
+                 CODE_FILE=record.pathname,
+                 CODE_LINE=record.lineno,
+                 CODE_FUNC=record.funcName,
+                 **self._extra)
+        except Exception:
+            self.handleError(record)
 
-        def __init__(self, level=_logging.NOTSET, **kwargs):
-                super(JournalHandler, self).__init__(level)
+    @staticmethod
+    def mapPriority(levelno):
+        """Map logging levels to journald priorities.
 
-                for name in kwargs:
-                        if not _valid_field_name(name):
-                                raise ValueError('Invalid field name: ' + name)
-                if 'SYSLOG_IDENTIFIER' not in kwargs:
-                        kwargs['SYSLOG_IDENTIFIER'] = _sys.argv[0]
-                self._extra = kwargs
-
-        def emit(self, record):
-                """Write record as journal event.
-
-                MESSAGE is taken from the message provided by the
-                user, and PRIORITY, LOGGER, THREAD_NAME,
-                CODE_{FILE,LINE,FUNC} fields are appended
-                automatically. In addition, record.MESSAGE_ID will be
-                used if present.
-                """
-                try:
-                        msg = self.format(record)
-                        pri = self.mapPriority(record.levelno)
-                        mid = getattr(record, 'MESSAGE_ID', None)
-                        send(msg,
-                             MESSAGE_ID=mid,
-                             PRIORITY=format(pri),
-                             LOGGER=record.name,
-                             THREAD_NAME=record.threadName,
-                             CODE_FILE=record.pathname,
-                             CODE_LINE=record.lineno,
-                             CODE_FUNC=record.funcName,
-                             **self._extra)
-                except Exception:
-                        self.handleError(record)
-
-        @staticmethod
-        def mapPriority(levelno):
-                """Map logging levels to journald priorities.
-
-                Since Python log level numbers are "sparse", we have
-                to map numbers in between the standard levels too.
-                """
-                if levelno <= _logging.DEBUG:
-                        return LOG_DEBUG
-                elif levelno <= _logging.INFO:
-                        return LOG_INFO
-                elif levelno <= _logging.WARNING:
-                        return LOG_WARNING
-                elif levelno <= _logging.ERROR:
-                        return LOG_ERR
-                elif levelno <= _logging.CRITICAL:
-                        return LOG_CRIT
-                else:
-                        return LOG_ALERT
+        Since Python log level numbers are "sparse", we have to map
+        numbers in between the standard levels too.
+        """
+        if levelno <= _logging.DEBUG:
+            return LOG_DEBUG
+        elif levelno <= _logging.INFO:
+            return LOG_INFO
+        elif levelno <= _logging.WARNING:
+            return LOG_WARNING
+        elif levelno <= _logging.ERROR:
+            return LOG_ERR
+        elif levelno <= _logging.CRITICAL:
+            return LOG_CRIT
+        else:
+            return LOG_ALERT

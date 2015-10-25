@@ -20,9 +20,9 @@ external event loop:
   >>> m = login.Monitor("machine")
   >>> p = select.poll()
   >>> p.register(m, m.get_events())
-  >>> login.machine_names()
+  >>> login.machine_names()               # doctest: +SKIP
   []
-  >>> p.poll()
+  >>> p.poll()                            # doctest: +SKIP
   [(3, 1)]
-  >>> login.machine_names()
+  >>> login.machine_names()               # doctest: +SKIP
   ['fedora-19.nspawn']
