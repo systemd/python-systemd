@@ -3,6 +3,7 @@ import os
 import posix
 import socket
 import contextlib
+import errno
 from systemd.daemon import (booted,
                             is_fifo, _is_fifo,
                             is_socket, _is_socket,
@@ -89,20 +90,36 @@ def test_is_fifo_bad_fd(tmpdir):
     with pytest.raises(OSError):
         assert not is_fifo(-1, path)
 
+def is_mq_wrapper(arg):
+    try:
+        return is_mq(arg)
+    except OSError as error:
+        # systemd < 227 compatiblity
+        assert error.errno == errno.EBADF
+        return False
+
+def _is_mq_wrapper(arg):
+    try:
+        return _is_mq(arg)
+    except OSError as error:
+        # systemd < 227 compatiblity
+        assert error.errno == errno.EBADF
+        return False
+
 def test_no_mismatch():
     with closing_socketpair(socket.AF_UNIX) as pair:
         for sock in pair:
             assert not is_fifo(sock)
-            assert not is_mq(sock)
+            assert not is_mq_wrapper(sock)
             assert not is_socket_inet(sock)
 
             fd = sock.fileno()
             assert not is_fifo(fd)
-            assert not is_mq(fd)
+            assert not is_mq_wrapper(fd)
             assert not is_socket_inet(fd)
 
             assert not _is_fifo(fd)
-            assert not _is_mq(fd)
+            assert not _is_mq_wrapper(fd)
             assert not _is_socket_inet(fd)
 
 def test_is_socket():
