@@ -55,7 +55,7 @@ def lib(*names, **kw):
                      + '\n'.join(results) + '\n')
     sys.exit(status)
 
-version = '230'
+version = '231'
 defines = {'define_macros':[('PACKAGE_VERSION', '"{}"'.format(version))]}
 
 _journal = Extension('systemd/_journal',
