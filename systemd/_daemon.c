@@ -32,6 +32,13 @@
 #include "pyutil.h"
 #include "macro.h"
 
+#if LIBSYSTEMD_VERSION >= 214
+#  define HAVE_PID_NOTIFY
+#  if LIBSYSTEMD_VERSION >= 219
+#    define HAVE_PID_NOTIFY_WITH_FDS
+#  endif
+#endif
+
 PyDoc_STRVAR(module__doc__,
         "Python interface to the libsystemd-daemon library.\n\n"
         "Provides _listen_fds, notify, booted, and is_* functions\n"
@@ -57,37 +64,99 @@ static PyObject* booted(PyObject *self, PyObject *args) {
         return PyBool_FromLong(r);
 }
 
+static inline void PyMem_Free_intp(int **p) {
+        PyMem_Free(*p);
+}
+
 PyDoc_STRVAR(notify__doc__,
-             "notify(status, unset_environment=False) -> bool\n\n"
+             "notify(status, unset_environment=False, pid=0, fds=None) -> bool\n\n"
              "Send a message to the init system about a status change.\n"
              "Wraps sd_notify(3).");
 
 static PyObject* notify(PyObject *self, PyObject *args, PyObject *keywds) {
         int r;
         const char* msg;
-        int unset = false;
+        int unset = false, n_fds;
+        int _pid = 0;
+        pid_t pid;
+        PyObject *fds = NULL;
+        _cleanup_(PyMem_Free_intp) int *arr = NULL;
 
         static const char* const kwlist[] = {
                 "status",
                 "unset_environment",
+                "pid",
+                "fds",
                 NULL,
         };
 #if PY_MAJOR_VERSION >=3 && PY_MINOR_VERSION >= 3
-        if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|p:notify",
-                                         (char**) kwlist, &msg, &unset))
+        if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|piO:notify",
+                                         (char**) kwlist, &msg, &unset, &_pid, &fds))
                 return NULL;
 #else
         PyObject *obj = NULL;
-        if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|O:notify",
-                                         (char**) kwlist, &msg, &obj))
+        if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|OiO:notify",
+                                         (char**) kwlist, &msg, &obj, &_pid, &fds))
                 return NULL;
         if (obj != NULL)
                 unset = PyObject_IsTrue(obj);
         if (unset < 0)
                 return NULL;
 #endif
+        pid = _pid;
+        if (pid < 0 || pid != _pid) {
+                PyErr_SetString(PyExc_OverflowError, "Bad pid_t");
+                return NULL;
+        }
 
-        r = sd_notify(unset, msg);
+        if (fds != NULL) {
+                Py_ssize_t i, len;
+
+                len = PySequence_Length(fds);
+                if (len < 0)
+                        return NULL;
+
+                arr = PyMem_NEW(int, len);
+                if (!fds)
+                        return NULL;
+
+                for (i = 0; i < len; i++) {
+                        PyObject *item = PySequence_GetItem(fds, i);
+                        if (!item)
+                                return NULL;
+
+                        long value = PyLong_AsLong(item);
+                        if (PyErr_Occurred())
+                                return NULL;
+
+                        arr[i] = value;
+                        if (arr[i] != value) {
+                                PyErr_SetString(PyExc_OverflowError, "Value to large for an integer");
+                                return NULL;
+                        }
+                }
+
+                n_fds = len;
+        }
+
+        if (pid == 0 && fds == NULL)
+                r = sd_notify(unset, msg);
+        else if (fds == NULL) {
+#ifdef HAVE_PID_NOTIFY
+                r = sd_pid_notify(pid, unset, msg);
+#else
+                PyErr_SetString(PyExc_NotImplementedError, "Compiled without support for sd_pid_notify");
+                return NULL;
+#endif
+        } else {
+#ifdef HAVE_PID_NOTIFY_WITH_FDS
+                r = sd_pid_notify_with_fds(pid, unset, msg, arr, n_fds);
+#else
+                PyErr_SetString(PyExc_NotImplementedError, "Compiled without support for sd_pid_notify_with_fds");
+                return NULL;
+#endif
+        }
+
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
 
@@ -177,8 +246,8 @@ static PyObject* is_mq(PyObject *self, PyObject *args) {
         if (!PyArg_ParseTuple(args, "i|O&:_is_mq",
                               &fd, Unicode_FSConverter, &_path))
                 return NULL;
-	if (_path)
-		path = PyBytes_AsString(_path);
+        if (_path)
+                path = PyBytes_AsString(_path);
 #else
         if (!PyArg_ParseTuple(args, "i|z:_is_mq", &fd, &path))
                 return NULL;

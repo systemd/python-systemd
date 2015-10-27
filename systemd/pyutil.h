@@ -33,7 +33,7 @@ int set_error(int r, const char* path, const char* invalid_message);
 int Unicode_FSConverter(PyObject* obj, void *_result);
 #endif
 
-#define _cleanup_Py_DECREF_ __attribute__((cleanup(cleanup_Py_DECREFp)))
+#define _cleanup_Py_DECREF_ _cleanup_(cleanup_Py_DECREFp)
 
 #if PY_MAJOR_VERSION >=3
 # define unicode_FromStringAndSize PyUnicode_FromStringAndSize
