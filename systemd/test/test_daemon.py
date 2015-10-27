@@ -10,7 +10,8 @@ from systemd.daemon import (booted,
                             is_socket_inet, _is_socket_inet,
                             is_socket_unix, _is_socket_unix,
                             is_mq, _is_mq,
-                            listen_fds)
+                            listen_fds,
+                            notify)
 
 import pytest
 
@@ -196,3 +197,37 @@ def test_listen_fds_default_unset():
     assert listen_fds(False) == [3]
     assert listen_fds() == [3]
     assert listen_fds() == []
+
+def test_notify_no_socket():
+    assert notify('READY=1') == False
+    assert notify('FDSTORE=1', fds=[]) == False
+    assert notify('FDSTORE=1', fds=[1,2]) == False
+    assert notify('FDSTORE=1', pid=os.getpid()) == False
+    assert notify('FDSTORE=1', pid=os.getpid(), fds=(1,)) == False
+
+def test_notify_bad_socket():
+    os.environ['NOTIFY_SOCKET'] = '/dev/null'
+
+    with pytest.raises(ConnectionRefusedError):
+        notify('READY=1')
+    with pytest.raises(ConnectionRefusedError):
+        notify('FDSTORE=1', fds=[])
+    with pytest.raises(ConnectionRefusedError):
+        notify('FDSTORE=1', fds=[1,2])
+    with pytest.raises(ConnectionRefusedError):
+        notify('FDSTORE=1', pid=os.getpid())
+    with pytest.raises(ConnectionRefusedError):
+        notify('FDSTORE=1', pid=os.getpid(), fds=(1,))
+
+def test_notify_with_socket(tmpdir):
+    path = tmpdir.join('socket').strpath
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
+    sock.bind(path)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_PASSCRED, 1)
+    os.environ['NOTIFY_SOCKET'] = path
+
+    assert notify('READY=1') == True
+    assert notify('FDSTORE=1', fds=[]) == True
+    assert notify('FDSTORE=1', fds=[1,2]) == True
+    assert notify('FDSTORE=1', pid=os.getpid()) == True
+    assert notify('FDSTORE=1', pid=os.getpid(), fds=(1,)) == True
