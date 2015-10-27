@@ -4,6 +4,7 @@ SPHINX_BUILD = sphinx-build
 ETAGS = etags
 INCLUDE_DIR = /usr/include/
 VERSION := $(shell $(PYTHON) setup.py --version)
+TESTFLAGS = -v
 
 define buildscript
 import sys,sysconfig
@@ -33,6 +34,9 @@ SPHINXOPTS = -D version=$(VERSION) -D release=$(VERSION)
 sphinx-%: build
 	PYTHONPATH=$(builddir) $(SPHINX_BUILD) -b $* $(SPHINXOPTS) docs build/docs
 	@echo Output has been generated in build/docs
+
+check: build
+	$(PYTHON) -m py.test $(builddir) docs $(TESTFLAGS)
 
 TAGS: $(shell git ls-files systemd/*.[ch])
 	$(ETAGS) $+
