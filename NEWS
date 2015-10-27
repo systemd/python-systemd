@@ -1,0 +1,29 @@
+Python wrappers for libsystemd API
+
+CHANGES WITH 231:
+
+        * Various build fixes and cleanups: documentation can be
+          generated with 'make sphinx-html', pip install works out
+          of the box.
+
+        * Tests that cover most of the python code were added. As a
+          result, a bug in sd_is_mq was fixed in systemd 227.
+
+        * Functions sd_pid_notify and sd_pid_notify_with_fds are now
+          wrapped as optional arguments to notify(), when compiled
+          against a new-enough libsystemd.
+
+        Contributions from: David Strauss, Evgeny Vereshchagin,
+        Jacek Konieczny, Jeroen Dekkers, Zbigniew Jędrzejewski-Szmek
+
+CHANGES WITH 230:
+
+        * python-systemd is again a separate project, after being part
+          of systemd for many years.
+
+        Contributions from: Dave Reisner, David Strauss,
+        Evgeny Vereshchagin, Greg KH, Harald Hoyer, Jacek Konieczny,
+        Jeroen Dekkers, Kay Sievers, Lennart Poettering, Lukas Nykryn,
+        Marti Raudsepp, Richard Marko, Simon Farnsworth,
+        Steven Hiscocks, Thomas Hindoe Paaboel Andersen, Ville Skyttä,
+        Zbigniew Jędrzejewski-Szmek
