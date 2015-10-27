@@ -1,6 +1,7 @@
 __pycache__/
 *.py[co]
 /journald/*.so
+/TAGS
 
 # Packages
 *.egg
