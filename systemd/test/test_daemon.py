@@ -26,7 +26,7 @@ def closing_socketpair(family):
 
 
 def test_booted():
-    if os.path.exists('/run/systemd'):
+    if os.path.exists('/run/systemd/system'):
         # assume we are running under systemd
         assert booted()
     else:
