@@ -36,7 +36,7 @@ sphinx-%: build
 	@echo Output has been generated in build/docs
 
 check: build
-	$(PYTHON) -m py.test $(builddir) docs $(TESTFLAGS)
+	(cd $(builddir) && $(PYTHON) -m py.test . ../../docs $(TESTFLAGS))
 
 TAGS: $(shell git ls-files systemd/*.[ch])
 	$(ETAGS) $+
