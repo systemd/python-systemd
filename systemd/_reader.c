@@ -334,7 +334,7 @@ PyDoc_STRVAR(Reader_next__doc__,
              "Returns False if at end of file, True otherwise.");
 static PyObject* Reader_next(Reader *self, PyObject *args) {
         int64_t skip = 1LL;
-        int r;
+        int r = -EUCLEAN;
 
         if (!PyArg_ParseTuple(args, "|L:next", &skip))
                 return NULL;
