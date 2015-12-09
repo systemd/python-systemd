@@ -291,7 +291,7 @@ class Reader(_Reader):
         is reference to. Defaults to current bootid.
         """
         if isinstance(monotonic, _datetime.timedelta):
-            monotonic = monotonic.totalseconds()
+            monotonic = monotonic.total_seconds()
         monotonic = int(monotonic * 1000000)
         if isinstance(bootid, _uuid.UUID):
             bootid = bootid.hex
