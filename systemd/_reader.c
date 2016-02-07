@@ -832,7 +832,8 @@ static PyObject* Reader_query_unique(Reader *self, PyObject *args) {
         int r;
         const void *uniq;
         size_t uniq_len;
-        PyObject *value_set, *key, *value;
+        _cleanup_Py_DECREF_ PyObject *_value_set = NULL, *key = NULL;
+        PyObject *value_set;
 
         if (!PyArg_ParseTuple(args, "s:query_unique", &query))
                 return NULL;
@@ -844,21 +845,35 @@ static PyObject* Reader_query_unique(Reader *self, PyObject *args) {
         if (set_error(r, NULL, "Invalid field name") < 0)
                 return NULL;
 
-        value_set = PySet_New(0);
+        value_set = _value_set = PySet_New(0);
+        if (!value_set)
+                return NULL;
+
         key = unicode_FromString(query);
+        if (!key)
+                return NULL;
 
         SD_JOURNAL_FOREACH_UNIQUE(self->j, uniq, uniq_len) {
                 const char *delim_ptr;
+                _cleanup_Py_DECREF_ PyObject *value = NULL;
 
                 delim_ptr = memchr(uniq, '=', uniq_len);
+                if (!delim_ptr) {
+                        set_error(-EINVAL, NULL, "Invalid field in the journal");
+                        return NULL;
+                }
+
                 value = PyBytes_FromStringAndSize(
                                 delim_ptr + 1,
                                 (const char*) uniq + uniq_len - (delim_ptr + 1));
-                PySet_Add(value_set, value);
-                Py_DECREF(value);
+                if (!value)
+                        return NULL;
+
+                if (PySet_Add(value_set, value) < 0)
+                        return NULL;
         }
 
-        Py_DECREF(key);
+        _value_set = NULL;
         return value_set;
 }
 
