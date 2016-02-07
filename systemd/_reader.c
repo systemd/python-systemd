@@ -40,6 +40,8 @@
 
 #if LIBSYSTEMD_VERSION >= 229
 #  define HAVE_ENUMERATE_FIELDS
+#  define HAVE_HAS_RUNTIME_FILES
+#  define HAVE_HAS_PERSISTENT_FILES
 #endif
 
 typedef struct {
@@ -924,6 +926,48 @@ static PyObject* Reader_enumerate_fields(Reader *self, PyObject *args) {
 #endif
 }
 
+PyDoc_STRVAR(Reader_has_runtime_files__doc__,
+             "has_runtime_files(str) -> bool\n\n"
+             "Returns true if runtime journal files have been found.\n\n"
+             "See man:sd_journal_test_cursor(3).");
+static PyObject* Reader_has_runtime_files(Reader *self, PyObject *args) {
+#ifdef HAVE_ENUMERATE_FIELDS
+        int r;
+
+        assert(self);
+
+        r = sd_journal_has_runtime_files(self->j);
+        if (set_error(r, NULL, NULL) < 0)
+                return NULL;
+
+        return PyBool_FromLong(r);
+#else
+        set_error(-ENOSYS, NULL, "Not implemented");
+        return NULL;
+#endif
+}
+
+PyDoc_STRVAR(Reader_has_persistent_files__doc__,
+             "has_persistent_files(str) -> bool\n\n"
+             "Returns true if persistent journal files have been found.\n\n"
+             "See man:sd_journal_test_cursor(3).");
+static PyObject* Reader_has_persistent_files(Reader *self, PyObject *args) {
+#ifdef HAVE_ENUMERATE_FIELDS
+        int r;
+
+        assert(self);
+
+        r = sd_journal_has_persistent_files(self->j);
+        if (set_error(r, NULL, NULL) < 0)
+                return NULL;
+
+        return PyBool_FromLong(r);
+#else
+        set_error(-ENOSYS, NULL, "Not implemented");
+        return NULL;
+#endif
+}
+
 PyDoc_STRVAR(Reader_get_catalog__doc__,
              "get_catalog() -> str\n\n"
              "Retrieve a message catalog entry for the current journal entry.\n"
@@ -1048,37 +1092,39 @@ static PyGetSetDef Reader_getsetters[] = {
 };
 
 static PyMethodDef Reader_methods[] = {
-        {"fileno",           (PyCFunction) Reader_fileno, METH_NOARGS, Reader_fileno__doc__},
-        {"reliable_fd",      (PyCFunction) Reader_reliable_fd, METH_NOARGS, Reader_reliable_fd__doc__},
-        {"get_events",       (PyCFunction) Reader_get_events, METH_NOARGS, Reader_get_events__doc__},
-        {"get_timeout",      (PyCFunction) Reader_get_timeout, METH_NOARGS, Reader_get_timeout__doc__},
-        {"get_timeout_ms",   (PyCFunction) Reader_get_timeout_ms, METH_NOARGS, Reader_get_timeout_ms__doc__},
-        {"close",            (PyCFunction) Reader_close, METH_NOARGS, Reader_close__doc__},
-        {"get_usage",        (PyCFunction) Reader_get_usage, METH_NOARGS, Reader_get_usage__doc__},
-        {"__enter__",        (PyCFunction) Reader___enter__, METH_NOARGS, Reader___enter____doc__},
-        {"__exit__",         (PyCFunction) Reader___exit__, METH_VARARGS, Reader___exit____doc__},
-        {"_next",            (PyCFunction) Reader_next, METH_VARARGS, Reader_next__doc__},
-        {"_previous",        (PyCFunction) Reader_previous, METH_VARARGS, Reader_previous__doc__},
-        {"_get",             (PyCFunction) Reader_get, METH_VARARGS, Reader_get__doc__},
-        {"_get_all",         (PyCFunction) Reader_get_all, METH_NOARGS, Reader_get_all__doc__},
-        {"_get_realtime",    (PyCFunction) Reader_get_realtime, METH_NOARGS, Reader_get_realtime__doc__},
-        {"_get_monotonic",   (PyCFunction) Reader_get_monotonic, METH_NOARGS, Reader_get_monotonic__doc__},
-        {"add_match",        (PyCFunction) Reader_add_match, METH_VARARGS|METH_KEYWORDS, Reader_add_match__doc__},
-        {"add_disjunction",  (PyCFunction) Reader_add_disjunction, METH_NOARGS, Reader_add_disjunction__doc__},
-        {"add_conjunction",  (PyCFunction) Reader_add_conjunction, METH_NOARGS, Reader_add_conjunction__doc__},
-        {"flush_matches",    (PyCFunction) Reader_flush_matches, METH_NOARGS, Reader_flush_matches__doc__},
-        {"seek_head",        (PyCFunction) Reader_seek_head, METH_NOARGS, Reader_seek_head__doc__},
-        {"seek_tail",        (PyCFunction) Reader_seek_tail, METH_NOARGS, Reader_seek_tail__doc__},
-        {"seek_realtime",    (PyCFunction) Reader_seek_realtime, METH_VARARGS, Reader_seek_realtime__doc__},
-        {"seek_monotonic",   (PyCFunction) Reader_seek_monotonic, METH_VARARGS, Reader_seek_monotonic__doc__},
-        {"process",          (PyCFunction) Reader_process, METH_NOARGS, Reader_process__doc__},
-        {"wait",             (PyCFunction) Reader_wait, METH_VARARGS, Reader_wait__doc__},
-        {"seek_cursor",      (PyCFunction) Reader_seek_cursor, METH_VARARGS, Reader_seek_cursor__doc__},
-        {"_get_cursor",      (PyCFunction) Reader_get_cursor, METH_NOARGS, Reader_get_cursor__doc__},
-        {"test_cursor",      (PyCFunction) Reader_test_cursor, METH_VARARGS, Reader_test_cursor__doc__},
-        {"query_unique",     (PyCFunction) Reader_query_unique, METH_VARARGS, Reader_query_unique__doc__},
-        {"enumerate_fields", (PyCFunction) Reader_enumerate_fields, METH_NOARGS, Reader_enumerate_fields__doc__},
-        {"get_catalog",      (PyCFunction) Reader_get_catalog, METH_NOARGS, Reader_get_catalog__doc__},
+        {"fileno",               (PyCFunction) Reader_fileno, METH_NOARGS, Reader_fileno__doc__},
+        {"reliable_fd",          (PyCFunction) Reader_reliable_fd, METH_NOARGS, Reader_reliable_fd__doc__},
+        {"get_events",           (PyCFunction) Reader_get_events, METH_NOARGS, Reader_get_events__doc__},
+        {"get_timeout",          (PyCFunction) Reader_get_timeout, METH_NOARGS, Reader_get_timeout__doc__},
+        {"get_timeout_ms",       (PyCFunction) Reader_get_timeout_ms, METH_NOARGS, Reader_get_timeout_ms__doc__},
+        {"close",                (PyCFunction) Reader_close, METH_NOARGS, Reader_close__doc__},
+        {"get_usage",            (PyCFunction) Reader_get_usage, METH_NOARGS, Reader_get_usage__doc__},
+        {"__enter__",            (PyCFunction) Reader___enter__, METH_NOARGS, Reader___enter____doc__},
+        {"__exit__",             (PyCFunction) Reader___exit__, METH_VARARGS, Reader___exit____doc__},
+        {"_next",                (PyCFunction) Reader_next, METH_VARARGS, Reader_next__doc__},
+        {"_previous",            (PyCFunction) Reader_previous, METH_VARARGS, Reader_previous__doc__},
+        {"_get",                 (PyCFunction) Reader_get, METH_VARARGS, Reader_get__doc__},
+        {"_get_all",             (PyCFunction) Reader_get_all, METH_NOARGS, Reader_get_all__doc__},
+        {"_get_realtime",        (PyCFunction) Reader_get_realtime, METH_NOARGS, Reader_get_realtime__doc__},
+        {"_get_monotonic",       (PyCFunction) Reader_get_monotonic, METH_NOARGS, Reader_get_monotonic__doc__},
+        {"add_match",            (PyCFunction) Reader_add_match, METH_VARARGS|METH_KEYWORDS, Reader_add_match__doc__},
+        {"add_disjunction",      (PyCFunction) Reader_add_disjunction, METH_NOARGS, Reader_add_disjunction__doc__},
+        {"add_conjunction",      (PyCFunction) Reader_add_conjunction, METH_NOARGS, Reader_add_conjunction__doc__},
+        {"flush_matches",        (PyCFunction) Reader_flush_matches, METH_NOARGS, Reader_flush_matches__doc__},
+        {"seek_head",            (PyCFunction) Reader_seek_head, METH_NOARGS, Reader_seek_head__doc__},
+        {"seek_tail",            (PyCFunction) Reader_seek_tail, METH_NOARGS, Reader_seek_tail__doc__},
+        {"seek_realtime",        (PyCFunction) Reader_seek_realtime, METH_VARARGS, Reader_seek_realtime__doc__},
+        {"seek_monotonic",       (PyCFunction) Reader_seek_monotonic, METH_VARARGS, Reader_seek_monotonic__doc__},
+        {"process",              (PyCFunction) Reader_process, METH_NOARGS, Reader_process__doc__},
+        {"wait",                 (PyCFunction) Reader_wait, METH_VARARGS, Reader_wait__doc__},
+        {"seek_cursor",          (PyCFunction) Reader_seek_cursor, METH_VARARGS, Reader_seek_cursor__doc__},
+        {"_get_cursor",          (PyCFunction) Reader_get_cursor, METH_NOARGS, Reader_get_cursor__doc__},
+        {"test_cursor",          (PyCFunction) Reader_test_cursor, METH_VARARGS, Reader_test_cursor__doc__},
+        {"query_unique",         (PyCFunction) Reader_query_unique, METH_VARARGS, Reader_query_unique__doc__},
+        {"enumerate_fields",     (PyCFunction) Reader_enumerate_fields, METH_NOARGS, Reader_enumerate_fields__doc__},
+        {"has_runtime_files",    (PyCFunction) Reader_has_runtime_files, METH_NOARGS, Reader_has_runtime_files__doc__},
+        {"has_persistent_files", (PyCFunction) Reader_has_persistent_files, METH_NOARGS, Reader_has_persistent_files__doc__},
+        {"get_catalog",          (PyCFunction) Reader_get_catalog, METH_NOARGS, Reader_get_catalog__doc__},
         {}  /* Sentinel */
 };
 
