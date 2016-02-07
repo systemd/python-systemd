@@ -1,5 +1,25 @@
 Python wrappers for libsystemd API
 
+CHANGES WITH 232:
+
+        * Wrappers for sd_journal_enumerate_unique, has_runtime_files,
+          has_peristent_files.
+
+        * sd_journal_open_directory_fd, sd_journal_open_files_fd can
+          be used by passing file descriptors to the initializer as
+          the path or files arguments.
+
+          SD_JOURNAL_OS_ROOT flag is supported, and various flags may
+          be passed to the constructor in combination with path or
+          files arguments. All flags arguments are now passed through
+          to the underlying libsystemd library functions, so which
+          combinations are supported depends on that library.
+          systemd 232 contains various fixes in this area.
+
+        Contributions from: Benedit Morbach, Michael Biebl,
+        Michael Herold, Mike Gilbert, Nir Soffer, Sebastian,
+        Ville Skyttä, Zbigniew Jędrzejewski-Szmek
+
 CHANGES WITH 231:
 
         * Various build fixes and cleanups: documentation can be
