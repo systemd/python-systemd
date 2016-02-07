@@ -38,6 +38,10 @@
 #  define SD_JOURNAL_CURRENT_USER 8
 #endif
 
+#if LIBSYSTEMD_VERSION >= 229
+#  define HAVE_ENUMERATE_FIELDS
+#endif
+
 typedef struct {
         PyObject_HEAD
         sd_journal *j;
@@ -826,7 +830,8 @@ static PyObject* Reader_test_cursor(Reader *self, PyObject *args) {
 PyDoc_STRVAR(Reader_query_unique__doc__,
              "query_unique(field) -> a set of values\n\n"
              "Return a set of unique values appearing in journal for the\n"
-             "given `field`. Note this does not respect any journal matches.");
+             "given `field`. Note this does not respect any journal matches.\n"
+             "See sd_journal_query_unique(3).");
 static PyObject* Reader_query_unique(Reader *self, PyObject *args) {
         char *query;
         int r;
@@ -875,6 +880,48 @@ static PyObject* Reader_query_unique(Reader *self, PyObject *args) {
 
         _value_set = NULL;
         return value_set;
+}
+
+PyDoc_STRVAR(Reader_enumerate_fields__doc__,
+             "enumerate_fields(field) -> a set of values\n\n"
+             "Return a set of field names appearing in the journal.\n"
+             "See sd_journal_enumerate_fields(3).");
+static PyObject* Reader_enumerate_fields(Reader *self, PyObject *args) {
+#ifdef HAVE_ENUMERATE_FIELDS
+        _cleanup_Py_DECREF_ PyObject *_value_set = NULL;
+        PyObject *value_set;
+        int r;
+
+        value_set = _value_set = PySet_New(0);
+        if (!value_set)
+                return NULL;
+
+        sd_journal_restart_fields(self->j);
+
+        while (true) {
+                const char *field;
+                _cleanup_Py_DECREF_ PyObject *value = NULL;
+
+                r = sd_journal_enumerate_fields(self->j, &field);
+                if (r == 0)
+                        break;
+                if (set_error(r, NULL, "Field enumeration failed") < 0)
+                        return NULL;
+
+                value = PyBytes_FromString(field);
+                if (!value)
+                        return NULL;
+
+                if (PySet_Add(value_set, value) < 0)
+                        return NULL;
+        }
+
+        _value_set = NULL;
+        return value_set;
+#else
+        set_error(-ENOSYS, NULL, "Not implemented");
+        return NULL;
+#endif
 }
 
 PyDoc_STRVAR(Reader_get_catalog__doc__,
@@ -1001,36 +1048,37 @@ static PyGetSetDef Reader_getsetters[] = {
 };
 
 static PyMethodDef Reader_methods[] = {
-        {"fileno",          (PyCFunction) Reader_fileno, METH_NOARGS, Reader_fileno__doc__},
-        {"reliable_fd",     (PyCFunction) Reader_reliable_fd, METH_NOARGS, Reader_reliable_fd__doc__},
-        {"get_events",      (PyCFunction) Reader_get_events, METH_NOARGS, Reader_get_events__doc__},
-        {"get_timeout",     (PyCFunction) Reader_get_timeout, METH_NOARGS, Reader_get_timeout__doc__},
-        {"get_timeout_ms",  (PyCFunction) Reader_get_timeout_ms, METH_NOARGS, Reader_get_timeout_ms__doc__},
-        {"close",           (PyCFunction) Reader_close, METH_NOARGS, Reader_close__doc__},
-        {"get_usage",       (PyCFunction) Reader_get_usage, METH_NOARGS, Reader_get_usage__doc__},
-        {"__enter__",       (PyCFunction) Reader___enter__, METH_NOARGS, Reader___enter____doc__},
-        {"__exit__",        (PyCFunction) Reader___exit__, METH_VARARGS, Reader___exit____doc__},
-        {"_next",           (PyCFunction) Reader_next, METH_VARARGS, Reader_next__doc__},
-        {"_previous",       (PyCFunction) Reader_previous, METH_VARARGS, Reader_previous__doc__},
-        {"_get",            (PyCFunction) Reader_get, METH_VARARGS, Reader_get__doc__},
-        {"_get_all",        (PyCFunction) Reader_get_all, METH_NOARGS, Reader_get_all__doc__},
-        {"_get_realtime",   (PyCFunction) Reader_get_realtime, METH_NOARGS, Reader_get_realtime__doc__},
-        {"_get_monotonic",  (PyCFunction) Reader_get_monotonic, METH_NOARGS, Reader_get_monotonic__doc__},
-        {"add_match",       (PyCFunction) Reader_add_match, METH_VARARGS|METH_KEYWORDS, Reader_add_match__doc__},
-        {"add_disjunction", (PyCFunction) Reader_add_disjunction, METH_NOARGS, Reader_add_disjunction__doc__},
-        {"add_conjunction", (PyCFunction) Reader_add_conjunction, METH_NOARGS, Reader_add_conjunction__doc__},
-        {"flush_matches",   (PyCFunction) Reader_flush_matches, METH_NOARGS, Reader_flush_matches__doc__},
-        {"seek_head",       (PyCFunction) Reader_seek_head, METH_NOARGS, Reader_seek_head__doc__},
-        {"seek_tail",       (PyCFunction) Reader_seek_tail, METH_NOARGS, Reader_seek_tail__doc__},
-        {"seek_realtime",   (PyCFunction) Reader_seek_realtime, METH_VARARGS, Reader_seek_realtime__doc__},
-        {"seek_monotonic",  (PyCFunction) Reader_seek_monotonic, METH_VARARGS, Reader_seek_monotonic__doc__},
-        {"process",         (PyCFunction) Reader_process, METH_NOARGS, Reader_process__doc__},
-        {"wait",            (PyCFunction) Reader_wait, METH_VARARGS, Reader_wait__doc__},
-        {"seek_cursor",     (PyCFunction) Reader_seek_cursor, METH_VARARGS, Reader_seek_cursor__doc__},
-        {"_get_cursor",     (PyCFunction) Reader_get_cursor, METH_NOARGS, Reader_get_cursor__doc__},
-        {"test_cursor",     (PyCFunction) Reader_test_cursor, METH_VARARGS, Reader_test_cursor__doc__},
-        {"query_unique",    (PyCFunction) Reader_query_unique, METH_VARARGS, Reader_query_unique__doc__},
-        {"get_catalog",     (PyCFunction) Reader_get_catalog, METH_NOARGS, Reader_get_catalog__doc__},
+        {"fileno",           (PyCFunction) Reader_fileno, METH_NOARGS, Reader_fileno__doc__},
+        {"reliable_fd",      (PyCFunction) Reader_reliable_fd, METH_NOARGS, Reader_reliable_fd__doc__},
+        {"get_events",       (PyCFunction) Reader_get_events, METH_NOARGS, Reader_get_events__doc__},
+        {"get_timeout",      (PyCFunction) Reader_get_timeout, METH_NOARGS, Reader_get_timeout__doc__},
+        {"get_timeout_ms",   (PyCFunction) Reader_get_timeout_ms, METH_NOARGS, Reader_get_timeout_ms__doc__},
+        {"close",            (PyCFunction) Reader_close, METH_NOARGS, Reader_close__doc__},
+        {"get_usage",        (PyCFunction) Reader_get_usage, METH_NOARGS, Reader_get_usage__doc__},
+        {"__enter__",        (PyCFunction) Reader___enter__, METH_NOARGS, Reader___enter____doc__},
+        {"__exit__",         (PyCFunction) Reader___exit__, METH_VARARGS, Reader___exit____doc__},
+        {"_next",            (PyCFunction) Reader_next, METH_VARARGS, Reader_next__doc__},
+        {"_previous",        (PyCFunction) Reader_previous, METH_VARARGS, Reader_previous__doc__},
+        {"_get",             (PyCFunction) Reader_get, METH_VARARGS, Reader_get__doc__},
+        {"_get_all",         (PyCFunction) Reader_get_all, METH_NOARGS, Reader_get_all__doc__},
+        {"_get_realtime",    (PyCFunction) Reader_get_realtime, METH_NOARGS, Reader_get_realtime__doc__},
+        {"_get_monotonic",   (PyCFunction) Reader_get_monotonic, METH_NOARGS, Reader_get_monotonic__doc__},
+        {"add_match",        (PyCFunction) Reader_add_match, METH_VARARGS|METH_KEYWORDS, Reader_add_match__doc__},
+        {"add_disjunction",  (PyCFunction) Reader_add_disjunction, METH_NOARGS, Reader_add_disjunction__doc__},
+        {"add_conjunction",  (PyCFunction) Reader_add_conjunction, METH_NOARGS, Reader_add_conjunction__doc__},
+        {"flush_matches",    (PyCFunction) Reader_flush_matches, METH_NOARGS, Reader_flush_matches__doc__},
+        {"seek_head",        (PyCFunction) Reader_seek_head, METH_NOARGS, Reader_seek_head__doc__},
+        {"seek_tail",        (PyCFunction) Reader_seek_tail, METH_NOARGS, Reader_seek_tail__doc__},
+        {"seek_realtime",    (PyCFunction) Reader_seek_realtime, METH_VARARGS, Reader_seek_realtime__doc__},
+        {"seek_monotonic",   (PyCFunction) Reader_seek_monotonic, METH_VARARGS, Reader_seek_monotonic__doc__},
+        {"process",          (PyCFunction) Reader_process, METH_NOARGS, Reader_process__doc__},
+        {"wait",             (PyCFunction) Reader_wait, METH_VARARGS, Reader_wait__doc__},
+        {"seek_cursor",      (PyCFunction) Reader_seek_cursor, METH_VARARGS, Reader_seek_cursor__doc__},
+        {"_get_cursor",      (PyCFunction) Reader_get_cursor, METH_NOARGS, Reader_get_cursor__doc__},
+        {"test_cursor",      (PyCFunction) Reader_test_cursor, METH_VARARGS, Reader_test_cursor__doc__},
+        {"query_unique",     (PyCFunction) Reader_query_unique, METH_VARARGS, Reader_query_unique__doc__},
+        {"enumerate_fields", (PyCFunction) Reader_enumerate_fields, METH_NOARGS, Reader_enumerate_fields__doc__},
+        {"get_catalog",      (PyCFunction) Reader_get_catalog, METH_NOARGS, Reader_get_catalog__doc__},
         {}  /* Sentinel */
 };
 
