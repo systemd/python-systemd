@@ -1,5 +1,6 @@
 import logging
 import uuid
+import errno
 from systemd import journal, id128
 
 import pytest
@@ -79,6 +80,52 @@ def test_reader_this_machine(tmpdir):
         j.this_machine()
         j.this_machine(TEST_MID)
         j.this_machine(TEST_MID.hex)
+
+def test_reader_query_unique(tmpdir):
+    j = journal.Reader(path=tmpdir.strpath)
+    with j:
+        try:
+            ans = j.query_unique('FOOBAR')
+        except OSError as e:
+            if e.errno == errno.ENOSYS:
+                return
+            raise
+    assert isinstance(ans, set)
+    assert ans == set()
+
+def test_reader_enumerate_fields(tmpdir):
+    j = journal.Reader(path=tmpdir.strpath)
+    with j:
+        try:
+            ans = j.enumerate_fields()
+        except OSError as e:
+            if e.errno == errno.ENOSYS:
+                pytest.skip()
+            raise
+    assert isinstance(ans, set)
+    assert ans == set()
+
+def test_reader_has_runtime_files(tmpdir):
+    j = journal.Reader(path=tmpdir.strpath)
+    with j:
+        try:
+            ans = j.has_runtime_files()
+        except OSError as e:
+            if e.errno == errno.ENOSYS:
+                pytest.skip()
+            raise
+    assert ans == False
+
+def test_reader_has_persistent_files(tmpdir):
+    j = journal.Reader(path=tmpdir.strpath)
+    with j:
+        try:
+            ans = j.has_runtime_files()
+        except OSError as e:
+            if e.errno == errno.ENOSYS:
+                pytest.skip()
+            raise
+    assert ans == False
 
 def test_reader_converters(tmpdir):
     converters = {'xxx' : lambda arg: 'yyy'}
