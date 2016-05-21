@@ -458,7 +458,7 @@ class JournalHandler(_logging.Handler):
     >>> log = logging.getLogger('custom_logger_name')
     >>> log.propagate = False
     >>> log.addHandler(JournalHandler())
-    >>> log.warn("Some message: %s", 'detail')
+    >>> log.warning("Some message: %s", 'detail')
 
     Note that by default, message levels `INFO` and `DEBUG` are
     ignored by the logging framework. To enable those log levels:
@@ -479,7 +479,7 @@ class JournalHandler(_logging.Handler):
 
     >>> import uuid
     >>> mid = uuid.UUID('0123456789ABCDEF0123456789ABCDEF')
-    >>> log.warn("Message with ID", extra={'MESSAGE_ID': mid})
+    >>> log.warning("Message with ID", extra={'MESSAGE_ID': mid})
 
     Fields to be attached to all messages sent through this handler
     can be specified as keyword arguments. This probably makes sense
