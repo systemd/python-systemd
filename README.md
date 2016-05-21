@@ -2,7 +2,7 @@ python-systemd
 ===============
 
 Python module for native access to the systemd facilities. Functionality
-is seperated into a number of modules:
+is separated into a number of modules:
 - systemd.journal supports sending of structured messages to the journal
   and reading journal files,
 - systemd.daemon wraps parts of libsystemd useful for writing daemons

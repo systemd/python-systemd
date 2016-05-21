@@ -95,7 +95,7 @@ def is_mq_wrapper(arg):
     try:
         return is_mq(arg)
     except OSError as error:
-        # systemd < 227 compatiblity
+        # systemd < 227 compatibility
         assert error.errno == errno.EBADF
         return False
 
@@ -103,7 +103,7 @@ def _is_mq_wrapper(arg):
     try:
         return _is_mq(arg)
     except OSError as error:
-        # systemd < 227 compatiblity
+        # systemd < 227 compatibility
         assert error.errno == errno.EBADF
         return False
 
