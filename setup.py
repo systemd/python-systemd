@@ -29,12 +29,13 @@ def call(*cmd):
 
 def pkgconfig(package, **kw):
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
-    status, result = call('pkg-config', '--libs', '--cflags', package)
+    pkgconf = os.getenv('PKG_CONFIG', 'pkg-config')
+    status, result = call(pkgconf, '--libs', '--cflags', package)
     if status != 0:
         return status, result
     for token in result.split():
         kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
-    version = check_output(['pkg-config', '--modversion', package],
+    version = check_output([pkgconf, '--modversion', package],
                            universal_newlines=True).strip()
     pair = (package.replace('-', '_').upper() + '_VERSION', version)
     defines = kw.setdefault('define_macros', [])
