@@ -75,7 +75,7 @@ Notes:
    printf-style substitution is not supported. Perform any
    substitution using Python's % operator or .format() capabilities
    first.
- * A ValueError is thrown if sd_journald_sendv() results in an error.
+ * A ValueError is raised if sd_journald_sendv() results in an error.
    This might happen if there are no arguments or one of them is
    invalid.
 
