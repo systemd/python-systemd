@@ -741,7 +741,7 @@ PyDoc_STRVAR(Reader_wait__doc__,
              "wait([timeout]) -> state change (integer)\n\n"
              "Wait for a change in the journal. Argument `timeout` specifies\n"
              "the maximum number of microseconds to wait before returning\n"
-             "regardless of wheter the journal has changed. If `timeout` is -1,\n"
+             "regardless of whether the journal has changed. If `timeout` is -1,\n"
              "then block forever.\n\n"
              "Will return constants: NOP if no change; APPEND if new\n"
              "entries have been added to the end of the journal; and\n"
