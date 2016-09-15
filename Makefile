@@ -33,7 +33,7 @@ distclean: clean
 SPHINXOPTS = -D version=$(VERSION) -D release=$(VERSION)
 sphinx-%: build
 	PYTHONPATH=$(builddir) $(SPHINX_BUILD) -b $* $(SPHINXOPTS) docs build/$*
-	@echo Output has been generated in build/docs
+	@echo Output has been generated in build/$*
 
 check: build
 	(cd $(builddir) && $(PYTHON) -m py.test . ../../docs $(TESTFLAGS))
