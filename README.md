@@ -79,6 +79,17 @@ Notes:
    This might happen if there are no arguments or one of them is
    invalid.
 
+Documentation
+=============
+
+Online documentation can be found at [freedesktop.org](https://www.freedesktop.org/software/systemd/python-systemd/)
+
+To build it locally run:
+
+    make sphinx-html
+
+Or use any other builder, see `man sphinx-build` for a list. The compiled docs will be e.g. in `docs/html`.
+
 Viewing Output
 ==============
 
