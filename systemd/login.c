@@ -145,11 +145,10 @@ static void Monitor_dealloc(Monitor* self) {
 
 PyDoc_STRVAR(Monitor__doc__,
              "Monitor([category]) -> ...\n\n"
-             "Monitor may be used to monitor login sessions, users, seats,\n"
-             "and virtual machines/containers. Monitor provides a file\n"
-             "descriptor which can be integrated in an external event loop.\n"
-             "See man:sd_login_monitor_new(3) for the details about what\n"
-             "can be monitored.");
+             "Monitor may be used to monitor login sessions, users, seats, and virtual\n"
+             "machines/containers. Monitor provides a file descriptor which can be\n"
+             "integrated in an external event loop.\n\n"
+             "See man:sd_login_monitor_new(3) for the details about what can be monitored.");
 static int Monitor_init(Monitor *self, PyObject *args, PyObject *keywds) {
         const char *category = NULL;
         int r;
@@ -182,8 +181,8 @@ static PyObject* Monitor_fileno(Monitor *self, PyObject *args) {
 
 PyDoc_STRVAR(Monitor_get_events__doc__,
              "get_events() -> int\n\n"
-             "Returns a mask of poll() events to wait for on the file\n"
-             "descriptor returned by .fileno().\n\n"
+             "Returns a mask of poll() events to wait for on the file descriptor returned\n"
+             "by .fileno().\n\n"
              "See man:sd_login_monitor_get_events(3) for further discussion.");
 static PyObject* Monitor_get_events(Monitor *self, PyObject *args) {
         int r = sd_login_monitor_get_events(self->monitor);

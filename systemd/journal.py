@@ -106,12 +106,17 @@ def _valid_field_name(s):
     return not (set(s) - _IDENT_CHARACTER)
 
 class Reader(_Reader):
-    """Reader allows the access and filtering of systemd journal
-    entries. Note that in order to access the system journal, a
-    non-root user must be in the `systemd-journal` group.
+    """Access systemd journal entries.
 
-    Example usage to print out all informational or higher level
-    messages for systemd-udevd for this boot:
+    Entries are subject to filtering and limits, see `add_match`, `this_boot`,
+    `this_machine` functions and the `data_treshold` attribute.
+
+    Note that in order to access the system journal, a non-root user must have
+    the necessary privileges, see journalctl(1) for details.  Unprivileged users
+    can access only their own journal.
+
+    Example usage to print out all informational or higher level messages for
+    systemd-udevd for this boot:
 
     >>> from systemd import journal
     >>> j = journal.Reader()
@@ -122,34 +127,32 @@ class Reader(_Reader):
     ...    print(entry['MESSAGE'])
     starting version ...
 
-    See systemd.journal-fields(7) for more info on typical fields
-    found in the journal.
+    See systemd.journal-fields(7) for more info on typical fields found in the
+    journal.
+
     """
     def __init__(self, flags=0, path=None, files=None, converters=None):
-        """Create an instance of Reader, which allows filtering and
-        return of journal entries.
+        """Create a new Reader.
 
-        Argument `flags` sets open flags of the journal, which can be one
-        of, or ORed combination of constants: LOCAL_ONLY (default) opens
-        journal on local machine only; RUNTIME_ONLY opens only
-        volatile journal files; and SYSTEM_ONLY opens only
-        journal files of system services and the kernel.
+        Argument `flags` defines the open flags of the journal, which can be one
+        of, or ORed combination of constants: LOCAL_ONLY (default) opens journal
+        on local machine only; RUNTIME_ONLY opens only volatile journal files;
+        and SYSTEM_ONLY opens only journal files of system services and the kernel.
 
-        Argument `path` is the directory of journal files. Note that
-        `flags` and `path` are exclusive.
+        Argument `path` is the directory of journal files. Note that `flags` and
+        `path` are exclusive.
 
         Argument `converters` is a dictionary which updates the
-        DEFAULT_CONVERTERS to convert journal field values. Field
-        names are used as keys into this dictionary. The values must
-        be single argument functions, which take a `bytes` object and
-        return a converted value. When there's no entry for a field
-        name, then the default UTF-8 decoding will be attempted. If
-        the conversion fails with a ValueError, unconverted bytes
-        object will be returned. (Note that ValueEror is a superclass
-        of UnicodeDecodeError).
+        DEFAULT_CONVERTERS to convert journal field values. Field names are used
+        as keys into this dictionary. The values must be single argument
+        functions, which take a `bytes` object and return a converted
+        value. When there's no entry for a field name, then the default UTF-8
+        decoding will be attempted. If the conversion fails with a ValueError,
+        unconverted bytes object will be returned. (Note that ValueEror is a
+        superclass of UnicodeDecodeError).
 
-        Reader implements the context manager protocol: the journal
-        will be closed when exiting the block.
+        Reader implements the context manager protocol: the journal will be
+        closed when exiting the block.
         """
         super(Reader, self).__init__(flags, path, files)
         if _sys.version_info >= (3,3):
@@ -163,12 +166,12 @@ class Reader(_Reader):
                 self.converters.update(converters)
 
     def _convert_field(self, key, value):
-        """Convert value using self.converters[key]
+        """Convert value using self.converters[key].
 
-        If `key` is not present in self.converters, a standard unicode
-        decoding will be attempted.  If the conversion (either
-        key-specific or the default one) fails with a ValueError, the
-        original bytes object will be returned.
+        If `key` is not present in self.converters, a standard unicode decoding
+        will be attempted.  If the conversion (either key-specific or the
+        default one) fails with a ValueError, the original bytes object will be
+        returned.
         """
         convert = self.converters.get(key, bytes.decode)
         try:
@@ -178,7 +181,7 @@ class Reader(_Reader):
             return value
 
     def _convert_entry(self, entry):
-        """Convert entire journal entry utilising _convert_field"""
+        """Convert entire journal entry utilising _convert_field."""
         result = {}
         for key, value in entry.items():
             if isinstance(value, list):
@@ -188,14 +191,18 @@ class Reader(_Reader):
         return result
 
     def __iter__(self):
-        """Part of iterator protocol.
-        Returns self.
+        """Return self.
+
+        Part of the iterator protocol.
         """
         return self
 
     def __next__(self):
-        """Part of iterator protocol.
+        """Return the next entry in the journal.
+
         Returns self.get_next() or raises StopIteration.
+
+        Part of the iterator protocol.
         """
         ans = self.get_next()
         if ans:
@@ -208,11 +215,11 @@ class Reader(_Reader):
 
     def add_match(self, *args, **kwargs):
         """Add one or more matches to the filter journal log entries.
-        All matches of different field are combined in a logical AND,
-        and matches of the same field are automatically combined in a
-        logical OR.
-        Matches can be passed as strings of form "FIELD=value", or
-        keyword arguments FIELD="value".
+
+        All matches of different field are combined in a logical AND, and
+        matches of the same field are automatically combined in a logical OR.
+        Matches can be passed as strings of form "FIELD=value", or keyword
+        arguments FIELD="value".
         """
         args = list(args)
         args.extend(_make_line(key, val) for key, val in kwargs.items())
@@ -220,13 +227,16 @@ class Reader(_Reader):
             super(Reader, self).add_match(arg)
 
     def get_next(self, skip=1):
-        """Return the next log entry as a mapping type, currently
-        a standard dictionary of fields.
+        """Return the next log entry as a dictionary.
+
+        Entries will be processed with converters specified during Reader
+        creation.
 
         Optional skip value will return the `skip`\-th log entry.
 
-        Entries will be processed with converters specified during
-        Reader creation.
+        Currently a standard dictionary of fields is returned, but in the
+        future this might be changed to a different mapping type, so the
+        calling code should not make assumptions about a specific type.
         """
         if super(Reader, self)._next(skip):
             entry = super(Reader, self)._get_all()
@@ -238,20 +248,24 @@ class Reader(_Reader):
         return dict()
 
     def get_previous(self, skip=1):
-        """Return the previous log entry as a mapping type,
-        currently a standard dictionary of fields.
+        """Return the previous log entry.
+
+        Equivalent to get_next(-skip).
 
         Optional skip value will return the -`skip`\-th log entry.
 
-        Entries will be processed with converters specified during
-        Reader creation.
+        Entries will be processed with converters specified during Reader
+        creation.
 
-        Equivalent to get_next(-skip).
+        Currently a standard dictionary of fields is returned, but in the
+        future this might be changed to a different mapping type, so the
+        calling code should not make assumptions about a specific type.
         """
         return self.get_next(-skip)
 
     def query_unique(self, field):
-        """Return unique values appearing in the journal for given `field`.
+        """Return a list of unique values appearing in the journal for the given
+        `field`.
 
         Note this does not respect any journal matches.
 
@@ -262,12 +276,14 @@ class Reader(_Reader):
                    for value in super(Reader, self).query_unique(field))
 
     def wait(self, timeout=None):
-        """Wait for a change in the journal. `timeout` is the maximum
-        time in seconds to wait, or None, to wait forever.
+        """Wait for a change in the journal.
 
-        Returns one of NOP (no change), APPEND (new entries have been
-        added to the end of the journal), or INVALIDATE (journal files
-        have been added or removed).
+        `timeout` is the maximum time in seconds to wait, or None which
+        means to wait forever.
+
+        Returns one of NOP (no change), APPEND (new entries have been added to
+        the end of the journal), or INVALIDATE (journal files have been added or
+        removed).
         """
         us = -1 if timeout is None else int(timeout * 1000000)
         return super(Reader, self).wait(us)
@@ -275,8 +291,8 @@ class Reader(_Reader):
     def seek_realtime(self, realtime):
         """Seek to a matching journal entry nearest to `realtime` time.
 
-        Argument `realtime` must be either an integer unix timestamp
-        or datetime.datetime instance.
+        Argument `realtime` must be either an integer unix timestamp or
+        datetime.datetime instance.
         """
         if isinstance(realtime, _datetime.datetime):
             realtime = float(realtime.strftime("%s.%f")) * 1000000
@@ -285,10 +301,10 @@ class Reader(_Reader):
     def seek_monotonic(self, monotonic, bootid=None):
         """Seek to a matching journal entry nearest to `monotonic` time.
 
-        Argument `monotonic` is a timestamp from boot in either
-        seconds or a datetime.timedelta instance. Argument `bootid`
-        is a string or UUID representing which boot the monotonic time
-        is reference to. Defaults to current bootid.
+        Argument `monotonic` is a timestamp from boot in either seconds or a
+        datetime.timedelta instance. Argument `bootid` is a string or UUID
+        representing which boot the monotonic time is reference to. Defaults to
+        current bootid.
         """
         if isinstance(monotonic, _datetime.timedelta):
             monotonic = monotonic.total_seconds()
@@ -319,11 +335,9 @@ class Reader(_Reader):
         self.add_match(MESSAGE_ID=messageid)
 
     def this_boot(self, bootid=None):
-        """Add match for _BOOT_ID equal to current boot ID or the specified
-        boot ID.
+        """Add match for _BOOT_ID for current boot or the specified boot ID.
 
-        If specified, bootid should be either a UUID or a 32 digit hex
-        number.
+        If specified, bootid should be either a UUID or a 32 digit hex number.
 
         Equivalent to add_match(_BOOT_ID='bootid').
         """
@@ -336,8 +350,8 @@ class Reader(_Reader):
     def this_machine(self, machineid=None):
         """Add match for _MACHINE_ID equal to the ID of this machine.
 
-        If specified, machineid should be either a UUID or a 32 digit
-        hex number.
+        If specified, machineid should be either a UUID or a 32 digit hex
+        number.
 
         Equivalent to add_match(_MACHINE_ID='machineid').
         """
@@ -349,6 +363,10 @@ class Reader(_Reader):
 
 
 def get_catalog(mid):
+    """Return catalog entry for the specified ID.
+
+    `mid` should be either a UUID or a 32 digit hex number.
+    """
     if isinstance(mid, _uuid.UUID):
         mid = mid.hex
     return _get_catalog(mid)
@@ -371,25 +389,23 @@ def send(MESSAGE, MESSAGE_ID=None,
     >>> journal.send('Hello, again, world', FIELD2='Greetings!')
     >>> journal.send('Binary message', BINARY=b'\xde\xad\xbe\xef')
 
-    Value of the MESSAGE argument will be used for the MESSAGE=
-    field. MESSAGE must be a string and will be sent as UTF-8 to the
-    journal.
+    Value of the MESSAGE argument will be used for the MESSAGE= field. MESSAGE
+    must be a string and will be sent as UTF-8 to the journal.
 
-    MESSAGE_ID can be given to uniquely identify the type of
-    message. It must be a string or a uuid.UUID object.
+    MESSAGE_ID can be given to uniquely identify the type of message. It must be
+    a string or a uuid.UUID object.
 
-    CODE_LINE, CODE_FILE, and CODE_FUNC can be specified to identify
-    the caller. Unless at least on of the three is given, values are
-    extracted from the stack frame of the caller of send(). CODE_FILE
-    and CODE_FUNC must be strings, CODE_LINE must be an integer.
+    CODE_LINE, CODE_FILE, and CODE_FUNC can be specified to identify the caller.
+    Unless at least on of the three is given, values are extracted from the
+    stack frame of the caller of send(). CODE_FILE and CODE_FUNC must be
+    strings, CODE_LINE must be an integer.
 
-    Additional fields for the journal entry can only be specified as
-    keyword arguments. The payload can be either a string or bytes. A
-    string will be sent as UTF-8, and bytes will be sent as-is to the
-    journal.
+    Additional fields for the journal entry can only be specified as keyword
+    arguments. The payload can be either a string or bytes. A string will be
+    sent as UTF-8, and bytes will be sent as-is to the journal.
 
-    Other useful fields include PRIORITY, SYSLOG_FACILITY,
-    SYSLOG_IDENTIFIER, SYSLOG_PID.
+    Other useful fields include PRIORITY, SYSLOG_FACILITY, SYSLOG_IDENTIFIER,
+    SYSLOG_PID.
     """
 
     args = ['MESSAGE=' + MESSAGE]
@@ -413,11 +429,11 @@ def send(MESSAGE, MESSAGE_ID=None,
 def stream(identifier, priority=LOG_DEBUG, level_prefix=False):
     r"""Return a file object wrapping a stream to journal.
 
-    Log messages written to this file as simple newline sepearted text
-    strings are written to the journal.
+    Log messages written to this file as simple newline sepearted text strings
+    are written to the journal.
 
-    The file will be line buffered, so messages are actually sent
-    after a newline character is written.
+    The file will be line buffered, so messages are actually sent after a
+    newline character is written.
 
     >>> from systemd import journal
     >>> stream = journal.stream('myapp')
@@ -429,18 +445,16 @@ def stream(identifier, priority=LOG_DEBUG, level_prefix=False):
     SYSLOG_IDENTIFIER=myapp
     MESSAGE=message...
 
-    Using the interface with print might be more convinient:
+    Using the interface with print might be more convenient:
 
     >>> from __future__ import print_function
     >>> print('message...', file=stream)                 # doctest: +SKIP
 
-    priority is the syslog priority, one of `LOG_EMERG`,
-    `LOG_ALERT`, `LOG_CRIT`, `LOG_ERR`, `LOG_WARNING`,
-    `LOG_NOTICE`, `LOG_INFO`, `LOG_DEBUG`.
+    priority is the syslog priority, one of `LOG_EMERG`, `LOG_ALERT`,
+    `LOG_CRIT`, `LOG_ERR`, `LOG_WARNING`, `LOG_NOTICE`, `LOG_INFO`, `LOG_DEBUG`.
 
-    level_prefix is a boolean. If true, kernel-style log priority
-    level prefixes (such as '<1>') are interpreted. See
-    sd-daemon(3) for more information.
+    level_prefix is a boolean. If true, kernel-style log priority level prefixes
+    (such as '<1>') are interpreted. See sd-daemon(3) for more information.
     """
 
     fd = stream_fd(identifier, priority, level_prefix)
@@ -449,8 +463,8 @@ def stream(identifier, priority=LOG_DEBUG, level_prefix=False):
 class JournalHandler(_logging.Handler):
     """Journal handler class for the Python logging framework.
 
-    Please see the Python logging module documentation for an
-    overview: http://docs.python.org/library/logging.html.
+    Please see the Python logging module documentation for an overview:
+    http://docs.python.org/library/logging.html.
 
     To create a custom logger whose messages go only to journal:
 
@@ -460,20 +474,20 @@ class JournalHandler(_logging.Handler):
     >>> log.addHandler(JournalHandler())
     >>> log.warning("Some message: %s", 'detail')
 
-    Note that by default, message levels `INFO` and `DEBUG` are
-    ignored by the logging framework. To enable those log levels:
+    Note that by default, message levels `INFO` and `DEBUG` are ignored by the
+    logging framework. To enable those log levels:
 
     >>> log.setLevel(logging.DEBUG)
 
-    To redirect all logging messages to journal regardless of where
-    they come from, attach it to the root logger:
+    To redirect all logging messages to journal regardless of where they come
+    from, attach it to the root logger:
 
     >>> logging.root.addHandler(JournalHandler())
 
-    For more complex configurations when using `dictConfig` or
-    `fileConfig`, specify `systemd.journal.JournalHandler` as the
-    handler class.  Only standard handler configuration options
-    are supported: `level`, `formatter`, `filters`.
+    For more complex configurations when using `dictConfig` or `fileConfig`,
+    specify `systemd.journal.JournalHandler` as the handler class.  Only
+    standard handler configuration options are supported: `level`, `formatter`,
+    `filters`.
 
     To attach journal MESSAGE_ID, an extra field is supported:
 
@@ -481,18 +495,18 @@ class JournalHandler(_logging.Handler):
     >>> mid = uuid.UUID('0123456789ABCDEF0123456789ABCDEF')
     >>> log.warning("Message with ID", extra={'MESSAGE_ID': mid})
 
-    Fields to be attached to all messages sent through this handler
-    can be specified as keyword arguments. This probably makes sense
-    only for SYSLOG_IDENTIFIER and similar fields which are constant
-    for the whole program:
+    Fields to be attached to all messages sent through this handler can be
+    specified as keyword arguments. This probably makes sense only for
+    SYSLOG_IDENTIFIER and similar fields which are constant for the whole
+    program:
 
     >>> JournalHandler(SYSLOG_IDENTIFIER='my-cool-app')
     <systemd.journal.JournalHandler object at ...>
 
     The following journal fields will be sent: `MESSAGE`, `PRIORITY`,
-    `THREAD_NAME`, `CODE_FILE`, `CODE_LINE`, `CODE_FUNC`, `LOGGER`
-    (name as supplied to getLogger call), `MESSAGE_ID` (optional, see
-    above), `SYSLOG_IDENTIFIER` (defaults to sys.argv[0]).
+    `THREAD_NAME`, `CODE_FILE`, `CODE_LINE`, `CODE_FUNC`, `LOGGER` (name as
+    supplied to getLogger call), `MESSAGE_ID` (optional, see above),
+    `SYSLOG_IDENTIFIER` (defaults to sys.argv[0]).
     """
 
     def __init__(self, level=_logging.NOTSET, **kwargs):
@@ -506,12 +520,11 @@ class JournalHandler(_logging.Handler):
         self._extra = kwargs
 
     def emit(self, record):
-        """Write record as journal event.
+        """Write `record` as a journal event.
 
-        MESSAGE is taken from the message provided by the user, and
-        PRIORITY, LOGGER, THREAD_NAME, CODE_{FILE,LINE,FUNC} fields
-        are appended automatically. In addition, record.MESSAGE_ID
-        will be used if present.
+        MESSAGE is taken from the message provided by the user, and PRIORITY,
+        LOGGER, THREAD_NAME, CODE_{FILE,LINE,FUNC} fields are appended
+        automatically. In addition, record.MESSAGE_ID will be used if present.
         """
         try:
             msg = self.format(record)
@@ -533,8 +546,8 @@ class JournalHandler(_logging.Handler):
     def mapPriority(levelno):
         """Map logging levels to journald priorities.
 
-        Since Python log level numbers are "sparse", we have to map
-        numbers in between the standard levels too.
+        Since Python log level numbers are "sparse", we have to map numbers in
+        between the standard levels too.
         """
         if levelno <= _logging.DEBUG:
             return LOG_DEBUG
