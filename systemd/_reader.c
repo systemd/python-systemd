@@ -965,7 +965,7 @@ static PyObject* Reader_enumerate_fields(Reader *self, PyObject *args) {
                 if (set_error(r, NULL, "Field enumeration failed") < 0)
                         return NULL;
 
-                value = PyBytes_FromString(field);
+                value = PyUnicode_FromString(field);
                 if (!value)
                         return NULL;
 
