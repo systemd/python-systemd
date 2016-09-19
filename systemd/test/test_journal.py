@@ -1,6 +1,7 @@
 import logging
 import uuid
 import errno
+import os
 from systemd import journal, id128
 
 import pytest
@@ -51,6 +52,21 @@ def test_reader_init_path(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)
     with pytest.raises(ValueError):
         journal.Reader(journal.LOCAL_ONLY, path=tmpdir.strpath)
+
+def test_reader_init_path_invalid_fd():
+    with pytest.raises(OSError):
+        journal.Reader(0, path=-1)
+
+def test_reader_init_path_nondirectory_fd():
+    with pytest.raises(OSError):
+        journal.Reader(0, path=0)
+
+def test_reader_init_path_fd(tmpdir):
+    fd = os.open(tmpdir.strpath, os.O_RDONLY)
+    j = journal.Reader(path=fd)
+    with pytest.raises(ValueError):
+        journal.Reader(journal.LOCAL_ONLY, path=fd)
+    assert list(j) == []
 
 def test_reader_as_cm(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)

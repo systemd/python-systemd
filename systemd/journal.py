@@ -139,8 +139,9 @@ class Reader(_Reader):
         on local machine only; RUNTIME_ONLY opens only volatile journal files;
         and SYSTEM_ONLY opens only journal files of system services and the kernel.
 
-        Argument `path` is the directory of journal files. Note that `flags` and
-        `path` are exclusive.
+        Argument `path` is the directory of journal files, either a file system
+        path or a file descriptor. Note that `flags`, `path`, and `files` are
+        exclusive.
 
         Argument `converters` is a dictionary which updates the
         DEFAULT_CONVERTERS to convert journal field values. Field names are used

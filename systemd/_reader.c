@@ -44,6 +44,10 @@
 #  define HAVE_HAS_PERSISTENT_FILES
 #endif
 
+#if LIBSYSTEMD_VERSION >= 230
+#  define HAVE_JOURNAL_OPEN_DIRECTORY_FD
+#endif
+
 typedef struct {
         PyObject_HEAD
         sd_journal *j;
@@ -75,22 +79,49 @@ static PyStructSequence_Desc Monotonic_desc = {
 #endif
 
 /**
- * Convert a Python sequence object into a strv (char**), and
- * None into a NULL pointer.
+ * Convert a str or bytes object into a C-string path.
+ * Returns NULL on error.
  */
-static int strv_converter(PyObject* obj, void *_result) {
-        char ***result = _result;
-        Py_ssize_t i, len;
+static char* convert_path(PyObject *path, PyObject **bytes) {
+#if PY_MAJOR_VERSION >=3 && PY_MINOR_VERSION >= 1
+                int r;
+
+                r = PyUnicode_FSConverter(path, bytes);
+                if (r == 0)
+                        return NULL;
+
+                return PyBytes_AsString(*bytes);
+#else
+                return PyString_AsString(path);
+#endif
+}
+
+/**
+ * Return NULL is obj is None, and the object otherwise.
+ */
+static int null_converter(PyObject* obj, void *_result) {
+        PyObject **result = _result;
 
         assert(result);
 
         if (!obj)
                 return 0;
 
-        if (obj == Py_None) {
+        if (obj == Py_None)
                 *result = NULL;
-                return 1;
-        }
+        else
+                *result = obj;
+        return 1;
+}
+
+/**
+ * Convert a Python sequence object into a strv (char**).
+ */
+static int strv_converter(PyObject* obj, void *_result) {
+        char ***result = _result;
+        Py_ssize_t i, len;
+
+        assert(result);
 
         if (!PySequence_Check(obj))
                 return 0;
@@ -104,32 +135,21 @@ static int strv_converter(PyObject* obj, void *_result) {
 
         for (i = 0; i < len; i++) {
                 PyObject *item;
-#if PY_MAJOR_VERSION >=3 && PY_MINOR_VERSION >= 1
-                int r;
-                PyObject *bytes;
-#endif
-                char *s, *s2;
+                _cleanup_Py_DECREF_ PyObject *bytes = NULL;
+                char *s;
 
                 item = PySequence_ITEM(obj, i);
-#if PY_MAJOR_VERSION >=3 && PY_MINOR_VERSION >= 1
-                r = PyUnicode_FSConverter(item, &bytes);
-                if (r == 0)
-                        goto cleanup;
-
-                s = PyBytes_AsString(bytes);
-#else
-                s = PyString_AsString(item);
-#endif
+                s = convert_path(item, &bytes);
                 if (!s)
                         goto cleanup;
 
-                s2 = strdup(s);
-                if (!s2) {
+                s = strdup(s);
+                if (!s) {
                         set_error(-ENOMEM, NULL, NULL);
                         goto cleanup;
                 }
 
-                (*result)[i] = s2;
+                (*result)[i] = s;
         }
 
         return 1;
@@ -151,49 +171,84 @@ PyDoc_STRVAR(Reader__doc__,
              "_Reader allows filtering and retrieval of Journal entries.\n"
              "Note: this is a low-level interface, and probably not what you\n"
              "want, use systemd.journal.Reader instead.\n\n"
-             "Argument `flags` sets open flags of the journal, which can be one\n"
-             "of, or ORed combination of constants: LOCAL_ONLY (default) opens\n"
-             "journal on local machine only; RUNTIME_ONLY opens only\n"
-             "volatile journal files; and SYSTEM opens journal files of\n"
-             "system services and the kernel, and CURRENT_USER opens files\n"
-             "of the current user.\n\n"
-             "Argument `path` is the directory of journal files.\n"
-             "Argument `files` is a list of files. Note that\n"
-             "`flags`, `path`, and `files` are exclusive.\n\n"
-             "_Reader implements the context manager protocol: the journal\n"
-             "will be closed when exiting the block.");
+             "Argument `flags` sets open flags of the journal, which can be one of, or an ORed\n"
+             "combination of constants: LOCAL_ONLY (default) opens journal on local machine only;\n"
+             "RUNTIME_ONLY opens only volatile journal files; and SYSTEM opens journal files of\n"
+             "system services and the kernel, and CURRENT_USER opens file of the current user.\n"
+             "\n"
+             "Instead of opening the system journal, argument `path` may specify a directory\n"
+             "which contains the journal. It maybe be either a file system path (a string), or\n"
+             "a file descriptor (an integer). Alternatively, argument `files` may specify a list\n"
+             "of journal file names. Note that `flags`, `path`, `files`, `directory_fd` are\n"
+             "exclusive.\n\n"
+             "_Reader implements the context manager protocol: the journal will be closed when\n"
+             "exiting the block.");
 static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
         int flags = 0, r;
-        char *path = NULL;
-        char **files = NULL;
+        PyObject *_path = NULL;
+        _cleanup_strv_free_ char **files = NULL;
 
         static const char* const kwlist[] = {"flags", "path", "files", NULL};
-        if (!PyArg_ParseTupleAndKeywords(args, keywds, "|izO&:__init__", (char**) kwlist,
-                                         &flags, &path, strv_converter, &files))
+        if (!PyArg_ParseTupleAndKeywords(args, keywds, "|iO&O&:__init__", (char**) kwlist,
+                                         &flags,
+                                         null_converter, &_path,
+                                         strv_converter, &files))
                 return -1;
 
-        if (!!flags + !!path + !!files > 1) {
-                PyErr_SetString(PyExc_ValueError, "cannot use more than one of flags, path, and files");
+        if (!!flags + !!_path + !!files > 1) {
+                PyErr_SetString(PyExc_ValueError,
+                                "cannot use more than one of flags, path, and files");
                 return -1;
         }
 
-        if (!flags)
-                flags = SD_JOURNAL_LOCAL_ONLY;
+        if (_path) {
+                if (long_Check(_path)) {
+                        long directory_fd = long_AsLong(_path);
+                        if (PyErr_Occurred())
+                                return -1;
 
-        Py_BEGIN_ALLOW_THREADS
-        if (path)
-                r = sd_journal_open_directory(&self->j, path, 0);
-        else if (files) {
+                        if ((int) directory_fd != directory_fd) {
+                                PyErr_SetString(PyExc_OverflowError, "Value too large");
+                                return -1;
+                        }
+
+#ifdef HAVE_JOURNAL_OPEN_DIRECTORY_FD
+                        Py_BEGIN_ALLOW_THREADS
+                        r = sd_journal_open_directory_fd(&self->j, (int) directory_fd, 0);
+                        Py_END_ALLOW_THREADS
+#else
+                        r = -ENOSYS;
+#endif
+                } else {
+                        char *path = NULL;
+                        _cleanup_Py_DECREF_ PyObject *path_bytes = NULL;
+
+                        path = convert_path(_path, &path_bytes);
+                        if (!path)
+                                return -1;
+
+                        Py_BEGIN_ALLOW_THREADS
+                        r = sd_journal_open_directory(&self->j, path, 0);
+                        Py_END_ALLOW_THREADS
+                }
+        } else if (files) {
 #ifdef HAVE_JOURNAL_OPEN_FILES
+                Py_BEGIN_ALLOW_THREADS
                 r = sd_journal_open_files(&self->j, (const char**) files, 0);
+                Py_END_ALLOW_THREADS
 #else
                 r = -ENOSYS;
 #endif
-        } else
-                r = sd_journal_open(&self->j, flags);
-        Py_END_ALLOW_THREADS
+        } else {
+                if (!flags)
+                        flags = SD_JOURNAL_LOCAL_ONLY;
 
-        return set_error(r, path, "Invalid flags or path");
+                Py_BEGIN_ALLOW_THREADS
+                r = sd_journal_open(&self->j, flags);
+                Py_END_ALLOW_THREADS
+        }
+
+        return set_error(r, NULL, "Opening the journal failed");
 }
 
 PyDoc_STRVAR(Reader_fileno__doc__,
