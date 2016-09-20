@@ -1,4 +1,5 @@
 import logging
+import contextlib
 import uuid
 import errno
 import os
@@ -7,6 +8,15 @@ from systemd import journal, id128
 import pytest
 
 TEST_MID = uuid.UUID('8441372f8dca4ca98694a6091fd8519f')
+
+@contextlib.contextmanager
+def skip_enosys():
+    try:
+        yield
+    except OSError as e:
+        if e.errno == errno.ENOSYS:
+            pytest.skip()
+        raise
 
 def test_priorities():
     p = journal.JournalHandler.mapPriority
@@ -74,7 +84,8 @@ def test_reader_init_path_nondirectory_fd():
 def test_reader_init_path_fd(tmpdir):
     fd = os.open(tmpdir.strpath, os.O_RDONLY)
 
-    j1 = journal.Reader(path=fd)
+    with skip_enosys():
+        j1 = journal.Reader(path=fd)
     assert list(j1) == []
 
     j2 = journal.Reader(journal.SYSTEM, path=fd)
@@ -115,47 +126,31 @@ def test_reader_this_machine(tmpdir):
 def test_reader_query_unique(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)
     with j:
-        try:
+        with skip_enosys():
             ans = j.query_unique('FOOBAR')
-        except OSError as e:
-            if e.errno == errno.ENOSYS:
-                return
-            raise
     assert isinstance(ans, set)
     assert ans == set()
 
 def test_reader_enumerate_fields(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)
     with j:
-        try:
+        with skip_enosys():
             ans = j.enumerate_fields()
-        except OSError as e:
-            if e.errno == errno.ENOSYS:
-                pytest.skip()
-            raise
     assert isinstance(ans, set)
     assert ans == set()
 
 def test_reader_has_runtime_files(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)
     with j:
-        try:
+        with skip_enosys():
             ans = j.has_runtime_files()
-        except OSError as e:
-            if e.errno == errno.ENOSYS:
-                pytest.skip()
-            raise
     assert ans == False
 
 def test_reader_has_persistent_files(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)
     with j:
-        try:
+        with skip_enosys():
             ans = j.has_runtime_files()
-        except OSError as e:
-            if e.errno == errno.ENOSYS:
-                pytest.skip()
-            raise
     assert ans == False
 
 def test_reader_converters(tmpdir):
