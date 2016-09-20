@@ -34,8 +34,8 @@
 #if defined(LIBSYSTEMD_VERSION) || LIBSYSTEMD_JOURNAL_VERSION > 204
 #  define HAVE_JOURNAL_OPEN_FILES
 #else
-#  define SD_JOURNAL_SYSTEM 4
-#  define SD_JOURNAL_CURRENT_USER 8
+#  define SD_JOURNAL_SYSTEM        (1 << 2)
+#  define SD_JOURNAL_CURRENT_USER  (1 << 3)
 #endif
 
 #if LIBSYSTEMD_VERSION >= 229
@@ -46,6 +46,8 @@
 
 #if LIBSYSTEMD_VERSION >= 230
 #  define HAVE_JOURNAL_OPEN_DIRECTORY_FD
+#else
+#  define SD_JOURNAL_OS_ROOT       (1 << 4)
 #endif
 
 typedef struct {
@@ -225,7 +227,9 @@ PyDoc_STRVAR(Reader__doc__,
              "Argument `flags` sets open flags of the journal, which can be one of, or an ORed\n"
              "combination of constants: LOCAL_ONLY (default) opens journal on local machine only;\n"
              "RUNTIME_ONLY opens only volatile journal files; and SYSTEM opens journal files of\n"
-             "system services and the kernel, and CURRENT_USER opens file of the current user.\n"
+             "system services and the kernel, CURRENT_USER opens files of the current user; and\n"
+             "OS_ROOT is used to open the journal from directories relative to the specified\n"
+             "directory path or file descriptor.\n"
              "\n"
              "Instead of opening the system journal, argument `path` may specify a directory\n"
              "which contains the journal. It maybe be either a file system path (a string), or\n"
@@ -235,8 +239,9 @@ PyDoc_STRVAR(Reader__doc__,
              "_Reader implements the context manager protocol: the journal will be closed when\n"
              "exiting the block.");
 static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
-        int flags = 0, r;
+        unsigned flags = SD_JOURNAL_LOCAL_ONLY;
         PyObject *_path = NULL, *_files = NULL;
+        int r;
 
         static const char* const kwlist[] = {"flags", "path", "files", NULL};
         if (!PyArg_ParseTupleAndKeywords(args, keywds, "|iO&O&:__init__", (char**) kwlist,
@@ -245,9 +250,9 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
                                          null_converter, &_files))
                 return -1;
 
-        if (!!flags + !!_path + !!_files > 1) {
+        if (!!_path + !!_files > 1) {
                 PyErr_SetString(PyExc_ValueError,
-                                "cannot use more than one of flags, path, and files");
+                                "path and files cannot be specified simultaneously");
                 return -1;
         }
 
@@ -260,7 +265,7 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
 
 #ifdef HAVE_JOURNAL_OPEN_DIRECTORY_FD
                         Py_BEGIN_ALLOW_THREADS
-                        r = sd_journal_open_directory_fd(&self->j, (int) fd, 0);
+                        r = sd_journal_open_directory_fd(&self->j, (int) fd, flags);
                         Py_END_ALLOW_THREADS
 #else
                         r = -ENOSYS;
@@ -274,7 +279,7 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
                                 return -1;
 
                         Py_BEGIN_ALLOW_THREADS
-                        r = sd_journal_open_directory(&self->j, path, 0);
+                        r = sd_journal_open_directory(&self->j, path, flags);
                         Py_END_ALLOW_THREADS
                 }
         } else if (_files) {
@@ -289,7 +294,7 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
                                 return -1;
 
                         Py_BEGIN_ALLOW_THREADS
-                        r = sd_journal_open_files(&self->j, (const char**) files, 0);
+                        r = sd_journal_open_files(&self->j, (const char**) files, flags);
                         Py_END_ALLOW_THREADS
                 } else {
                         _cleanup_free_ int *fds = NULL;
@@ -299,16 +304,13 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
                                 return -1;
 
                         Py_BEGIN_ALLOW_THREADS
-                        r = sd_journal_open_files_fd(&self->j, fds, n_fds, 0);
+                        r = sd_journal_open_files_fd(&self->j, fds, n_fds, flags);
                         Py_END_ALLOW_THREADS
                 }
 #else
                 r = -ENOSYS;
 #endif
         } else {
-                if (!flags)
-                        flags = SD_JOURNAL_LOCAL_ONLY;
-
                 Py_BEGIN_ALLOW_THREADS
                 r = sd_journal_open(&self->j, flags);
                 Py_END_ALLOW_THREADS
@@ -1332,6 +1334,7 @@ init_reader(void)
             PyModule_AddIntConstant(m, "SYSTEM", SD_JOURNAL_SYSTEM) ||
             PyModule_AddIntConstant(m, "SYSTEM_ONLY", SD_JOURNAL_SYSTEM_ONLY) ||
             PyModule_AddIntConstant(m, "CURRENT_USER", SD_JOURNAL_CURRENT_USER) ||
+            PyModule_AddIntConstant(m, "OS_ROOT", SD_JOURNAL_OS_ROOT) ||
             PyModule_AddStringConstant(m, "__version__", PACKAGE_VERSION)) {
 #if PY_MAJOR_VERSION >= 3
                 Py_DECREF(m);

@@ -43,15 +43,25 @@ def test_reader_init_flags():
     j2 = journal.Reader(journal.LOCAL_ONLY)
     j3 = journal.Reader(journal.RUNTIME_ONLY)
     j4 = journal.Reader(journal.SYSTEM_ONLY)
-    j5 = journal.Reader(journal.LOCAL_ONLY|
-                        journal.RUNTIME_ONLY|
-                        journal.SYSTEM_ONLY)
+    j5 = journal.Reader(journal.LOCAL_ONLY | journal.RUNTIME_ONLY | journal.SYSTEM_ONLY)
     j6 = journal.Reader(0)
 
-def test_reader_init_path(tmpdir):
-    j = journal.Reader(path=tmpdir.strpath)
+def test_reader_os_root(tmpdir):
     with pytest.raises(ValueError):
-        journal.Reader(journal.LOCAL_ONLY, path=tmpdir.strpath)
+        journal.Reader(journal.OS_ROOT)
+    j1 = journal.Reader(path=tmpdir.strpath,
+                        flags=journal.OS_ROOT)
+    j2 = journal.Reader(path=tmpdir.strpath,
+                        flags=journal.OS_ROOT | journal.CURRENT_USER)
+    j3 = journal.Reader(path=tmpdir.strpath,
+                        flags=journal.OS_ROOT | journal.SYSTEM_ONLY)
+
+def test_reader_init_path(tmpdir):
+    j1 = journal.Reader(path=tmpdir.strpath)
+    journal.Reader(0, path=tmpdir.strpath)
+
+    j2 = journal.Reader(path=tmpdir.strpath)
+    journal.Reader(path=tmpdir.strpath)
 
 def test_reader_init_path_invalid_fd():
     with pytest.raises(OSError):
@@ -63,10 +73,15 @@ def test_reader_init_path_nondirectory_fd():
 
 def test_reader_init_path_fd(tmpdir):
     fd = os.open(tmpdir.strpath, os.O_RDONLY)
-    j = journal.Reader(path=fd)
-    with pytest.raises(ValueError):
-        journal.Reader(journal.LOCAL_ONLY, path=fd)
-    assert list(j) == []
+
+    j1 = journal.Reader(path=fd)
+    assert list(j1) == []
+
+    j2 = journal.Reader(journal.SYSTEM, path=fd)
+    assert list(j2) == []
+
+    j3 = journal.Reader(journal.CURRENT_USER, path=fd)
+    assert list(j3) == []
 
 def test_reader_as_cm(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)

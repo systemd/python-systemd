@@ -89,6 +89,7 @@ Journal access types
 .. autoattribute:: systemd.journal.RUNTIME_ONLY
 .. autoattribute:: systemd.journal.SYSTEM
 .. autoattribute:: systemd.journal.CURRENT_USER
+.. autoattribute:: systemd.journal.OS_ROOT
 
 Journal event types
 ~~~~~~~~~~~~~~~~~~~

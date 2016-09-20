@@ -34,6 +34,7 @@ from ._journal import __version__, sendv, stream_fd
 from ._reader import (_Reader, NOP, APPEND, INVALIDATE,
                       LOCAL_ONLY, RUNTIME_ONLY,
                       SYSTEM, SYSTEM_ONLY, CURRENT_USER,
+                      OS_ROOT,
                       _get_catalog)
 from . import id128 as _id128
 
@@ -131,7 +132,7 @@ class Reader(_Reader):
     journal.
 
     """
-    def __init__(self, flags=0, path=None, files=None, converters=None):
+    def __init__(self, flags=None, path=None, files=None, converters=None):
         """Create a new Reader.
 
         Argument `flags` defines the open flags of the journal, which can be one
@@ -155,6 +156,13 @@ class Reader(_Reader):
         Reader implements the context manager protocol: the journal will be
         closed when exiting the block.
         """
+        if flags is None:
+            if path is None and files is None:
+                # This mimics journalctl behaviour of default to local journal only
+                flags = LOCAL_ONLY
+            else:
+                flags = 0
+
         super(Reader, self).__init__(flags, path, files)
         if _sys.version_info >= (3,3):
             self.converters = _ChainMap()
