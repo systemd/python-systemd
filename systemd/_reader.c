@@ -161,6 +161,57 @@ cleanup:
         return 0;
 }
 
+static int long_as_fd(PyObject *obj, int *fd) {
+        long num = long_AsLong(obj);
+        if (PyErr_Occurred())
+                return -1;
+
+        if ((int) num != num) {
+                PyErr_SetString(PyExc_OverflowError, "Value too large");
+                return -1;
+        }
+
+        *fd = (int) num;
+        return 0;
+}
+
+/**
+ * Convert a Python sequence object into an int array.
+ */
+static int intlist_converter(PyObject* obj, int **_result, size_t *_len) {
+        _cleanup_free_ int *result = NULL;
+        Py_ssize_t i, len;
+
+        assert(_result);
+        assert(_len);
+
+        if (!PySequence_Check(obj))
+                return 0;
+
+        len = PySequence_Length(obj);
+        result = new0(int, len);
+        if (!result) {
+                set_error(-ENOMEM, NULL, NULL);
+                return 0;
+        }
+
+        for (i = 0; i < len; i++) {
+                PyObject *item;
+                int fd;
+
+                item = PySequence_ITEM(obj, i);
+                if (long_as_fd(item, &fd) < 0)
+                        return 0;
+
+                result[i] = fd;
+        }
+
+        *_result = result;
+        *_len = len;
+        result = NULL;
+        return 1;
+}
+
 static void Reader_dealloc(Reader* self) {
         sd_journal_close(self->j);
         Py_TYPE(self)->tp_free((PyObject*)self);
@@ -185,17 +236,16 @@ PyDoc_STRVAR(Reader__doc__,
              "exiting the block.");
 static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
         int flags = 0, r;
-        PyObject *_path = NULL;
-        _cleanup_strv_free_ char **files = NULL;
+        PyObject *_path = NULL, *_files = NULL;
 
         static const char* const kwlist[] = {"flags", "path", "files", NULL};
         if (!PyArg_ParseTupleAndKeywords(args, keywds, "|iO&O&:__init__", (char**) kwlist,
                                          &flags,
                                          null_converter, &_path,
-                                         strv_converter, &files))
+                                         null_converter, &_files))
                 return -1;
 
-        if (!!flags + !!_path + !!files > 1) {
+        if (!!flags + !!_path + !!_files > 1) {
                 PyErr_SetString(PyExc_ValueError,
                                 "cannot use more than one of flags, path, and files");
                 return -1;
@@ -203,18 +253,14 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
 
         if (_path) {
                 if (long_Check(_path)) {
-                        long directory_fd = long_AsLong(_path);
-                        if (PyErr_Occurred())
-                                return -1;
+                        int fd;
 
-                        if ((int) directory_fd != directory_fd) {
-                                PyErr_SetString(PyExc_OverflowError, "Value too large");
+                        if (long_as_fd(_path, &fd) < 0)
                                 return -1;
-                        }
 
 #ifdef HAVE_JOURNAL_OPEN_DIRECTORY_FD
                         Py_BEGIN_ALLOW_THREADS
-                        r = sd_journal_open_directory_fd(&self->j, (int) directory_fd, 0);
+                        r = sd_journal_open_directory_fd(&self->j, (int) fd, 0);
                         Py_END_ALLOW_THREADS
 #else
                         r = -ENOSYS;
@@ -231,11 +277,31 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
                         r = sd_journal_open_directory(&self->j, path, 0);
                         Py_END_ALLOW_THREADS
                 }
-        } else if (files) {
+        } else if (_files) {
 #ifdef HAVE_JOURNAL_OPEN_FILES
-                Py_BEGIN_ALLOW_THREADS
-                r = sd_journal_open_files(&self->j, (const char**) files, 0);
-                Py_END_ALLOW_THREADS
+                _cleanup_Py_DECREF_ PyObject *item0 = NULL;
+
+                item0 = PySequence_GetItem(_files, 0);
+                if (item0 == NULL || !PyLong_Check(item0)) {
+                        _cleanup_strv_free_ char **files = NULL;
+
+                        if (!strv_converter(_files, &files))
+                                return -1;
+
+                        Py_BEGIN_ALLOW_THREADS
+                        r = sd_journal_open_files(&self->j, (const char**) files, 0);
+                        Py_END_ALLOW_THREADS
+                } else {
+                        _cleanup_free_ int *fds = NULL;
+                        size_t n_fds;
+
+                        if (!intlist_converter(_files, &fds, &n_fds))
+                                return -1;
+
+                        Py_BEGIN_ALLOW_THREADS
+                        r = sd_journal_open_files_fd(&self->j, fds, n_fds, 0);
+                        Py_END_ALLOW_THREADS
+                }
 #else
                 r = -ENOSYS;
 #endif
