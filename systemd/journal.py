@@ -298,14 +298,25 @@ class Reader(_Reader):
         return super(Reader, self).wait(us)
 
     def seek_realtime(self, realtime):
-        """Seek to a matching journal entry nearest to `realtime` time.
+        """Seek to a matching journal entry nearest to `timestamp` time.
 
-        Argument `realtime` must be either an integer unix timestamp or
-        datetime.datetime instance.
+        Argument `realtime` must be either an integer UNIX timestamp (in
+        microseconds since the beginning of the UNIX epoch), or an float UNIX
+        timestamp (in seconds since the beginning of the UNIX epoch), or a
+        datetime.datetime instance. The integer form is deprecated.
+
+        >>> import time
+        >>> from systemd import journal
+
+        >>> yesterday = time.time() - 24 * 60**2
+        >>> j = journal.Reader()
+        >>> j.seek_realtime(yesterday)
         """
         if isinstance(realtime, _datetime.datetime):
-            realtime = float(realtime.strftime("%s.%f")) * 1000000
-        return super(Reader, self).seek_realtime(int(realtime))
+            realtime = int(float(realtime.strftime("%s.%f")) * 1000000)
+        elif not isinstance(realtime, int):
+            realtime = int(realtime * 1000000)
+        return super(Reader, self).seek_realtime(realtime)
 
     def seek_monotonic(self, monotonic, bootid=None):
         """Seek to a matching journal entry nearest to `monotonic` time.
