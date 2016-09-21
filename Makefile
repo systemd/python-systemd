@@ -2,7 +2,7 @@ PYTHON = python
 SED = sed
 SPHINX_BUILD = sphinx-build
 ETAGS = etags
-INCLUDE_DIR = /usr/include/
+INCLUDE_DIR := $(shell pkg-config --variable=includedir libsystemd)
 VERSION := $(shell $(PYTHON) setup.py --version)
 TESTFLAGS = -v
 
@@ -14,6 +14,17 @@ endef
 builddir := $(shell $(PYTHON) -c '$(buildscript)')
 
 all: build
+
+.PHONY: update-constants
+update-constants: $(INCLUDE_DIR)/systemd/sd-messages.h
+	cat $< systemd/id128-defines.h | \
+	  $(SED) -n -r '/#define SD_MESSAGE_[A-Z0-9_]/p' | \
+	  sort -u | \
+	  tee systemd/id128-defines.h.tmp | \
+	  $(SED) -n -r 's/,//g; s/#define (SD_MESSAGE_[A-Z0-9_]+)\s.*/add_id(m, "\1", \1) JOINER/p' | \
+	  sort -u >systemd/id128-constants.h.tmp
+	mv systemd/id128-defines.h{.tmp,}
+	mv systemd/id128-constants.h{.tmp,}
 
 build:
 	$(PYTHON) setup.py build
@@ -28,7 +39,7 @@ clean:
 	rm -rf build systemd/*.so systemd/*.py[co] *.py[co] systemd/__pycache__
 
 distclean: clean
-	rm -rf dist MANIFEST systemd/id128-constants.h
+	rm -rf dist MANIFEST
 
 SPHINXOPTS = -D version=$(VERSION) -D release=$(VERSION)
 sphinx-%: build

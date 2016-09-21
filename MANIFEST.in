@@ -1,5 +1,4 @@
 include systemd/*.h
-exclude systemd/id128-constants.h
 include README.md
 include NEWS
 include LICENSE.txt

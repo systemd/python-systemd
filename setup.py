@@ -1,22 +1,6 @@
 import sys, os
 from distutils.core import setup, Extension
-from distutils.command.build_ext import build_ext
 from subprocess import Popen, PIPE, check_output
-
-
-class build_ext_generate_id128_header(build_ext):
-    def run(self):
-        if not self.dry_run and not os.path.exists("systemd/id128-constants.h"):
-            constants = [line.split()[1]
-                         for line in open("/usr/include/systemd/sd-messages.h")
-                         if line.startswith('#define SD_MESSAGE_')]
-
-            with open("systemd/id128-constants.h", "w") as f:
-                for c in constants:
-                    f.write('add_id(m, "{0}", {0}) JOINER\n'.format(c))
-
-        return build_ext.run(self)
-
 
 def call(*cmd):
     cmd = Popen(cmd,
@@ -83,7 +67,7 @@ login = Extension('systemd/login',
                      **lib('libsystemd', 'libsystemd-login', **defines))
 setup (name = 'python-systemd',
        version = version,
-       description = 'Native interface to the facilities of systemd',
+       description = 'Python interface for libsystemd',
        author_email = 'david@davidstrauss.net',
        maintainer = 'systemd developers',
        maintainer_email = 'systemd-devel@lists.freedesktop.org',
@@ -102,5 +86,4 @@ setup (name = 'python-systemd',
                       _reader,
                       _daemon,
                       id128,
-                      login],
-       cmdclass = {'build_ext': build_ext_generate_id128_header})
+                      login])

@@ -20,7 +20,16 @@
 
 #include <Python.h>
 
-#include "systemd/sd-messages.h"
+/* Our include is first, so that our defines are replaced by the ones
+ * from the system header. If the system header has the same definitions
+ * (or does not have them at all), this replacement is silent. If the
+ * system header has a different definition, we get a warning. A warning
+ * means that the system headers changed incompatibly, and we should update
+ * our definition.
+ */
+#include "id128-defines.h"
+#include <systemd/sd-messages.h>
+
 
 #include "pyutil.h"
 #include "macro.h"
