@@ -25,6 +25,10 @@ update-constants: $(INCLUDE_DIR)/systemd/sd-messages.h
 	  sort -u >systemd/id128-constants.h.tmp
 	mv systemd/id128-defines.h{.tmp,}
 	mv systemd/id128-constants.h{.tmp,}
+	($(SED) 9q <docs/id128.rst && \
+	  sed -n -r 's/#define (SD_MESSAGE_[A-Z0-9_]+) .*/   .. autoattribute:: systemd.id128.\1/p' \
+	  systemd/id128-defines.h) >docs/id128.rst.tmp
+	mv docs/id128.rst{.tmp,}
 
 build:
 	$(PYTHON) setup.py build
