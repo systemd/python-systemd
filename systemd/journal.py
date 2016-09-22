@@ -461,9 +461,9 @@ def stream(identifier, priority=LOG_DEBUG, level_prefix=False):
 
     will produce the following message in the journal::
 
-    PRIORITY=7
-    SYSLOG_IDENTIFIER=myapp
-    MESSAGE=message...
+      PRIORITY=7
+      SYSLOG_IDENTIFIER=myapp
+      MESSAGE=message...
 
     Using the interface with print might be more convenient:
 
