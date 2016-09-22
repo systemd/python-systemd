@@ -45,6 +45,8 @@ On Debian or Ubuntu with Python 3:
 
    apt-get install libsystemd-{journal,daemon,login,id128}-dev gcc python3-dev
 
+The project is also available on pypi as systemd-python.
+
 Usage
 =====
 

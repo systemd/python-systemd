@@ -65,7 +65,7 @@ login = Extension('systemd/login',
                                 'systemd/pyutil.c',
                                 'systemd/strv.c'],
                      **lib('libsystemd', 'libsystemd-login', **defines))
-setup (name = 'python-systemd',
+setup (name = 'systemd-python',
        version = version,
        description = 'Python interface for libsystemd',
        author_email = 'david@davidstrauss.net',
