@@ -53,7 +53,11 @@ sphinx-%: build
 check: build
 	(cd $(builddir) && $(PYTHON) -m py.test . ../../docs $(TESTFLAGS))
 
+www_target = www.freedesktop.org:/srv/www.freedesktop.org/www/software/systemd/python-systemd
+doc-sync:
+	rsync -rlv --delete --omit-dir-times build/html/ $(www_target)/
+
 TAGS: $(shell git ls-files systemd/*.[ch])
 	$(ETAGS) $+
 
-.PHONY: build install dist clean distclean TAGS
+.PHONY: build install dist clean distclean TAGS doc-sync
