@@ -283,7 +283,6 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
                         Py_END_ALLOW_THREADS
                 }
         } else if (_files) {
-#ifdef HAVE_JOURNAL_OPEN_FILES
                 _cleanup_Py_DECREF_ PyObject *item0 = NULL;
 
                 item0 = PySequence_GetItem(_files, 0);
@@ -293,9 +292,13 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
                         if (!strv_converter(_files, &files))
                                 return -1;
 
+#ifdef HAVE_JOURNAL_OPEN_FILES
                         Py_BEGIN_ALLOW_THREADS
                         r = sd_journal_open_files(&self->j, (const char**) files, flags);
                         Py_END_ALLOW_THREADS
+#else
+                        r = -ENOSYS;
+#endif
                 } else {
                         _cleanup_free_ int *fds = NULL;
                         size_t n_fds;
@@ -303,13 +306,14 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
                         if (!intlist_converter(_files, &fds, &n_fds))
                                 return -1;
 
+#ifdef HAVE_JOURNAL_OPEN_DIRECTORY_FD
                         Py_BEGIN_ALLOW_THREADS
                         r = sd_journal_open_files_fd(&self->j, fds, n_fds, flags);
                         Py_END_ALLOW_THREADS
-                }
 #else
-                r = -ENOSYS;
+                        r = -ENOSYS;
 #endif
+                }
         } else {
                 Py_BEGIN_ALLOW_THREADS
                 r = sd_journal_open(&self->j, flags);
