@@ -21,6 +21,13 @@ def skip_enosys():
             pytest.skip()
         raise
 
+@contextlib.contextmanager
+def skip_valueerror():
+    try:
+        yield
+    except ValueError:
+        pytest.skip()
+
 def test_priorities():
     p = journal.JournalHandler.mapPriority
 
@@ -62,10 +69,12 @@ def test_reader_init_flags():
 def test_reader_os_root(tmpdir):
     with pytest.raises(ValueError):
         journal.Reader(journal.OS_ROOT)
-    j1 = journal.Reader(path=tmpdir.strpath,
-                        flags=journal.OS_ROOT)
-    j2 = journal.Reader(path=tmpdir.strpath,
-                        flags=journal.OS_ROOT | journal.CURRENT_USER)
+    with skip_valueerror():
+        j1 = journal.Reader(path=tmpdir.strpath,
+                            flags=journal.OS_ROOT)
+    with skip_valueerror():
+        j2 = journal.Reader(path=tmpdir.strpath,
+                            flags=journal.OS_ROOT | journal.CURRENT_USER)
     j3 = journal.Reader(path=tmpdir.strpath,
                         flags=journal.OS_ROOT | journal.SYSTEM_ONLY)
 
@@ -91,7 +100,8 @@ def test_reader_init_path_fd(tmpdir):
         j1 = journal.Reader(path=fd)
     assert list(j1) == []
 
-    j2 = journal.Reader(journal.SYSTEM, path=fd)
+    with skip_valueerror():
+        j2 = journal.Reader(journal.SYSTEM, path=fd)
     assert list(j2) == []
 
     j3 = journal.Reader(journal.CURRENT_USER, path=fd)
