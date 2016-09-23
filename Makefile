@@ -51,7 +51,7 @@ sphinx-%: build
 	@echo Output has been generated in build/$*
 
 check: build
-	(cd $(builddir) && $(PYTHON) -m py.test . ../../docs $(TESTFLAGS))
+	(cd $(builddir) && $(PYTHON) -m pytest . ../../docs $(TESTFLAGS))
 
 www_target = www.freedesktop.org:/srv/www.freedesktop.org/www/software/systemd/python-systemd
 doc-sync:
