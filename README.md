@@ -39,13 +39,13 @@ On Fedora 21+ with Python 3:
 
 On Debian or Ubuntu with Python 2:
 
-   apt-get install libsystemd-{journal,daemon,login,id128}-dev gcc python-dev
+    apt-get install libsystemd-{journal,daemon,login,id128}-dev gcc python-dev pkg-config
 
 On Debian or Ubuntu with Python 3:
 
-   apt-get install libsystemd-{journal,daemon,login,id128}-dev gcc python3-dev
+    apt-get install libsystemd-{journal,daemon,login,id128}-dev gcc python3-dev pkg-config
 
-The project is also available on pypi as systemd-python.
+The project is also available on pypi as `systemd-python`.
 
 Usage
 =====
