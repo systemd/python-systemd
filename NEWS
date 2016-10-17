@@ -1,5 +1,17 @@
 Python wrappers for libsystemd API
 
+CHANGES WITH 233:
+
+        * Tests are fixed and should pass on various old and new
+          systems alike.
+
+        * journal.stream() can be used without arguments and defaults
+          to LOG_LEVEL.
+
+       Contributions from Robert James Hernandez,
+       Zbigniew Jędrzejewski-Szmek
+
+
 CHANGES WITH 232:
 
         * Wrappers for sd_journal_enumerate_unique, has_runtime_files,
