@@ -446,7 +446,7 @@ def send(MESSAGE, MESSAGE_ID=None,
     args.extend(_make_line(key, val) for key, val in kwargs.items())
     return sendv(*args)
 
-def stream(identifier, priority=LOG_DEBUG, level_prefix=False):
+def stream(identifier, priority=LOG_INFO, level_prefix=False):
     r"""Return a file object wrapping a stream to journal.
 
     Log messages written to this file as simple newline sepearted text strings
