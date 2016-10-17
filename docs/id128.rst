@@ -41,6 +41,7 @@
    .. autoattribute:: systemd.id128.SD_MESSAGE_SYSTEM_UNDOCKED
    .. autoattribute:: systemd.id128.SD_MESSAGE_TIME_CHANGE
    .. autoattribute:: systemd.id128.SD_MESSAGE_TIMEZONE_CHANGE
+   .. autoattribute:: systemd.id128.SD_MESSAGE_TRUNCATED_CORE
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_FAILED
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_RELOADED
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_RELOADING
