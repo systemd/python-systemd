@@ -446,7 +446,7 @@ def send(MESSAGE, MESSAGE_ID=None,
     args.extend(_make_line(key, val) for key, val in kwargs.items())
     return sendv(*args)
 
-def stream(identifier, priority=LOG_INFO, level_prefix=False):
+def stream(identifier=None, priority=LOG_INFO, level_prefix=False):
     r"""Return a file object wrapping a stream to journal.
 
     Log messages written to this file as simple newline sepearted text strings
@@ -465,10 +465,13 @@ def stream(identifier, priority=LOG_INFO, level_prefix=False):
       SYSLOG_IDENTIFIER=myapp
       MESSAGE=message...
 
-    Using the interface with print might be more convenient:
+    If identifier is None, a suitable default based on sys.argv[0] will be used.
+
+    This interface can be used conveniently with the print function:
 
     >>> from __future__ import print_function
-    >>> print('message...', file=stream)                 # doctest: +SKIP
+    >>> fileobj = journal.stream()
+    >>> print('message...', file=fileobj)                      # doctest: +SKIP
 
     priority is the syslog priority, one of `LOG_EMERG`, `LOG_ALERT`,
     `LOG_CRIT`, `LOG_ERR`, `LOG_WARNING`, `LOG_NOTICE`, `LOG_INFO`, `LOG_DEBUG`.
@@ -476,6 +479,12 @@ def stream(identifier, priority=LOG_INFO, level_prefix=False):
     level_prefix is a boolean. If true, kernel-style log priority level prefixes
     (such as '<1>') are interpreted. See sd-daemon(3) for more information.
     """
+
+    if identifier is None:
+        if not _sys.argv or not _sys.argv[0] or _sys.argv[0] == '-c':
+            identifier = 'python'
+        else:
+            identifier = _sys.argv[0]
 
     fd = stream_fd(identifier, priority, level_prefix)
     return _os.fdopen(fd, 'w', 1)
