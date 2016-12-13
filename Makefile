@@ -39,6 +39,9 @@ install:
 dist:
 	$(PYTHON) setup.py sdist
 
+sign: dist/systemd-python-$(VERSION).tar.gz
+	gpg --detach-sign -a dist/systemd-python-$(VERSION).tar.gz
+
 clean:
 	rm -rf build systemd/*.so systemd/*.py[co] *.py[co] systemd/__pycache__
 
@@ -57,7 +60,10 @@ www_target = www.freedesktop.org:/srv/www.freedesktop.org/www/software/systemd/p
 doc-sync:
 	rsync -rlv --delete --omit-dir-times build/html/ $(www_target)/
 
+upload: dist/systemd-python-$(VERSION).tar.gz dist/systemd-python-$(VERSION).tar.gz.asc
+	twine-3 upload $+
+
 TAGS: $(shell git ls-files systemd/*.[ch])
 	$(ETAGS) $+
 
-.PHONY: build install dist clean distclean TAGS doc-sync
+.PHONY: build install dist sign upload clean distclean TAGS doc-sync

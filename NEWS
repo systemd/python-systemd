@@ -11,7 +11,6 @@ CHANGES WITH 233:
        Contributions from Robert James Hernandez,
        Zbigniew Jędrzejewski-Szmek
 
-
 CHANGES WITH 232:
 
         * Wrappers for sd_journal_enumerate_unique, has_runtime_files,
