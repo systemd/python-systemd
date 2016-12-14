@@ -31,6 +31,7 @@ update-constants: $(INCLUDE_DIR)/systemd/sd-messages.h
 	mv docs/id128.rst{.tmp,}
 
 build:
+	$(PYTHON) setup.py build_ext $(if $(INCLUDE_DIR),-I$(INCLUDE_DIR))
 	$(PYTHON) setup.py build
 
 install:
