@@ -61,7 +61,8 @@ _reader = Extension('systemd/_reader',
                      **lib('libsystemd', 'libsystemd-journal', **defines))
 _daemon = Extension('systemd/_daemon',
                      sources = ['systemd/_daemon.c',
-                                'systemd/pyutil.c'],
+                                'systemd/pyutil.c',
+                                'systemd/util.c'],
                      extra_compile_args=['-Werror=implicit-function-declaration'],
                      **lib('libsystemd', 'libsystemd-daemon', **defines))
 id128 = Extension('systemd/id128',

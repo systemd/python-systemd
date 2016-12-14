@@ -2,7 +2,7 @@
 
 /***
 
-  Copyright 2013 Zbigniew Jędrzejewski-Szmek <zbyszek@in.waw.pl>
+  Copyright 2013-2016 Zbigniew Jędrzejewski-Szmek <zbyszek@in.waw.pl>
 
   python-systemd is free software; you can redistribute it and/or modify it
   under the terms of the GNU Lesser General Public License as published by
@@ -31,12 +31,18 @@
 #include "systemd/sd-daemon.h"
 #include "pyutil.h"
 #include "macro.h"
+#include "util.h"
 
 #if LIBSYSTEMD_VERSION >= 214
 #  define HAVE_PID_NOTIFY
-#  if LIBSYSTEMD_VERSION >= 219
-#    define HAVE_PID_NOTIFY_WITH_FDS
-#  endif
+#endif
+
+#if LIBSYSTEMD_VERSION >= 219
+#  define HAVE_PID_NOTIFY_WITH_FDS
+#endif
+
+#if LIBSYSTEMD_VERSION >= 233
+#  define HAVE_IS_SOCKET_SOCKADDR
 #endif
 
 PyDoc_STRVAR(module__doc__,
@@ -311,6 +317,42 @@ static PyObject* is_socket_inet(PyObject *self, PyObject *args) {
         return PyBool_FromLong(r);
 }
 
+#ifdef HAVE_IS_SOCKET_SOCKADDR
+PyDoc_STRVAR(is_socket_sockaddr__doc__,
+             "_is_socket_sockaddr(fd, address, type=0, listening=-1) -> bool\n\n"
+             "Wraps sd_is_socket_inet_sockaddr(3).\n"
+             "`address` is a systemd-style numerical IPv4 or IPv6 address as used in\n"
+             "ListenStream=. A port may be included after a colon (\":\"). See\n"
+             "systemd.socket(5) for details.\n\n"
+             "Constants for `family` are defined in the socket module."
+);
+
+static PyObject* is_socket_sockaddr(PyObject *self, PyObject *args) {
+        int r;
+        int fd, type = 0, listening = -1;
+        const char *address;
+        union sockaddr_union addr = {};
+        unsigned addr_len;
+
+        if (!PyArg_ParseTuple(args, "is|ii:_is_socket_sockaddr",
+                              &fd,
+                              &address,
+                              &type, &listening))
+                return NULL;
+
+        r = parse_sockaddr(address, &addr, &addr_len);
+        if (r < 0) {
+                set_error(r, NULL, "Cannot parse address");
+                return NULL;
+        }
+
+        r = sd_is_socket_sockaddr(fd, type, &addr.sa, addr_len, listening);
+        if (set_error(r, NULL, NULL) < 0)
+                return NULL;
+
+        return PyBool_FromLong(r);
+}
+#endif
 
 PyDoc_STRVAR(is_socket_unix__doc__,
              "_is_socket_unix(fd, type, listening, path) -> bool\n\n"
@@ -355,8 +397,11 @@ static PyMethodDef methods[] = {
         { "_is_mq", is_mq, METH_VARARGS, is_mq__doc__},
         { "_is_socket", is_socket, METH_VARARGS, is_socket__doc__},
         { "_is_socket_inet", is_socket_inet, METH_VARARGS, is_socket_inet__doc__},
+#ifdef HAVE_IS_SOCKET_SOCKADDR
+        { "_is_socket_sockaddr", is_socket_sockaddr, METH_VARARGS, is_socket_sockaddr__doc__},
+#endif
         { "_is_socket_unix", is_socket_unix, METH_VARARGS, is_socket_unix__doc__},
-        { NULL, NULL, 0, NULL }        /* Sentinel */
+        {}        /* Sentinel */
 };
 
 #if PY_MAJOR_VERSION < 3
