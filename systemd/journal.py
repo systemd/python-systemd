@@ -456,8 +456,8 @@ def stream(identifier=None, priority=LOG_INFO, level_prefix=False):
     newline character is written.
 
     >>> from systemd import journal
-    >>> stream = journal.stream('myapp')
-    >>> res = stream.write('message...\n')
+    >>> stream = journal.stream('myapp')                       # doctest: +SKIP
+    >>> res = stream.write('message...\n')                     # doctest: +SKIP
 
     will produce the following message in the journal::
 
@@ -470,8 +470,8 @@ def stream(identifier=None, priority=LOG_INFO, level_prefix=False):
     This interface can be used conveniently with the print function:
 
     >>> from __future__ import print_function
-    >>> fileobj = journal.stream()
-    >>> print('message...', file=fileobj)                      # doctest: +SKIP
+    >>> stream = journal.stream()                              # doctest: +SKIP
+    >>> print('message...', file=stream)                       # doctest: +SKIP
 
     priority is the syslog priority, one of `LOG_EMERG`, `LOG_ALERT`,
     `LOG_CRIT`, `LOG_ERR`, `LOG_WARNING`, `LOG_NOTICE`, `LOG_INFO`, `LOG_DEBUG`.

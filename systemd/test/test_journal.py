@@ -1,3 +1,4 @@
+from __future__ import print_function
 import contextlib
 import datetime
 import errno
@@ -13,11 +14,11 @@ import pytest
 TEST_MID = uuid.UUID('8441372f8dca4ca98694a6091fd8519f')
 
 @contextlib.contextmanager
-def skip_enosys():
+def skip_oserror(code):
     try:
         yield
-    except OSError as e:
-        if e.errno == errno.ENOSYS:
+    except (OSError, IOError) as e:
+        if e.errno == code:
             pytest.skip()
         raise
 
@@ -96,7 +97,7 @@ def test_reader_init_path_nondirectory_fd():
 def test_reader_init_path_fd(tmpdir):
     fd = os.open(tmpdir.strpath, os.O_RDONLY)
 
-    with skip_enosys():
+    with skip_oserror(errno.ENOSYS):
         j1 = journal.Reader(path=fd)
     assert list(j1) == []
 
@@ -139,7 +140,7 @@ def test_reader_this_machine(tmpdir):
 def test_reader_query_unique(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)
     with j:
-        with skip_enosys():
+        with skip_oserror(errno.ENOSYS):
             ans = j.query_unique('FOOBAR')
     assert isinstance(ans, set)
     assert ans == set()
@@ -147,7 +148,7 @@ def test_reader_query_unique(tmpdir):
 def test_reader_enumerate_fields(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)
     with j:
-        with skip_enosys():
+        with skip_oserror(errno.ENOSYS):
             ans = j.enumerate_fields()
     assert isinstance(ans, set)
     assert ans == set()
@@ -155,14 +156,14 @@ def test_reader_enumerate_fields(tmpdir):
 def test_reader_has_runtime_files(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)
     with j:
-        with skip_enosys():
+        with skip_oserror(errno.ENOSYS):
             ans = j.has_runtime_files()
     assert ans == False
 
 def test_reader_has_persistent_files(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)
     with j:
-        with skip_enosys():
+        with skip_oserror(errno.ENOSYS):
             ans = j.has_runtime_files()
     assert ans == False
 
@@ -200,3 +201,13 @@ def test_seek_realtime(tmpdir):
 
     long_ago = datetime.datetime(1970, 5, 4)
     j.seek_realtime(long_ago)
+
+def test_journal_stream():
+    # This will fail when running in a bare chroot without /run/systemd/journal/stdout
+    with skip_oserror(errno.ENOENT):
+        stream = journal.stream('test_journal.py')
+
+    res = stream.write('message...\n')
+    assert res in (11, None) # Python2 returns None
+
+    print('printed message...', file=stream)
