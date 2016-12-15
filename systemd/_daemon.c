@@ -319,7 +319,7 @@ static PyObject* is_socket_inet(PyObject *self, PyObject *args) {
 
 #ifdef HAVE_IS_SOCKET_SOCKADDR
 PyDoc_STRVAR(is_socket_sockaddr__doc__,
-             "_is_socket_sockaddr(fd, address, type=0, listening=-1) -> bool\n\n"
+             "_is_socket_sockaddr(fd, address, type=0, flowinfo=0, listening=-1) -> bool\n\n"
              "Wraps sd_is_socket_inet_sockaddr(3).\n"
              "`address` is a systemd-style numerical IPv4 or IPv6 address as used in\n"
              "ListenStream=. A port may be included after a colon (\":\"). See\n"
@@ -329,21 +329,32 @@ PyDoc_STRVAR(is_socket_sockaddr__doc__,
 
 static PyObject* is_socket_sockaddr(PyObject *self, PyObject *args) {
         int r;
-        int fd, type = 0, listening = -1;
+        int fd, type = 0, flowinfo = 0, listening = -1;
         const char *address;
         union sockaddr_union addr = {};
         unsigned addr_len;
 
-        if (!PyArg_ParseTuple(args, "is|ii:_is_socket_sockaddr",
+        if (!PyArg_ParseTuple(args, "is|iii:_is_socket_sockaddr",
                               &fd,
                               &address,
-                              &type, &listening))
+                              &type,
+                              &flowinfo,
+                              &listening))
                 return NULL;
 
         r = parse_sockaddr(address, &addr, &addr_len);
         if (r < 0) {
                 set_error(r, NULL, "Cannot parse address");
                 return NULL;
+        }
+
+        if (flowinfo != 0) {
+                if (addr.sa.sa_family != AF_INET6) {
+                        set_error(-EINVAL, NULL, "flowinfo is only applicable to IPv6 addresses");
+                        return NULL;
+                }
+
+                addr.in6.sin6_flowinfo = flowinfo;
         }
 
         r = sd_is_socket_sockaddr(fd, type, &addr.sa, addr_len, listening);
