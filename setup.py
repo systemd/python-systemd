@@ -12,6 +12,7 @@ def call(*cmd):
         return cmd.returncode, cmd.stderr.read()
 
 def pkgconfig(package, **kw):
+    pkg_version = package.replace('-', '_').upper() + '_VERSION'
     flag_map = {'-I': 'include_dirs', '-L': 'library_dirs', '-l': 'libraries'}
     pkgconf = os.getenv('PKG_CONFIG', 'pkg-config')
     status, result = call(pkgconf, '--libs', '--cflags', package)
@@ -19,9 +20,13 @@ def pkgconfig(package, **kw):
         return status, result
     for token in result.split():
         kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
-    version = check_output([pkgconf, '--modversion', package],
-                           universal_newlines=True).strip()
-    pair = (package.replace('-', '_').upper() + '_VERSION', version)
+
+    # allow version detection to be overriden using environment variables
+    version = os.getenv(pkg_version)
+    if not version:
+        version = check_output([pkgconf, '--modversion', package],
+                               universal_newlines=True).strip()
+    pair = (pkg_version, version)
     defines = kw.setdefault('define_macros', [])
     if pair not in defines:
         defines.append(pair)
