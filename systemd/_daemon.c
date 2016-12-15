@@ -145,14 +145,14 @@ static PyObject* notify(PyObject *self, PyObject *args, PyObject *keywds) {
 #ifdef HAVE_PID_NOTIFY
                 r = sd_pid_notify(pid, unset, msg);
 #else
-                PyErr_SetString(PyExc_NotImplementedError, "Compiled without support for sd_pid_notify");
+                set_error(-ENOSYS, NULL, "Compiled without support for sd_pid_notify");
                 return NULL;
 #endif
         } else {
 #ifdef HAVE_PID_NOTIFY_WITH_FDS
                 r = sd_pid_notify_with_fds(pid, unset, msg, arr, n_fds);
 #else
-                PyErr_SetString(PyExc_NotImplementedError, "Compiled without support for sd_pid_notify_with_fds");
+                set_error(-ENOSYS, NULL, "Compiled without support for sd_pid_notify_with_fds");
                 return NULL;
 #endif
         }

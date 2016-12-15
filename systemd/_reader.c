@@ -1048,7 +1048,7 @@ static PyObject* Reader_enumerate_fields(Reader *self, PyObject *args) {
         _value_set = NULL;
         return value_set;
 #else
-        set_error(-ENOSYS, NULL, "Not implemented");
+        set_error(-ENOSYS, NULL, "Compiled without support for sd_journal_enumerate_fields");
         return NULL;
 #endif
 }
@@ -1069,7 +1069,7 @@ static PyObject* Reader_has_runtime_files(Reader *self, PyObject *args) {
 
         return PyBool_FromLong(r);
 #else
-        set_error(-ENOSYS, NULL, "Not implemented");
+        set_error(-ENOSYS, NULL, "Compiled without support for sd_journal_has_runtime_files");
         return NULL;
 #endif
 }
@@ -1090,7 +1090,7 @@ static PyObject* Reader_has_persistent_files(Reader *self, PyObject *args) {
 
         return PyBool_FromLong(r);
 #else
-        set_error(-ENOSYS, NULL, "Not implemented");
+        set_error(-ENOSYS, NULL, "Compiled without support for sd_journal_has_persistent_files");
         return NULL;
 #endif
 }
