@@ -158,27 +158,28 @@ def test_is_socket_sockaddr():
     with contextlib.closing(socket.socket(socket.AF_INET)) as sock:
         sock.bind(('127.0.0.1', 0))
         addr, port = sock.getsockname()
+        port = ':{}'.format(port)
 
         for listening in (0, 1):
             for arg in (sock, sock.fileno()):
-                # assert is_socket_sockaddr(arg, '127.0.0.1', socket.SOCK_STREAM)
-                assert is_socket_sockaddr(arg, '127.0.0.1:{}'.format(port), socket.SOCK_STREAM)
+                assert is_socket_sockaddr(arg, '127.0.0.1', socket.SOCK_STREAM)
+                assert is_socket_sockaddr(arg, '127.0.0.1' + port, socket.SOCK_STREAM)
 
-                assert is_socket_sockaddr(arg, '127.0.0.1:{}'.format(port), listening=listening)
-                assert is_socket_sockaddr(arg, '127.0.0.1:{}'.format(port), listening=-1)
-                assert not is_socket_sockaddr(arg, '127.0.0.1:{}'.format(port), listening=not listening)
+                assert is_socket_sockaddr(arg, '127.0.0.1' + port, listening=listening)
+                assert is_socket_sockaddr(arg, '127.0.0.1' + port, listening=-1)
+                assert not is_socket_sockaddr(arg, '127.0.0.1' + port, listening=not listening)
 
                 with pytest.raises(ValueError):
                     is_socket_sockaddr(arg, '127.0.0.1', flowinfo=123456)
 
-                assert not is_socket_sockaddr(arg, '129.168.11.11:23'.format(port), socket.SOCK_STREAM)
-                #assert not is_socket_sockaddr(arg, '127.0.0.1', socket.SOCK_DGRAM)
+                assert not is_socket_sockaddr(arg, '129.168.11.11:23', socket.SOCK_STREAM)
+                assert not is_socket_sockaddr(arg, '127.0.0.1', socket.SOCK_DGRAM)
 
             with pytest.raises(ValueError):
                 _is_socket_sockaddr(arg, '127.0.0.1', 0, 123456)
 
-            assert not _is_socket_sockaddr(arg, '129.168.11.11:23'.format(port), socket.SOCK_STREAM)
-            #assert not _is_socket_sockaddr(arg, '127.0.0.1', socket.SOCK_DGRAM)
+            assert not _is_socket_sockaddr(arg, '129.168.11.11:23', socket.SOCK_STREAM)
+            assert not _is_socket_sockaddr(arg, '127.0.0.1', socket.SOCK_DGRAM)
 
             sock.listen(11)
 

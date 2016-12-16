@@ -71,6 +71,43 @@ static bool socket_ipv6_is_supported(void) {
         return true;
 }
 
+static int assign_address(const char *s,
+                          uint16_t port,
+                          union sockaddr_union *addr, unsigned *addr_len) {
+        int r;
+
+        /* IPv4 in w.x.y.z:p notation? */
+        r = inet_pton(AF_INET, s, &addr->in.sin_addr);
+        if (r < 0)
+                return -errno;
+
+        if (r > 0) {
+                /* Gotcha, it's a traditional IPv4 address */
+                addr->in.sin_family = AF_INET;
+                addr->in.sin_port = htobe16(port);
+                *addr_len = sizeof(struct sockaddr_in);
+        } else {
+                unsigned idx;
+
+                if (strlen(s) > IF_NAMESIZE-1)
+                        return -EINVAL;
+
+                /* Uh, our last resort, an interface name */
+                idx = if_nametoindex(s);
+                if (idx == 0)
+                        return -EINVAL;
+
+                addr->in6.sin6_family = AF_INET6;
+                addr->in6.sin6_port = htobe16(port);
+                addr->in6.sin6_scope_id = idx;
+                addr->in6.sin6_addr = in6addr_any;
+                *addr_len = sizeof(struct sockaddr_in6);
+        }
+
+        return 0;
+}
+
+
 int parse_sockaddr(const char *s,
                    union sockaddr_union *addr, unsigned *addr_len) {
 
@@ -92,19 +129,22 @@ int parse_sockaddr(const char *s,
                         return errno > 0 ? -errno : -EINVAL;
 
                 e++;
-                if (*e != ':')
-                        return -EINVAL;
+                if (*e) {
+                        if (*e != ':')
+                                return -EINVAL;
 
-                e++;
-                r = safe_atou(e, &u);
-                if (r < 0)
-                        return r;
+                        e++;
+                        r = safe_atou(e, &u);
+                        if (r < 0)
+                                return r;
 
-                if (u <= 0 || u > 0xFFFF)
-                        return -EINVAL;
+                        if (u <= 0 || u > 0xFFFF)
+                                return -EINVAL;
+
+                        addr->in6.sin6_port = htobe16((uint16_t)u);
+                }
 
                 addr->in6.sin6_family = AF_INET6;
-                addr->in6.sin6_port = htobe16((uint16_t)u);
                 *addr_len = sizeof(struct sockaddr_in6);
 
         } else {
@@ -118,40 +158,14 @@ int parse_sockaddr(const char *s,
                                 return -EINVAL;
 
                         n = strndupa(s, e-s);
+                        return assign_address(n, u, addr, addr_len);
 
-                        /* IPv4 in w.x.y.z:p notation? */
-                        r = inet_pton(AF_INET, n, &addr->in.sin_addr);
-                        if (r < 0)
-                                return -errno;
-
-                        if (r > 0) {
-                                /* Gotcha, it's a traditional IPv4 address */
-                                addr->in.sin_family = AF_INET;
-                                addr->in.sin_port = htobe16((uint16_t)u);
-                                *addr_len = sizeof(struct sockaddr_in);
-                        } else {
-                                unsigned idx;
-
-                                if (strlen(n) > IF_NAMESIZE-1)
-                                        return -EINVAL;
-
-                                /* Uh, our last resort, an interface name */
-                                idx = if_nametoindex(n);
-                                if (idx == 0)
-                                        return -EINVAL;
-
-                                addr->in6.sin6_family = AF_INET6;
-                                addr->in6.sin6_port = htobe16((uint16_t)u);
-                                addr->in6.sin6_scope_id = idx;
-                                addr->in6.sin6_addr = in6addr_any;
-                                *addr_len = sizeof(struct sockaddr_in6);
-                        }
                 } else {
-                        /* Just a port */
                         r = safe_atou(s, &u);
                         if (r < 0)
-                                return r;
+                                return assign_address(s, 0, addr, addr_len);
 
+                        /* Just a port */
                         if (u <= 0 || u > 0xFFFF)
                                 return -EINVAL;
 
