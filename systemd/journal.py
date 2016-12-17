@@ -226,8 +226,8 @@ class Reader(_Reader):
     def add_match(self, *args, **kwargs):
         """Add one or more matches to the filter journal log entries.
 
-        All matches of different field are combined in a logical AND, and
-        matches of the same field are automatically combined in a logical OR.
+        All matches of different field are combined with logical AND, and
+        matches of the same field are automatically combined with logical OR.
         Matches can be passed as strings of form "FIELD=value", or keyword
         arguments FIELD="value".
         """
@@ -242,7 +242,7 @@ class Reader(_Reader):
         Entries will be processed with converters specified during Reader
         creation.
 
-        Optional skip value will return the `skip`-th log entry.
+        Optional `skip` value will return the `skip`-th log entry.
 
         Currently a standard dictionary of fields is returned, but in the
         future this might be changed to a different mapping type, so the
@@ -262,7 +262,7 @@ class Reader(_Reader):
 
         Equivalent to get_next(-skip).
 
-        Optional skip value will return the -`skip`-th log entry.
+        Optional `skip` value will return the -`skip`-th log entry.
 
         Entries will be processed with converters specified during Reader
         creation.
