@@ -1,3 +1,5 @@
+from socket import AF_UNSPEC as _AF_UNSPEC
+
 from ._daemon import (__version__,
                       booted,
                       notify,
@@ -9,7 +11,6 @@ from ._daemon import (__version__,
                       _is_socket_unix,
                       _is_mq,
                       LISTEN_FDS_START)
-from socket import AF_UNSPEC as _AF_UNSPEC
 
 def _convert_fileobj(fileobj):
     try:

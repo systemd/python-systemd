@@ -26,10 +26,11 @@ import uuid as _uuid
 import traceback as _traceback
 import os as _os
 import logging as _logging
-if _sys.version_info >= (3,3):
-    from collections import ChainMap as _ChainMap
 from syslog import (LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR,
                     LOG_WARNING, LOG_NOTICE, LOG_INFO, LOG_DEBUG)
+if _sys.version_info >= (3,3):
+    from collections import ChainMap as _ChainMap
+
 from ._journal import __version__, sendv, stream_fd
 from ._reader import (_Reader, NOP, APPEND, INVALIDATE,
                       LOCAL_ONLY, RUNTIME_ONLY,
@@ -241,7 +242,7 @@ class Reader(_Reader):
         Entries will be processed with converters specified during Reader
         creation.
 
-        Optional skip value will return the `skip`\-th log entry.
+        Optional skip value will return the `skip`-th log entry.
 
         Currently a standard dictionary of fields is returned, but in the
         future this might be changed to a different mapping type, so the
@@ -261,7 +262,7 @@ class Reader(_Reader):
 
         Equivalent to get_next(-skip).
 
-        Optional skip value will return the -`skip`\-th log entry.
+        Optional skip value will return the -`skip`-th log entry.
 
         Entries will be processed with converters specified during Reader
         creation.
@@ -561,7 +562,7 @@ class JournalHandler(_logging.Handler):
             msg = self.format(record)
             pri = self.mapPriority(record.levelno)
             mid = getattr(record, 'MESSAGE_ID', None)
-            extras = { k:str(v) for k,v in self._extra.items() }
+            extras = {k:str(v) for k,v in self._extra.items()}
             extras.update({
                 k:str(v) for k,v in record.__dict__.items()
             })
