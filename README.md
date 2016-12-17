@@ -25,6 +25,10 @@ On Debian/Ubuntu/Mint
 
     apt-get install python-systemd python3-systemd
 
+On openSUSE and SLE
+
+    zypper in python-systemd
+
 To build from source
 
 On Fedora 21+ with Python 2:
