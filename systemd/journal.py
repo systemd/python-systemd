@@ -394,10 +394,10 @@ def get_catalog(mid):
 def _make_line(field, value):
     if isinstance(value, bytes):
         return field.encode('utf-8') + b'=' + value
+    elif isinstance(value, int):
+        return field + '=' + str(value)
     elif isinstance(value, str):
         return field + '=' + value
-    else:
-        return field + '=' + str(value)
 
 def send(MESSAGE, MESSAGE_ID=None,
          CODE_FILE=None, CODE_LINE=None, CODE_FUNC=None,
@@ -566,9 +566,6 @@ class JournalHandler(_logging.Handler):
 
             if record.exc_text:
                 extras['EXCEPTION_TEXT'] = record.exc_text
-
-            if record.exc_info:
-                extras['EXCEPTION_INFO'] = record.exc_info
 
             if record.args:
                 extras['CODE_ARGS'] = str(record.args)
