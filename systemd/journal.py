@@ -546,6 +546,8 @@ class JournalHandler(_logging.Handler):
                 raise ValueError('Invalid field name: ' + name)
         if 'SYSLOG_IDENTIFIER' not in kwargs:
             kwargs['SYSLOG_IDENTIFIER'] = _sys.argv[0]
+
+        self.send = kwargs.pop('SENDER_FUNCTION', send)
         self._extra = kwargs
 
     def emit(self, record):
@@ -559,9 +561,9 @@ class JournalHandler(_logging.Handler):
             msg = self.format(record)
             pri = self.mapPriority(record.levelno)
             mid = getattr(record, 'MESSAGE_ID', None)
-            extras = { k:str(v) for k,v in self._extra.iteritems() }
+            extras = { k:str(v) for k,v in self._extra.items() }
             extras.update({
-                k:str(v) for k,v in record.__dict__.iteritems()
+                k:str(v) for k,v in record.__dict__.items()
             })
 
             if record.exc_text:
@@ -573,16 +575,16 @@ class JournalHandler(_logging.Handler):
             if record.args:
                 extras['CODE_ARGS'] = str(record.args)
 
-            send(msg,
-                 MESSAGE_ID=mid,
-                 PRIORITY=format(pri),
-                 LOGGER=record.name,
-                 THREAD_NAME=record.threadName,
-                 PROCESS_NAME=record.processName,
-                 CODE_FILE=record.pathname,
-                 CODE_LINE=record.lineno,
-                 CODE_FUNC=record.funcName,
-                 **extras)
+            self.send(msg,
+                      MESSAGE_ID=mid,
+                      PRIORITY=format(pri),
+                      LOGGER=record.name,
+                      THREAD_NAME=record.threadName,
+                      PROCESS_NAME=record.processName,
+                      CODE_FILE=record.pathname,
+                      CODE_LINE=record.lineno,
+                      CODE_FUNC=record.funcName,
+                      **extras)
         except Exception:
             self.handleError(record)
 
