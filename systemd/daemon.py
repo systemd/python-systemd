@@ -5,6 +5,7 @@ from ._daemon import (__version__,
                       _is_fifo,
                       _is_socket,
                       _is_socket_inet,
+                      _is_socket_sockaddr,
                       _is_socket_unix,
                       _is_mq,
                       LISTEN_FDS_START)
@@ -27,6 +28,20 @@ def is_socket(fileobj, family=_AF_UNSPEC, type=0, listening=-1):
 def is_socket_inet(fileobj, family=_AF_UNSPEC, type=0, listening=-1, port=0):
     fd = _convert_fileobj(fileobj)
     return _is_socket_inet(fd, family, type, listening, port)
+
+def is_socket_sockaddr(fileobj, address, type=0, flowinfo=0, listening=-1):
+    """Check socket type, address and/or port, flowinfo, listening state.
+
+    Wraps sd_is_socket_inet_sockaddr(3).
+
+    `address` is a systemd-style numerical IPv4 or IPv6 address as used in
+    ListenStream=. A port may be included after a colon (":").
+    See systemd.socket(5) for details.
+
+    Constants for `family` are defined in the socket module.
+    """
+    fd = _convert_fileobj(fileobj)
+    return _is_socket_sockaddr(fd, address, type, flowinfo, listening)
 
 def is_socket_unix(fileobj, type=0, listening=-1, path=None):
     fd = _convert_fileobj(fileobj)
