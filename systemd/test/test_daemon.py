@@ -238,7 +238,10 @@ def test_notify_bad_socket():
 def test_notify_with_socket(tmpdir):
     path = tmpdir.join('socket').strpath
     sock = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
-    sock.bind(path)
+    try:
+        sock.bind(path)
+    except socket.error as e:
+        pytest.xfail('failed to bind socket (%s)' % e)
     # SO_PASSCRED is not defined in python2.7
     SO_PASSCRED = getattr(socket, 'SO_PASSCRED', 16)
     sock.setsockopt(socket.SOL_SOCKET, SO_PASSCRED, 1)
