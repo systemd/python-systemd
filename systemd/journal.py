@@ -236,7 +236,7 @@ class Reader(_Reader):
             super(Reader, self).add_match(arg)
 
     def get_next(self, skip=1):
-        """Return the next log entry as a dictionary.
+        r"""Return the next log entry as a dictionary.
 
         Entries will be processed with converters specified during Reader
         creation.
@@ -257,7 +257,7 @@ class Reader(_Reader):
         return dict()
 
     def get_previous(self, skip=1):
-        """Return the previous log entry.
+        r"""Return the previous log entry.
 
         Equivalent to get_next(-skip).
 
