@@ -394,10 +394,10 @@ def get_catalog(mid):
 def _make_line(field, value):
     if isinstance(value, bytes):
         return field.encode('utf-8') + b'=' + value
-    elif isinstance(value, int):
-        return field + '=' + str(value)
-    else:
+    elif isinstance(value, str):
         return field + '=' + value
+    else:
+        return field + '=' + str(value)
 
 def send(MESSAGE, MESSAGE_ID=None,
          CODE_FILE=None, CODE_LINE=None, CODE_FUNC=None,
