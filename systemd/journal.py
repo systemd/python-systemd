@@ -575,7 +575,6 @@ class JournalHandler(_logging.Handler):
         try:
             msg = self.format(record)
             pri = self.map_priority(record.levelno)
-            mid = getattr(record, 'MESSAGE_ID', None)
             extras = {k: str(v) for k, v in self._extra.items()}
             extras.update({
                 k: str(v) for k, v in record.__dict__.items()
@@ -591,7 +590,6 @@ class JournalHandler(_logging.Handler):
                 extras['CODE_ARGS'] = str(record.args)
 
             self.send(msg,
-                      MESSAGE_ID=mid,
                       PRIORITY=format(pri),
                       LOGGER=record.name,
                       THREAD_NAME=record.threadName,
