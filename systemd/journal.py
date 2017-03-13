@@ -44,18 +44,23 @@ if _sys.version_info >= (3,):
 else:
     Monotonic = tuple
 
+
 def _convert_monotonic(m):
     return Monotonic((_datetime.timedelta(microseconds=m[0]),
                       _uuid.UUID(bytes=m[1])))
 
+
 def _convert_source_monotonic(s):
     return _datetime.timedelta(microseconds=int(s))
+
 
 def _convert_realtime(t):
     return _datetime.datetime.fromtimestamp(t / 1000000)
 
+
 def _convert_timestamp(s):
     return _datetime.datetime.fromtimestamp(int(s) / 1000000)
+
 
 def _convert_trivial(x):
     return x
@@ -104,8 +109,10 @@ DEFAULT_CONVERTERS = {
 
 _IDENT_CHARACTER = set('ABCDEFGHIJKLMNOPQRTSUVWXYZ_0123456789')
 
+
 def _valid_field_name(s):
     return not (set(s) - _IDENT_CHARACTER)
+
 
 class Reader(_Reader):
     """Access systemd journal entries.
@@ -165,7 +172,7 @@ class Reader(_Reader):
                 flags = 0
 
         super(Reader, self).__init__(flags, path, files)
-        if _sys.version_info >= (3,3):
+        if _sys.version_info >= (3, 3):
             self.converters = _ChainMap()
             if converters is not None:
                 self.converters.maps.append(converters)
@@ -392,6 +399,7 @@ def get_catalog(mid):
         mid = mid.hex
     return _get_catalog(mid)
 
+
 def _make_line(field, value):
     if isinstance(value, bytes):
         return field.encode('utf-8') + b'=' + value
@@ -399,6 +407,7 @@ def _make_line(field, value):
         return field + '=' + value
     else:
         return field + '=' + str(value)
+
 
 def send(MESSAGE, MESSAGE_ID=None,
          CODE_FILE=None, CODE_LINE=None, CODE_FUNC=None,
@@ -435,7 +444,7 @@ def send(MESSAGE, MESSAGE_ID=None,
         id = getattr(MESSAGE_ID, 'hex', MESSAGE_ID)
         args.append('MESSAGE_ID=' + id)
 
-    if CODE_LINE == CODE_FILE == CODE_FUNC == None:
+    if CODE_LINE is CODE_FILE is CODE_FUNC is None:
         CODE_FILE, CODE_LINE, CODE_FUNC = _traceback.extract_stack(limit=2)[0][:3]
     if CODE_FILE is not None:
         args.append('CODE_FILE=' + CODE_FILE)
@@ -446,6 +455,7 @@ def send(MESSAGE, MESSAGE_ID=None,
 
     args.extend(_make_line(key, val) for key, val in kwargs.items())
     return sendv(*args)
+
 
 def stream(identifier=None, priority=LOG_INFO, level_prefix=False):
     r"""Return a file object wrapping a stream to journal.
@@ -489,6 +499,7 @@ def stream(identifier=None, priority=LOG_INFO, level_prefix=False):
 
     fd = stream_fd(identifier, priority, level_prefix)
     return _os.fdopen(fd, 'w', 1)
+
 
 class JournalHandler(_logging.Handler):
     """Journal handler class for the Python logging framework.
@@ -550,6 +561,7 @@ class JournalHandler(_logging.Handler):
 
         self.send = kwargs.pop('SENDER_FUNCTION', send)
         self._extra = kwargs
+        self.mapPriority = self.map_priority
 
     def emit(self, record):
         """Write `record` as a journal event.
@@ -560,11 +572,11 @@ class JournalHandler(_logging.Handler):
         """
         try:
             msg = self.format(record)
-            pri = self.mapPriority(record.levelno)
+            pri = self.map_priority(record.levelno)
             mid = getattr(record, 'MESSAGE_ID', None)
-            extras = {k:str(v) for k,v in self._extra.items()}
+            extras = {k: str(v) for k, v in self._extra.items()}
             extras.update({
-                k:str(v) for k,v in record.__dict__.items()
+                k: str(v) for k, v in record.__dict__.items()
             })
 
             if record.exc_text:
@@ -590,7 +602,7 @@ class JournalHandler(_logging.Handler):
             self.handleError(record)
 
     @staticmethod
-    def mapPriority(levelno):
+    def map_priority(levelno):
         """Map logging levels to journald priorities.
 
         Since Python log level numbers are "sparse", we have to map numbers in
