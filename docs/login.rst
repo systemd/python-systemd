@@ -17,12 +17,12 @@ external event loop:
 
   >>> import select
   >>> from systemd import login
-  >>> m = login.Monitor("machine")
+  >>> m = login.Monitor("machine")        # doctest: +SKIP
   >>> p = select.poll()
-  >>> p.register(m, m.get_events())
+  >>> p.register(m, m.get_events())       # doctest: +SKIP
   >>> login.machine_names()               # doctest: +SKIP
   []
   >>> p.poll()                            # doctest: +SKIP
   [(3, 1)]
   >>> login.machine_names()               # doctest: +SKIP
-  ['fedora-19.nspawn']
+  ['fedora-25']
