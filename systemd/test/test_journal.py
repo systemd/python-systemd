@@ -57,7 +57,7 @@ def skip_valueerror():
         pytest.skip()
 
 def test_priorities():
-    p = journal.JournalHandler.mapPriority
+    p = journal.JournalHandler.map_priority
 
     assert p(logging.NOTSET)       == journal.LOG_DEBUG
     assert p(logging.DEBUG)        == journal.LOG_DEBUG
