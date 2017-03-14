@@ -561,7 +561,6 @@ class JournalHandler(_logging.Handler):
 
         self.send = kwargs.pop('SENDER_FUNCTION', send)
         self._extra = kwargs
-        self.mapPriority = self.map_priority
 
     def emit(self, record):
         """Write `record` as a journal event.
@@ -620,3 +619,5 @@ class JournalHandler(_logging.Handler):
             return LOG_CRIT
         else:
             return LOG_ALERT
+
+    mapPriority = map_priority
