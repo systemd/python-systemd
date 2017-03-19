@@ -123,18 +123,21 @@ def test_no_mismatch():
             assert not is_fifo(sock)
             assert not is_mq_wrapper(sock)
             assert not is_socket_inet(sock)
-            assert not is_socket_sockaddr(sock, '127.0.0.1:2000')
+            with skip_enosys():
+                assert not is_socket_sockaddr(sock, '127.0.0.1:2000')
 
             fd = sock.fileno()
             assert not is_fifo(fd)
             assert not is_mq_wrapper(fd)
             assert not is_socket_inet(fd)
-            assert not is_socket_sockaddr(fd, '127.0.0.1:2000')
+            with skip_enosys():
+                assert not is_socket_sockaddr(fd, '127.0.0.1:2000')
 
             assert not _is_fifo(fd)
             assert not _is_mq_wrapper(fd)
             assert not _is_socket_inet(fd)
-            assert not _is_socket_sockaddr(fd, '127.0.0.1:2000')
+            with skip_enosys():
+                assert not _is_socket_sockaddr(fd, '127.0.0.1:2000')
 
 def test_is_socket():
     with closing_socketpair(socket.AF_UNIX) as pair:
@@ -145,14 +148,16 @@ def test_is_socket():
                 assert not is_socket(arg, socket.AF_INET)
                 assert is_socket(arg, socket.AF_UNIX, socket.SOCK_STREAM)
                 assert not is_socket(arg, socket.AF_INET, socket.SOCK_DGRAM)
-                assert not is_socket_sockaddr(arg, '8.8.8.8:2000', socket.SOCK_DGRAM, 0, 0)
+                with skip_enosys():
+                    assert not is_socket_sockaddr(arg, '8.8.8.8:2000', socket.SOCK_DGRAM, 0, 0)
 
             assert _is_socket(arg)
             assert _is_socket(arg, socket.AF_UNIX)
             assert not _is_socket(arg, socket.AF_INET)
             assert _is_socket(arg, socket.AF_UNIX, socket.SOCK_STREAM)
             assert not _is_socket(arg, socket.AF_INET, socket.SOCK_DGRAM)
-            assert not _is_socket_sockaddr(arg, '8.8.8.8:2000', socket.SOCK_DGRAM, 0, 0)
+            with skip_enosys():
+                assert not _is_socket_sockaddr(arg, '8.8.8.8:2000', socket.SOCK_DGRAM, 0, 0)
 
 def test_is_socket_sockaddr():
     with contextlib.closing(socket.socket(socket.AF_INET)) as sock:
@@ -162,24 +167,33 @@ def test_is_socket_sockaddr():
 
         for listening in (0, 1):
             for arg in (sock, sock.fileno()):
-                assert is_socket_sockaddr(arg, '127.0.0.1', socket.SOCK_STREAM)
-                assert is_socket_sockaddr(arg, '127.0.0.1' + port, socket.SOCK_STREAM)
+                with skip_enosys():
+                    assert is_socket_sockaddr(arg, '127.0.0.1', socket.SOCK_STREAM)
+                with skip_enosys():
+                    assert is_socket_sockaddr(arg, '127.0.0.1' + port, socket.SOCK_STREAM)
 
-                assert is_socket_sockaddr(arg, '127.0.0.1' + port, listening=listening)
-                assert is_socket_sockaddr(arg, '127.0.0.1' + port, listening=-1)
-                assert not is_socket_sockaddr(arg, '127.0.0.1' + port, listening=not listening)
+                with skip_enosys():
+                    assert is_socket_sockaddr(arg, '127.0.0.1' + port, listening=listening)
+                with skip_enosys():
+                    assert is_socket_sockaddr(arg, '127.0.0.1' + port, listening=-1)
+                with skip_enosys():
+                    assert not is_socket_sockaddr(arg, '127.0.0.1' + port, listening=not listening)
 
                 with pytest.raises(ValueError):
                     is_socket_sockaddr(arg, '127.0.0.1', flowinfo=123456)
 
-                assert not is_socket_sockaddr(arg, '129.168.11.11:23', socket.SOCK_STREAM)
-                assert not is_socket_sockaddr(arg, '127.0.0.1', socket.SOCK_DGRAM)
+                with skip_enosys():
+                    assert not is_socket_sockaddr(arg, '129.168.11.11:23', socket.SOCK_STREAM)
+                with skip_enosys():
+                    assert not is_socket_sockaddr(arg, '127.0.0.1', socket.SOCK_DGRAM)
 
             with pytest.raises(ValueError):
                 _is_socket_sockaddr(arg, '127.0.0.1', 0, 123456)
 
-            assert not _is_socket_sockaddr(arg, '129.168.11.11:23', socket.SOCK_STREAM)
-            assert not _is_socket_sockaddr(arg, '127.0.0.1', socket.SOCK_DGRAM)
+            with skip_enosys():
+                assert not _is_socket_sockaddr(arg, '129.168.11.11:23', socket.SOCK_STREAM)
+            with skip_enosys():
+                assert not _is_socket_sockaddr(arg, '127.0.0.1', socket.SOCK_DGRAM)
 
             sock.listen(11)
 
