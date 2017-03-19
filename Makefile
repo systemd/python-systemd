@@ -3,6 +3,7 @@ SED = sed
 SPHINX_BUILD = sphinx-build
 ETAGS = etags
 INCLUDE_DIR := $(shell pkg-config --variable=includedir libsystemd)
+INCLUDE_FLAGS := $(shell pkg-config --cflags libsystemd)
 VERSION := $(shell $(PYTHON) setup.py --version)
 TESTFLAGS = -v
 
@@ -31,7 +32,7 @@ update-constants: $(INCLUDE_DIR)/systemd/sd-messages.h
 	mv docs/id128.rst{.tmp,}
 
 build:
-	$(PYTHON) setup.py build_ext $(if $(INCLUDE_DIR),-I$(INCLUDE_DIR))
+	$(PYTHON) setup.py build_ext $(INCLUDE_FLAGS)
 	$(PYTHON) setup.py build
 
 install:
