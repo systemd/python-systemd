@@ -55,6 +55,8 @@ sphinx-%: build
 	PYTHONPATH=$(builddir) $(SPHINX_BUILD) -b $* $(SPHINXOPTS) docs build/$*
 	@echo Output has been generated in build/$*
 
+doc: sphinx-html
+
 check: build
 	(cd $(builddir) && $(PYTHON) -m pytest . ../../docs $(TESTFLAGS))
 
@@ -68,4 +70,4 @@ upload: dist/systemd-python-$(VERSION).tar.gz dist/systemd-python-$(VERSION).tar
 TAGS: $(shell git ls-files systemd/*.[ch])
 	$(ETAGS) $+
 
-.PHONY: build install dist sign upload clean distclean TAGS doc-sync
+.PHONY: build install dist sign upload clean distclean TAGS doc doc-sync
