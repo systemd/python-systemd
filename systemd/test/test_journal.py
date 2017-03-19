@@ -90,7 +90,7 @@ def test_journalhandler_info():
     record = logging.LogRecord('test-logger', logging.INFO, 'testpath', 1, 'test', None, None)
 
     sender = MockSender()
-    kw = {'X':3, 'X3':4, 'SENDER_FUNCTION': sender.send}
+    kw = {'X':3, 'X3':4, 'sender_function': sender.send}
     handler = journal.JournalHandler(logging.INFO, **kw)
     handler.emit(record)
     assert len(sender.buf) == 1

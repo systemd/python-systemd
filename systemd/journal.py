@@ -548,9 +548,12 @@ class JournalHandler(_logging.Handler):
     `THREAD_NAME`, `CODE_FILE`, `CODE_LINE`, `CODE_FUNC`, `LOGGER` (name as
     supplied to getLogger call), `MESSAGE_ID` (optional, see above),
     `SYSLOG_IDENTIFIER` (defaults to sys.argv[0]).
+
+    The function used to actually send messages can be overridden using
+    the `sender_function` parameter.
     """
 
-    def __init__(self, level=_logging.NOTSET, **kwargs):
+    def __init__(self, level=_logging.NOTSET, sender_function=send, **kwargs):
         super(JournalHandler, self).__init__(level)
 
         for name in kwargs:
@@ -559,7 +562,7 @@ class JournalHandler(_logging.Handler):
         if 'SYSLOG_IDENTIFIER' not in kwargs:
             kwargs['SYSLOG_IDENTIFIER'] = _sys.argv[0]
 
-        self.send = kwargs.pop('SENDER_FUNCTION', send)
+        self.send = sender_function
         self._extra = kwargs
 
     def emit(self, record):
