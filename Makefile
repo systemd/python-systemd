@@ -70,4 +70,8 @@ upload: dist/systemd-python-$(VERSION).tar.gz dist/systemd-python-$(VERSION).tar
 TAGS: $(shell git ls-files systemd/*.[ch])
 	$(ETAGS) $+
 
-.PHONY: build install dist sign upload clean distclean TAGS doc doc-sync
+shell:
+# we change the directory because python insists on adding $CWD to path
+	(cd $(builddir) && $(PYTHON))
+
+.PHONY: build install dist sign upload clean distclean TAGS doc doc-sync shell
