@@ -575,11 +575,10 @@ class JournalHandler(_logging.Handler):
         try:
             msg = self.format(record)
             pri = self.map_priority(record.levelno)
-            extras = {k: str(v) for k, v in self._extra.items()}
-            extras.update({
-                k: str(v) for k, v in record.__dict__.items()
-            })
+            # defaults
+            extras = self._extra.copy()
 
+            # higher priority
             if record.exc_text:
                 extras['EXCEPTION_TEXT'] = record.exc_text
 
@@ -588,6 +587,9 @@ class JournalHandler(_logging.Handler):
 
             if record.args:
                 extras['CODE_ARGS'] = str(record.args)
+
+            # explicit arguments — highest priority
+            extras.update(record.__dict__)
 
             self.send(msg,
                       PRIORITY=format(pri),

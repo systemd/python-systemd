@@ -107,7 +107,6 @@ def test_journalhandler_no_message_id():
     assert all(not m.startswith('MESSAGE_ID=') for m in sender.buf[0])
 
 def test_journalhandler_message_id_on_handler():
-    pytest.xfail()
     record = logging.LogRecord('test-logger', logging.INFO, 'testpath', 1, 'test', None, None)
     sender = MockSender()
     handler = journal.JournalHandler(logging.INFO, sender_function=sender.send,
@@ -126,7 +125,6 @@ def test_journalhandler_message_id_on_handler_hex():
     assert 'MESSAGE_ID=' + TEST_MID.hex in sender.buf[0]
 
 def test_journalhandler_message_id_on_message():
-    pytest.xfail()
     record = logging.LogRecord('test-logger', logging.INFO, 'testpath', 1, 'test', None, None)
     record.__dict__['MESSAGE_ID'] = TEST_MID2
     sender = MockSender()
