@@ -14,6 +14,7 @@ from systemd.journal import _make_line
 import pytest
 
 TEST_MID = uuid.UUID('8441372f8dca4ca98694a6091fd8519f')
+TEST_MID2 = uuid.UUID('8441370000000000000000001fd85000')
 
 class MockSender:
     def __init__(self):
@@ -28,7 +29,7 @@ class MockSender:
             id = getattr(MESSAGE_ID, 'hex', MESSAGE_ID)
             args.append('MESSAGE_ID=' + id)
 
-        if CODE_LINE == CODE_FILE == CODE_FUNC == None:
+        if CODE_LINE is CODE_FILE is CODE_FUNC is None:
             CODE_FILE, CODE_LINE, CODE_FUNC = _traceback.extract_stack(limit=2)[0][:3]
         if CODE_FILE is not None:
             args.append('CODE_FILE=' + CODE_FILE)
@@ -94,6 +95,56 @@ def test_journalhandler_info():
     handler = journal.JournalHandler(logging.INFO, **kw)
     handler.emit(record)
     assert len(sender.buf) == 1
+    assert 'X=3' in sender.buf[0]
+    assert 'X3=4' in sender.buf[0]
+
+def test_journalhandler_no_message_id():
+    record = logging.LogRecord('test-logger', logging.INFO, 'testpath', 1, 'test', None, None)
+    sender = MockSender()
+    handler = journal.JournalHandler(logging.INFO, sender_function=sender.send)
+    handler.emit(record)
+    assert len(sender.buf) == 1
+    assert all(not m.startswith('MESSAGE_ID=') for m in sender.buf[0])
+
+def test_journalhandler_message_id_on_handler():
+    pytest.xfail()
+    record = logging.LogRecord('test-logger', logging.INFO, 'testpath', 1, 'test', None, None)
+    sender = MockSender()
+    handler = journal.JournalHandler(logging.INFO, sender_function=sender.send,
+                                     MESSAGE_ID=TEST_MID)
+    handler.emit(record)
+    assert len(sender.buf) == 1
+    assert 'MESSAGE_ID=' + TEST_MID.hex in sender.buf[0]
+
+def test_journalhandler_message_id_on_handler_hex():
+    record = logging.LogRecord('test-logger', logging.INFO, 'testpath', 1, 'test', None, None)
+    sender = MockSender()
+    handler = journal.JournalHandler(logging.INFO, sender_function=sender.send,
+                                     MESSAGE_ID=TEST_MID.hex)
+    handler.emit(record)
+    assert len(sender.buf) == 1
+    assert 'MESSAGE_ID=' + TEST_MID.hex in sender.buf[0]
+
+def test_journalhandler_message_id_on_message():
+    pytest.xfail()
+    record = logging.LogRecord('test-logger', logging.INFO, 'testpath', 1, 'test', None, None)
+    record.__dict__['MESSAGE_ID'] = TEST_MID2
+    sender = MockSender()
+    handler = journal.JournalHandler(logging.INFO, sender_function=sender.send,
+                                     MESSAGE_ID=TEST_MID)
+    handler.emit(record)
+    assert len(sender.buf) == 1
+    assert 'MESSAGE_ID=' + TEST_MID2.hex in sender.buf[0]
+
+def test_journalhandler_message_id_on_message_hex():
+    record = logging.LogRecord('test-logger', logging.INFO, 'testpath', 1, 'test', None, None)
+    record.__dict__['MESSAGE_ID'] = TEST_MID2.hex
+    sender = MockSender()
+    handler = journal.JournalHandler(logging.INFO, sender_function=sender.send,
+                                     MESSAGE_ID=TEST_MID)
+    handler.emit(record)
+    assert len(sender.buf) == 1
+    assert 'MESSAGE_ID=' + TEST_MID2.hex in sender.buf[0]
 
 def test_reader_init_flags():
     j1 = journal.Reader()
