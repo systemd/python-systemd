@@ -542,7 +542,7 @@ class JournalHandler(_logging.Handler):
     program:
 
     >>> JournalHandler(SYSLOG_IDENTIFIER='my-cool-app')
-    <systemd.journal.JournalHandler object at ...>
+    <...JournalHandler ...>
 
     The following journal fields will be sent: `MESSAGE`, `PRIORITY`,
     `THREAD_NAME`, `CODE_FILE`, `CODE_LINE`, `CODE_FUNC`, `LOGGER` (name as
