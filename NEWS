@@ -1,5 +1,22 @@
 Python wrappers for libsystemd API
 
+CHANGES WITH 234:
+
+        * Support for the new sd_is_socket_sockaddr added in systemd 233
+          is added.
+
+        * New id128 constants added in systemd 233 are included.
+
+        * "Extra" fields for the log entry can be passed during
+          LoggerAdapter initialization or for each message separately.
+          Fields specified for the message have higher priority.
+
+        * Small fixes and style tweaks all over.
+
+        Contributions from: Park Jeongsoo, Jimmy Cao, Johannes
+        Weberhofer, Mike Gilbert, Oleksii Shevchuk, Ville Skyttä,
+        Wesley Bowman, Zbigniew Jędrzejewski-Szmek
+
 CHANGES WITH 233:
 
         * Tests are fixed and should pass on various old and new
