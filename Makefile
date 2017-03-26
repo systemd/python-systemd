@@ -17,9 +17,8 @@ builddir := $(shell $(PYTHON) -c '$(buildscript)')
 all: build
 
 .PHONY: update-constants
-update-constants: $(INCLUDE_DIR)/systemd/sd-messages.h
-	cat $< systemd/id128-defines.h | \
-	  $(SED) -n -r '/#define SD_MESSAGE_[A-Z0-9_]/p' | \
+update-constants: update-constants.py $(INCLUDE_DIR)/systemd/sd-messages.h
+	$(PYTHON) $+ systemd/id128-defines.h | \
 	  sort -u | \
 	  tee systemd/id128-defines.h.tmp | \
 	  $(SED) -n -r 's/,//g; s/#define (SD_MESSAGE_[A-Z0-9_]+)\s.*/add_id(m, "\1", \1) JOINER/p' | \
