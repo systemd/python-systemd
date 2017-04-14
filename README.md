@@ -31,12 +31,12 @@ On openSUSE and SLE
 
 To build from source
 
-On Fedora 21+ with Python 2:
+On CentOS, RHEL, and Fedora with Python 2:
 
     dnf install git python-pip gcc python-devel systemd-devel
     pip install git+https://github.com/systemd/python-systemd.git#egg=systemd
 
-On Fedora 21+ with Python 3:
+On Fedora with Python 3:
 
     dnf install git python3-pip gcc python3-devel systemd-devel
     pip3 install git+https://github.com/systemd/python-systemd.git#egg=systemd
