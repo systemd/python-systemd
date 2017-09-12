@@ -123,7 +123,7 @@ static PyObject* notify(PyObject *self, PyObject *args, PyObject *keywds) {
                         return NULL;
 
                 arr = PyMem_NEW(int, len);
-                if (!fds)
+                if (!arr)
                         return NULL;
 
                 for (i = 0; i < len; i++) {
