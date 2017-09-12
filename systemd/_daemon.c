@@ -127,7 +127,7 @@ static PyObject* notify(PyObject *self, PyObject *args, PyObject *keywds) {
                         return NULL;
 
                 for (i = 0; i < len; i++) {
-                        PyObject *item = PySequence_GetItem(fds, i);
+                        _cleanup_Py_DECREF_ PyObject *item = PySequence_GetItem(fds, i);
                         if (!item)
                                 return NULL;
 
