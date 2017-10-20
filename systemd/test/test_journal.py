@@ -82,10 +82,14 @@ def test_journalhandler_init_exception():
     kw = {' X  ':3}
     with pytest.raises(ValueError):
         journal.JournalHandler(**kw)
+    with pytest.raises(ValueError):
+        journal.JournalHandler.with_args(kw)
 
 def test_journalhandler_init():
     kw = {'X':3, 'X3':4}
     journal.JournalHandler(logging.INFO, **kw)
+    kw['level'] = logging.INFO
+    journal.JournalHandler.with_args(kw)
 
 def test_journalhandler_info():
     record = logging.LogRecord('test-logger', logging.INFO, 'testpath', 1, 'test', None, None)
@@ -97,6 +101,16 @@ def test_journalhandler_info():
     assert len(sender.buf) == 1
     assert 'X=3' in sender.buf[0]
     assert 'X3=4' in sender.buf[0]
+
+    sender = MockSender()
+    handler = journal.JournalHandler.with_args({'level':logging.INFO, 'X':3, 'X3':4, 'sender_function':sender.send})
+    handler.emit(record)
+    assert len(sender.buf) == 1
+    assert 'X=3' in sender.buf[0]
+    assert 'X3=4' in sender.buf[0]
+
+    # just check that args==None doesn't cause an error
+    journal.JournalHandler.with_args()
 
 def test_journalhandler_no_message_id():
     record = logging.LogRecord('test-logger', logging.INFO, 'testpath', 1, 'test', None, None)

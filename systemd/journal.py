@@ -565,6 +565,20 @@ class JournalHandler(_logging.Handler):
         self.send = sender_function
         self._extra = kwargs
 
+    @classmethod
+    def with_args(cls, config=None):
+        """Create a JournalHandler with a configuration dictionary
+
+        This creates a JournalHandler instance, but accepts the parameters through
+        a dictionary that can be specified as a positional argument. This is useful
+        in contexts like logging.config.fileConfig, where the syntax does not allow
+        for positional arguments.
+
+        >>> JournalHandler.with_args({'SYSLOG_IDENTIFIER':'my-cool-app'})
+        <...JournalHandler ...>
+        """
+        return cls(**(config or {}))
+
     def emit(self, record):
         """Write `record` as a journal event.
 
