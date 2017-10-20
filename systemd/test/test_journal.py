@@ -82,10 +82,13 @@ def test_journalhandler_init_exception():
     kw = {' X  ':3}
     with pytest.raises(ValueError):
         journal.JournalHandler(**kw)
+    with pytest.raises(ValueError):
+        journal.JournalHandler(logging.INFO, kw)
 
 def test_journalhandler_init():
     kw = {'X':3, 'X3':4}
     journal.JournalHandler(logging.INFO, **kw)
+    journal.JournalHandler(logging.INFO, kw)
 
 def test_journalhandler_info():
     record = logging.LogRecord('test-logger', logging.INFO, 'testpath', 1, 'test', None, None)
@@ -93,6 +96,21 @@ def test_journalhandler_info():
     sender = MockSender()
     kw = {'X':3, 'X3':4, 'sender_function': sender.send}
     handler = journal.JournalHandler(logging.INFO, **kw)
+    handler.emit(record)
+    assert len(sender.buf) == 1
+    assert 'X=3' in sender.buf[0]
+    assert 'X3=4' in sender.buf[0]
+
+    sender = MockSender()
+    handler = journal.JournalHandler(logging.INFO, {'X':3, 'X3':4}, sender_function=sender.send)
+    handler.emit(record)
+    assert len(sender.buf) == 1
+    assert 'X=3' in sender.buf[0]
+    assert 'X3=4' in sender.buf[0]
+
+    sender = MockSender()
+    kw = {'X3':4}
+    handler = journal.JournalHandler(logging.INFO, {'X':3}, sender_function=sender.send, **kw)
     handler.emit(record)
     assert len(sender.buf) == 1
     assert 'X=3' in sender.buf[0]

@@ -553,9 +553,11 @@ class JournalHandler(_logging.Handler):
     the `sender_function` parameter.
     """
 
-    def __init__(self, level=_logging.NOTSET, sender_function=send, **kwargs):
+    def __init__(self, level=_logging.NOTSET, extra=None, sender_function=send, **kwargs):
         super(JournalHandler, self).__init__(level)
 
+        if isinstance(extra, dict):
+            kwargs.update(extra)
         for name in kwargs:
             if not _valid_field_name(name):
                 raise ValueError('Invalid field name: ' + name)
