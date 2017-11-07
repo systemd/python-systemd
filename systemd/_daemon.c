@@ -127,11 +127,12 @@ static PyObject* notify(PyObject *self, PyObject *args, PyObject *keywds) {
                         return NULL;
 
                 for (i = 0; i < len; i++) {
+                        long value;
                         PyObject *item = PySequence_GetItem(fds, i);
                         if (!item)
                                 return NULL;
 
-                        long value = PyLong_AsLong(item);
+                        value = PyLong_AsLong(item);
                         if (PyErr_Occurred())
                                 return NULL;
 
