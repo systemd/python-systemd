@@ -52,6 +52,12 @@ PyDoc_STRVAR(get_machine__doc__,
              "Wraps sd_id128_get_machine(3)."
 );
 
+PyDoc_STRVAR(get_machine_app_specific__doc__,
+             "get_machine_app_specific(UUID) -> UUID\n\n"
+             "Return a 128-bit unique identifier for this application and machine.\n"
+             "Wraps sd_id128_get_machine_app_specific(3)."
+);
+
 PyDoc_STRVAR(get_boot__doc__,
              "get_boot() -> UUID\n\n"
              "Return a 128-bit unique identifier for this boot.\n"
@@ -100,9 +106,42 @@ helper(randomize)
 helper(get_machine)
 helper(get_boot)
 
+static PyObject *get_machine_app_specific(PyObject *self, PyObject *args) {
+        sd_id128_t app_id, machine_id;
+        int r;
+        Py_buffer buffer;
+        _cleanup_Py_DECREF_ PyObject
+                *uuid = NULL, *uuid_bytes = NULL;
+
+        uuid_bytes = PyObject_GetAttrString(args, "bytes");
+        if (!uuid_bytes)
+                return NULL;
+
+        r = PyObject_GetBuffer(uuid_bytes, &buffer, 0);
+        if (r == -1)
+                return NULL;
+
+        if (buffer.len != sizeof(app_id.bytes)) {
+                PyBuffer_Release(&buffer);
+                return NULL;
+        }
+
+        memcpy(app_id.bytes, buffer.buf, sizeof(app_id.bytes));
+        PyBuffer_Release(&buffer);
+
+        r = sd_id128_get_machine_app_specific(app_id, &machine_id);
+        if (r < 0) {
+                errno = -r;
+                return PyErr_SetFromErrno(PyExc_IOError);
+        }
+
+        return make_uuid(machine_id);
+}
+
 static PyMethodDef methods[] = {
         { "randomize", randomize, METH_NOARGS, randomize__doc__},
         { "get_machine", get_machine, METH_NOARGS, get_machine__doc__},
+        { "get_machine_app_specific", get_machine_app_specific, METH_O, get_machine_app_specific__doc__},
         { "get_boot", get_boot, METH_NOARGS, get_boot__doc__},
         {}        /* Sentinel */
 };
