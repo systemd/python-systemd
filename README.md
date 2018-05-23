@@ -85,6 +85,14 @@ Notes:
    This might happen if there are no arguments or one of them is
    invalid.
 
+A handler class for the Python logging framework is also provided:
+
+    import logging
+    from systemd import journal
+    logger = logging.getLogger('custom_logger_name')
+    logger.addHandler(journal.JournalHandler())
+    logger.warning("Some message: %s", 'detail')
+
 Documentation
 =============
 
