@@ -58,7 +58,7 @@ def listen_fds(unset_environment=True):
     Example::
 
       (in primary window)
-      $ systemd-activate -l 2000 python3 -c \\
+      $ systemd-socket-activate -l 2000 python3 -c \\
           'from systemd.daemon import listen_fds; print(listen_fds())'
       (in another window)
       $ telnet localhost 2000
