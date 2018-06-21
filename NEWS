@@ -1,5 +1,10 @@
 Python wrappers for libsystemd API
 
+CHANGES WITH 235:
+
+	* Adapt the rename of systemd-activate to systemd-socket-activation
+	  performed in systemd 230
+
 CHANGES WITH 234:
 
         * Support for the new sd_is_socket_sockaddr added in systemd 233
