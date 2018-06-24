@@ -11,7 +11,7 @@ from systemd.daemon import (booted,
                             is_socket_unix, _is_socket_unix,
                             is_socket_sockaddr, _is_socket_sockaddr,
                             is_mq, _is_mq,
-                            listen_fds,
+                            listen_fds, listen_fds_with_names,
                             notify)
 
 import pytest
@@ -255,6 +255,46 @@ def test_listen_fds_default_unset():
     assert listen_fds(False) == [3]
     assert listen_fds() == [3]
     assert listen_fds() == []
+
+def test_listen_fds_with_names_nothing():
+    # make sure we have no fds to listen to, no names
+    os.unsetenv('LISTEN_FDS')
+    os.unsetenv('LISTEN_PID')
+    os.unsetenv('LISTEN_FDNAMES')
+
+    assert listen_fds_with_names() == {}
+    assert listen_fds_with_names(True) == {}
+    assert listen_fds_with_names(False) == {}
+
+def test_listen_fds_with_names_no_names():
+    # make sure we have no fds to listen to, no names
+    os.environ['LISTEN_FDS'] = '1'
+    os.environ['LISTEN_PID'] = str(os.getpid())
+    os.unsetenv('LISTEN_FDNAMES')
+
+    assert listen_fds_with_names(False) == {3: 'unknown'}
+    assert listen_fds_with_names(True) == {3: 'unknown'}
+    assert listen_fds_with_names() == {}
+
+def test_listen_fds_with_names_single():
+    # make sure we have no fds to listen to, no names
+    os.environ['LISTEN_FDS'] = '1'
+    os.environ['LISTEN_PID'] = str(os.getpid())
+    os.environ['LISTEN_FDNAMES'] = 'cmds'
+
+    assert listen_fds_with_names(False) == {3: 'cmds'}
+    assert listen_fds_with_names() == {3: 'cmds'}
+    assert listen_fds_with_names(True) == {}
+
+def test_listen_fds_with_names_multiple():
+    # make sure we have no fds to listen to, no names
+    os.environ['LISTEN_FDS'] = '3'
+    os.environ['LISTEN_PID'] = str(os.getpid())
+    os.environ['LISTEN_FDNAMES'] = 'cmds:data:errs'
+
+    assert listen_fds_with_names(False) == {3: 'cmds', 4: 'data', 5: 'errs'}
+    assert listen_fds_with_names(True) == {3: 'cmds', 4: 'data', 5: 'errs'}
+    assert listen_fds_with_names() == {}
 
 def test_notify_no_socket():
     assert notify('READY=1') is False

@@ -41,14 +41,18 @@
 #  define HAVE_PID_NOTIFY_WITH_FDS
 #endif
 
+#if LIBSYSTEMD_VERSION >= 227
+#  define HAVE_SD_LISTEN_FDS_WITH_NAMES
+#endif
+
 #if LIBSYSTEMD_VERSION >= 233
 #  define HAVE_IS_SOCKET_SOCKADDR
 #endif
 
 PyDoc_STRVAR(module__doc__,
         "Python interface to the libsystemd-daemon library.\n\n"
-        "Provides _listen_fds, notify, booted, and is_* functions\n"
-        "which wrap sd_listen_fds, sd_notify, sd_booted, sd_is_* and\n"
+        "Provides _listen_fds*, notify, booted, and is_* functions\n"
+        "which wrap sd_listen_fds*, sd_notify, sd_booted, sd_is_*;\n"
         "useful for socket activation and checking if the system is\n"
         "running under systemd."
 );
@@ -202,6 +206,77 @@ static PyObject* listen_fds(PyObject *self, PyObject *args, PyObject *keywds) {
                 return NULL;
 
         return long_FromLong(r);
+}
+
+PyDoc_STRVAR(listen_fds_with_names__doc__,
+             "_listen_fds_with_names(unset_environment=True) -> (int, str...)\n\n"
+             "Return the number of descriptors passed to this process by the init system\n"
+             "and their names as part of the socket-based activation logic.\n"
+             "Wraps sd_listen_fds_with_names(3).\n"
+             "Raises RunTimeError if compiled under systemd < 227."
+);
+
+static void free_names(char **names) {
+        if (names == NULL)
+                return;
+        for (char **n = names; *n != NULL; n++)
+                free(*n);
+        free(names);
+}
+static PyObject* listen_fds_with_names(PyObject *self, PyObject *args, PyObject *keywds) {
+        int r;
+        int unset = false;
+        char **names = NULL;
+        PyObject *tpl, *item;
+
+        static const char* const kwlist[] = {"unset_environment", NULL};
+#if PY_MAJOR_VERSION >=3 && PY_MINOR_VERSION >= 3
+        if (!PyArg_ParseTupleAndKeywords(args, keywds, "|p:_listen_fds_with_names",
+                                         (char**) kwlist, &unset))
+                return NULL;
+#else
+        PyObject *obj = NULL;
+        if (!PyArg_ParseTupleAndKeywords(args, keywds, "|O:_listen_fds_with_names",
+                                         (char**) kwlist, &obj))
+                return NULL;
+        if (obj != NULL)
+                unset = PyObject_IsTrue(obj);
+        if (unset < 0)
+                return NULL;
+#endif
+
+#ifdef HAVE_SD_LISTEN_FDS_WITH_NAMES
+        r = sd_listen_fds_with_names(unset, &names);
+        if (set_error(r, NULL, NULL) < 0)
+                return NULL;
+
+        tpl = PyTuple_New(r+1);
+        if (tpl == NULL)
+                return NULL;
+
+        item = long_FromLong(r);
+        if (item == NULL) {
+                Py_DECREF(tpl);
+                return NULL;
+        }
+        if (PyTuple_SetItem(tpl, 0, item) < 0) {
+                Py_DECREF(tpl);
+                return NULL;
+        }
+	for (int i = 0; i < r && names[i] != NULL; i++) {
+                item = unicode_FromString(names[i]);
+                if (PyTuple_SetItem(tpl, 1+i, item) < 0) {
+                        Py_DECREF(tpl);
+			free_names(names);
+                        return NULL;
+                }
+        }
+	free_names(names);
+        return tpl;
+#else /* !HAVE_SD_LISTEN_FDS_WITH_NAMES */
+        set_error(-ENOSYS, NULL, "Compiled without support for sd_listen_fds_with_names");
+        return NULL;
+#endif /* HAVE_SD_LISTEN_FDS_WITH_NAMES */
 }
 
 PyDoc_STRVAR(is_fifo__doc__,
@@ -411,6 +486,8 @@ static PyMethodDef methods[] = {
         { "booted", booted, METH_NOARGS, booted__doc__},
         { "notify", (PyCFunction) notify, METH_VARARGS | METH_KEYWORDS, notify__doc__},
         { "_listen_fds", (PyCFunction) listen_fds, METH_VARARGS | METH_KEYWORDS, listen_fds__doc__},
+        { "_listen_fds_with_names", (PyCFunction) listen_fds_with_names,
+                METH_VARARGS | METH_KEYWORDS, listen_fds_with_names__doc__},
         { "_is_fifo", is_fifo, METH_VARARGS, is_fifo__doc__},
         { "_is_mq", is_mq, METH_VARARGS, is_mq__doc__},
         { "_is_socket", is_socket, METH_VARARGS, is_socket__doc__},
