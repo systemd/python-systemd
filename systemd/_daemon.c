@@ -217,9 +217,10 @@ PyDoc_STRVAR(listen_fds_with_names__doc__,
 );
 
 static void free_names(char **names) {
+	char **n;
         if (names == NULL)
                 return;
-        for (char **n = names; *n != NULL; n++)
+        for (n = names; *n != NULL; n++)
                 free(*n);
         free(names);
 }
