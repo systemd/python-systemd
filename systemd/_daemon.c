@@ -210,10 +210,13 @@ static PyObject* listen_fds(PyObject *self, PyObject *args, PyObject *keywds) {
 
 PyDoc_STRVAR(listen_fds_with_names__doc__,
              "_listen_fds_with_names(unset_environment=True) -> (int, str...)\n\n"
+             "Wraps sd_listen_fds_with_names(3).\n"
+#ifdef HAVE_SD_LISTEN_FDS_WITH_NAMES
              "Return the number of descriptors passed to this process by the init system\n"
              "and their names as part of the socket-based activation logic.\n"
-             "Wraps sd_listen_fds_with_names(3).\n"
-             "Raises RunTimeError if compiled under systemd < 227."
+#else
+             "NOT SUPPORTED: compiled without support sd_listen_fds_with_names"
+#endif
 );
 
 static void free_names(char **names) {
