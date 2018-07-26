@@ -28,8 +28,6 @@ import os as _os
 import logging as _logging
 from syslog import (LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR,
                     LOG_WARNING, LOG_NOTICE, LOG_INFO, LOG_DEBUG)
-if _sys.version_info >= (3,3):
-    from collections import ChainMap as _ChainMap
 
 from ._journal import __version__, sendv, stream_fd
 from ._reader import (_Reader, NOP, APPEND, INVALIDATE,
@@ -172,15 +170,9 @@ class Reader(_Reader):
                 flags = 0
 
         super(Reader, self).__init__(flags, path, files)
-        if _sys.version_info >= (3, 3):
-            self.converters = _ChainMap()
-            if converters is not None:
-                self.converters.maps.append(converters)
-            self.converters.maps.append(DEFAULT_CONVERTERS)
-        else:
-            self.converters = DEFAULT_CONVERTERS.copy()
-            if converters is not None:
-                self.converters.update(converters)
+        self.converters = DEFAULT_CONVERTERS.copy()
+        if converters is not None:
+            self.converters.update(converters)
 
     def _convert_field(self, key, value):
         """Convert value using self.converters[key].
