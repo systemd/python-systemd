@@ -302,3 +302,16 @@ def test_notify_with_socket(tmpdir):
     assert notify('FDSTORE=1', fds=[1, 2])
     assert notify('FDSTORE=1', pid=os.getpid())
     assert notify('FDSTORE=1', pid=os.getpid(), fds=(1,))
+
+def test_daemon_notify_memleak():
+    # https://github.com/systemd/python-systemd/pull/51
+    fd = 1
+    fds = [fd]
+    ref_cnt = sys.getrefcount(fd)
+
+    try:
+        notify('', True, 0, fds)
+    except ConnectionRefusedError:
+        pass
+
+    assert sys.getrefcount(fd) <= ref_cnt, 'leak'
