@@ -327,7 +327,10 @@ PyDoc_STRVAR(Reader_fileno__doc__,
              "fileno() -> int\n\n"
              "Get a file descriptor to poll for changes in the journal.\n"
              "This method invokes sd_journal_get_fd().\n"
-             "See :manpage:`sd_journal_get_fd(3)`.");
+             "See :manpage:`sd_journal_get_fd(3)`.\n\n"
+             "When the file descriptor returned by this function is used a poll\n"
+             "loop, .process() should be used to process events and reset the readability\n"
+             "state of the file descriptor.");
 static PyObject* Reader_fileno(Reader *self, PyObject *args) {
         int fd;
 
@@ -850,7 +853,7 @@ static PyObject* Reader_seek_monotonic(Reader *self, PyObject *args) {
 
 PyDoc_STRVAR(Reader_process__doc__,
              "process() -> state change (integer)\n\n"
-             "Process events and reset the readable state of the file\n"
+             "Process events and reset the readability state of the file\n"
              "descriptor returned by .fileno().\n\n"
              "Will return constants: NOP if no change; APPEND if new\n"
              "entries have been added to the end of the journal; and\n"
