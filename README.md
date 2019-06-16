@@ -30,6 +30,7 @@ On openSUSE and SLE
     zypper in python-systemd
 
 To build from source
+--------------------
 
 On CentOS, RHEL, and Fedora with Python 2:
 
@@ -75,7 +76,8 @@ The journald sendv call can also be accessed directly:
 
 The two examples should give the same results in the log.
 
-Notes:
+Notes
+-----
 
  * Unlike the native C version of journald's sd_journal_send(),
    printf-style substitution is not supported. Perform any
