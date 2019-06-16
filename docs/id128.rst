@@ -40,14 +40,21 @@
    .. autoattribute:: systemd.id128.SD_MESSAGE_SUSPEND_KEY
    .. autoattribute:: systemd.id128.SD_MESSAGE_SYSTEM_DOCKED
    .. autoattribute:: systemd.id128.SD_MESSAGE_SYSTEM_UNDOCKED
+   .. autoattribute:: systemd.id128.SD_MESSAGE_TAINTED
    .. autoattribute:: systemd.id128.SD_MESSAGE_TIME_CHANGE
    .. autoattribute:: systemd.id128.SD_MESSAGE_TIMEZONE_CHANGE
    .. autoattribute:: systemd.id128.SD_MESSAGE_TRUNCATED_CORE
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_FAILED
+   .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_FAILURE_RESULT
+   .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_OUT_OF_MEMORY
+   .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_PROCESS_EXIT
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_RELOADED
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_RELOADING
+   .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_RESOURCES
+   .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_RESTART_SCHEDULED
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_STARTED
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_STARTING
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_STOPPED
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_STOPPING
+   .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_SUCCESS
    .. autoattribute:: systemd.id128.SD_MESSAGE_USER_STARTUP_FINISHED
