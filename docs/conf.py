@@ -156,6 +156,7 @@ html_show_sourcelink = False
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'python-systemddoc'
 
+manpages_url = 'https://www.freedesktop.org/software/systemd/man/{page}.html'
 
 # -- Options for LaTeX output --------------------------------------------------
 

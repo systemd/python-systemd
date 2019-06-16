@@ -148,7 +148,7 @@ PyDoc_STRVAR(Monitor__doc__,
              "Monitor may be used to monitor login sessions, users, seats, and virtual\n"
              "machines/containers. Monitor provides a file descriptor which can be\n"
              "integrated in an external event loop.\n\n"
-             "See man:sd_login_monitor_new(3) for the details about what can be monitored.");
+             "See :manpage:`sd_login_monitor_new(3)` for the details about what can be monitored.");
 static int Monitor_init(Monitor *self, PyObject *args, PyObject *keywds) {
         const char *category = NULL;
         int r;
@@ -183,7 +183,7 @@ PyDoc_STRVAR(Monitor_get_events__doc__,
              "get_events() -> int\n\n"
              "Returns a mask of poll() events to wait for on the file descriptor returned\n"
              "by .fileno().\n\n"
-             "See man:sd_login_monitor_get_events(3) for further discussion.");
+             "See :manpage:`sd_login_monitor_get_events(3)` for further discussion.");
 static PyObject* Monitor_get_events(Monitor *self, PyObject *args) {
         int r = sd_login_monitor_get_events(self->monitor);
         set_error(r, NULL, NULL);
@@ -200,7 +200,7 @@ PyDoc_STRVAR(Monitor_get_timeout__doc__,
              "is necessary.\n\n"
              "The return value must be converted to a relative timeout in\n"
              "milliseconds if it is to be used as an argument for poll().\n"
-             "See man:sd_login_monitor_get_timeout(3) for further discussion.");
+             "See :manpage:`sd_login_monitor_get_timeout(3)` for further discussion.");
 static PyObject* Monitor_get_timeout(Monitor *self, PyObject *args) {
         int r;
         uint64_t t;
@@ -240,7 +240,7 @@ PyDoc_STRVAR(Monitor_close__doc__,
              "close() -> None\n\n"
              "Free resources allocated by this Monitor object.\n"
              "This method invokes sd_login_monitor_unref().\n"
-             "See man:sd_login_monitor_unref(3).");
+             "See :manpage:`sd_login_monitor_unref(3)`.");
 static PyObject* Monitor_close(Monitor *self, PyObject *args) {
         assert(self);
         assert(!args);
@@ -255,7 +255,7 @@ PyDoc_STRVAR(Monitor_flush__doc__,
              "flush() -> None\n\n"
              "Reset the wakeup state of the monitor object.\n"
              "This method invokes sd_login_monitor_flush().\n"
-             "See man:sd_login_monitor_flush(3).");
+             "See :manpage:`sd_login_monitor_flush(3)`.");
 static PyObject* Monitor_flush(Monitor *self, PyObject *args) {
         assert(self);
         assert(!args);
