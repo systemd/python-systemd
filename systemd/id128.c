@@ -30,9 +30,10 @@
 #include "id128-defines.h"
 #include <systemd/sd-messages.h>
 
-
 #include "pyutil.h"
 #include "macro.h"
+
+#define HAVE_SD_ID128_GET_MACHINE_APP_SPECIFIC (LIBSYSTEMD_VERSION >= 240)
 
 PyDoc_STRVAR(module__doc__,
              "Python interface to the libsystemd-id128 library.\n\n"
@@ -107,14 +108,16 @@ helper(get_machine)
 helper(get_boot)
 
 static PyObject *get_machine_app_specific(PyObject *self, PyObject *args) {
-        sd_id128_t machine_id;
-        Py_buffer buffer;
         _cleanup_Py_DECREF_ PyObject *uuid_bytes = NULL;
-        int r;
 
         uuid_bytes = PyObject_GetAttrString(args, "bytes");
         if (!uuid_bytes)
                 return NULL;
+
+#if HAVE_SD_ID128_GET_MACHINE_APP_SPECIFIC
+        Py_buffer buffer;
+        sd_id128_t app_id;
+        int r;
 
         r = PyObject_GetBuffer(uuid_bytes, &buffer, 0);
         if (r == -1)
@@ -125,14 +128,19 @@ static PyObject *get_machine_app_specific(PyObject *self, PyObject *args) {
                 return NULL;
         }
 
-        r = sd_id128_get_machine_app_specific(*(sd_id128_t*)buffer.buf, &machine_id);
+        r = sd_id128_get_machine_app_specific(*(sd_id128_t*)buffer.buf, &app_id);
         PyBuffer_Release(&buffer);
         if (r < 0) {
                 errno = -r;
                 return PyErr_SetFromErrno(PyExc_IOError);
         }
 
-        return make_uuid(machine_id);
+        return make_uuid(app_id);
+
+#else
+        set_error(-ENOSYS, NULL, "Compiled without support for sd_id128_get_machine_app_specific");
+        return NULL;
+#endif
 }
 
 static PyMethodDef methods[] = {
