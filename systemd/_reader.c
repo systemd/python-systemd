@@ -32,22 +32,22 @@
 #include "strv.h"
 
 #if defined(LIBSYSTEMD_VERSION) || LIBSYSTEMD_JOURNAL_VERSION > 204
-#  define HAVE_JOURNAL_OPEN_FILES
+#  define HAVE_JOURNAL_OPEN_FILES 1
 #else
 #  define SD_JOURNAL_SYSTEM        (1 << 2)
 #  define SD_JOURNAL_CURRENT_USER  (1 << 3)
+#  define HAVE_JOURNAL_OPEN_FILES 0
 #endif
 
-#if LIBSYSTEMD_VERSION >= 229
-#  define HAVE_ENUMERATE_FIELDS
-#  define HAVE_HAS_RUNTIME_FILES
-#  define HAVE_HAS_PERSISTENT_FILES
-#endif
+#define HAVE_ENUMERATE_FIELDS      (LIBSYSTEMD_VERSION >= 229)
+#define HAVE_HAS_RUNTIME_FILES     (LIBSYSTEMD_VERSION >= 229)
+#define HAVE_HAS_PERSISTENT_FILES  (LIBSYSTEMD_VERSION >= 229)
 
 #if LIBSYSTEMD_VERSION >= 230
-#  define HAVE_JOURNAL_OPEN_DIRECTORY_FD
+#  define HAVE_JOURNAL_OPEN_DIRECTORY_FD 1
 #else
 #  define SD_JOURNAL_OS_ROOT       (1 << 4)
+#  define HAVE_JOURNAL_OPEN_DIRECTORY_FD 0
 #endif
 
 typedef struct {
@@ -263,7 +263,7 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
                         if (long_as_fd(_path, &fd) < 0)
                                 return -1;
 
-#ifdef HAVE_JOURNAL_OPEN_DIRECTORY_FD
+#if HAVE_JOURNAL_OPEN_DIRECTORY_FD
                         Py_BEGIN_ALLOW_THREADS
                         r = sd_journal_open_directory_fd(&self->j, (int) fd, flags);
                         Py_END_ALLOW_THREADS
@@ -292,7 +292,7 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
                         if (!strv_converter(_files, &files))
                                 return -1;
 
-#ifdef HAVE_JOURNAL_OPEN_FILES
+#if HAVE_JOURNAL_OPEN_FILES
                         Py_BEGIN_ALLOW_THREADS
                         r = sd_journal_open_files(&self->j, (const char**) files, flags);
                         Py_END_ALLOW_THREADS
@@ -306,7 +306,7 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
                         if (!intlist_converter(_files, &fds, &n_fds))
                                 return -1;
 
-#ifdef HAVE_JOURNAL_OPEN_DIRECTORY_FD
+#if HAVE_JOURNAL_OPEN_DIRECTORY_FD
                         Py_BEGIN_ALLOW_THREADS
                         r = sd_journal_open_files_fd(&self->j, fds, n_fds, flags);
                         Py_END_ALLOW_THREADS
@@ -1016,7 +1016,7 @@ PyDoc_STRVAR(Reader_enumerate_fields__doc__,
              "Return a set of field names appearing in the journal.\n"
              "See sd_journal_enumerate_fields(3).");
 static PyObject* Reader_enumerate_fields(Reader *self, PyObject *args) {
-#ifdef HAVE_ENUMERATE_FIELDS
+#if HAVE_ENUMERATE_FIELDS
         _cleanup_Py_DECREF_ PyObject *_value_set = NULL;
         PyObject *value_set;
         int r;
@@ -1058,7 +1058,7 @@ PyDoc_STRVAR(Reader_has_runtime_files__doc__,
              "Returns true if runtime journal files have been found.\n\n"
              "See man:sd_journal_test_cursor(3).");
 static PyObject* Reader_has_runtime_files(Reader *self, PyObject *args) {
-#ifdef HAVE_ENUMERATE_FIELDS
+#if HAVE_ENUMERATE_FIELDS
         int r;
 
         assert(self);
@@ -1079,7 +1079,7 @@ PyDoc_STRVAR(Reader_has_persistent_files__doc__,
              "Returns true if persistent journal files have been found.\n\n"
              "See man:sd_journal_test_cursor(3).");
 static PyObject* Reader_has_persistent_files(Reader *self, PyObject *args) {
-#ifdef HAVE_ENUMERATE_FIELDS
+#if HAVE_ENUMERATE_FIELDS
         int r;
 
         assert(self);

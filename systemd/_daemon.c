@@ -33,21 +33,11 @@
 #include "macro.h"
 #include "util.h"
 
-#if LIBSYSTEMD_VERSION >= 214
-#  define HAVE_PID_NOTIFY
-#endif
+#define HAVE_PID_NOTIFY               (LIBSYSTEMD_VERSION >= 214)
+#define HAVE_PID_NOTIFY_WITH_FDS      (LIBSYSTEMD_VERSION >= 219)
+#define HAVE_SD_LISTEN_FDS_WITH_NAMES (LIBSYSTEMD_VERSION >= 227)
+#define HAVE_IS_SOCKET_SOCKADDR       (LIBSYSTEMD_VERSION >= 233)
 
-#if LIBSYSTEMD_VERSION >= 219
-#  define HAVE_PID_NOTIFY_WITH_FDS
-#endif
-
-#if LIBSYSTEMD_VERSION >= 227
-#  define HAVE_SD_LISTEN_FDS_WITH_NAMES
-#endif
-
-#if LIBSYSTEMD_VERSION >= 233
-#  define HAVE_IS_SOCKET_SOCKADDR
-#endif
 
 PyDoc_STRVAR(module__doc__,
         "Python interface to the libsystemd-daemon library.\n\n"
@@ -152,14 +142,14 @@ static PyObject* notify(PyObject *self, PyObject *args, PyObject *keywds) {
         if (pid == 0 && !fds)
                 r = sd_notify(unset, msg);
         else if (!fds) {
-#ifdef HAVE_PID_NOTIFY
+#if HAVE_PID_NOTIFY
                 r = sd_pid_notify(pid, unset, msg);
 #else
                 set_error(-ENOSYS, NULL, "Compiled without support for sd_pid_notify");
                 return NULL;
 #endif
         } else {
-#ifdef HAVE_PID_NOTIFY_WITH_FDS
+#if HAVE_PID_NOTIFY_WITH_FDS
                 r = sd_pid_notify_with_fds(pid, unset, msg, arr, n_fds);
 #else
                 set_error(-ENOSYS, NULL, "Compiled without support for sd_pid_notify_with_fds");
@@ -211,7 +201,7 @@ static PyObject* listen_fds(PyObject *self, PyObject *args, PyObject *keywds) {
 PyDoc_STRVAR(listen_fds_with_names__doc__,
              "_listen_fds_with_names(unset_environment=True) -> (int, str...)\n\n"
              "Wraps sd_listen_fds_with_names(3).\n"
-#ifdef HAVE_SD_LISTEN_FDS_WITH_NAMES
+#if HAVE_SD_LISTEN_FDS_WITH_NAMES
              "Return the number of descriptors passed to this process by the init system\n"
              "and their names as part of the socket-based activation logic.\n"
 #else
@@ -248,7 +238,7 @@ static PyObject* listen_fds_with_names(PyObject *self, PyObject *args, PyObject 
                 return NULL;
 #endif
 
-#ifdef HAVE_SD_LISTEN_FDS_WITH_NAMES
+#if HAVE_SD_LISTEN_FDS_WITH_NAMES
         r = sd_listen_fds_with_names(unset, &names);
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
@@ -398,7 +388,7 @@ static PyObject* is_socket_inet(PyObject *self, PyObject *args) {
 PyDoc_STRVAR(is_socket_sockaddr__doc__,
              "_is_socket_sockaddr(fd, address, type=0, flowinfo=0, listening=-1) -> bool\n\n"
              "Wraps sd_is_socket_inet_sockaddr(3).\n"
-#ifdef HAVE_IS_SOCKET_SOCKADDR
+#if HAVE_IS_SOCKET_SOCKADDR
              "`address` is a systemd-style numerical IPv4 or IPv6 address as used in\n"
              "ListenStream=. A port may be included after a colon (\":\"). See\n"
              "systemd.socket(5) for details.\n\n"
@@ -438,7 +428,7 @@ static PyObject* is_socket_sockaddr(PyObject *self, PyObject *args) {
                 addr.in6.sin6_flowinfo = flowinfo;
         }
 
-#ifdef HAVE_IS_SOCKET_SOCKADDR
+#if HAVE_IS_SOCKET_SOCKADDR
         r = sd_is_socket_sockaddr(fd, type, &addr.sa, addr_len, listening);
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
