@@ -107,11 +107,10 @@ helper(get_machine)
 helper(get_boot)
 
 static PyObject *get_machine_app_specific(PyObject *self, PyObject *args) {
-        sd_id128_t app_id, machine_id;
-        int r;
+        sd_id128_t machine_id;
         Py_buffer buffer;
-        _cleanup_Py_DECREF_ PyObject
-                *uuid = NULL, *uuid_bytes = NULL;
+        _cleanup_Py_DECREF_ PyObject *uuid_bytes = NULL;
+        int r;
 
         uuid_bytes = PyObject_GetAttrString(args, "bytes");
         if (!uuid_bytes)
@@ -121,15 +120,13 @@ static PyObject *get_machine_app_specific(PyObject *self, PyObject *args) {
         if (r == -1)
                 return NULL;
 
-        if (buffer.len != sizeof(app_id.bytes)) {
+        if (buffer.len != sizeof(sd_id128_t)) {
                 PyBuffer_Release(&buffer);
                 return NULL;
         }
 
-        memcpy(app_id.bytes, buffer.buf, sizeof(app_id.bytes));
+        r = sd_id128_get_machine_app_specific(*(sd_id128_t*)buffer.buf, &machine_id);
         PyBuffer_Release(&buffer);
-
-        r = sd_id128_get_machine_app_specific(app_id, &machine_id);
         if (r < 0) {
                 errno = -r;
                 return PyErr_SetFromErrno(PyExc_IOError);
