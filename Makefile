@@ -1,6 +1,5 @@
 PYTHON = python
 SED = sed
-SPHINX_BUILD = sphinx-build
 ETAGS = etags
 INCLUDE_DIR := $(shell pkg-config --variable=includedir libsystemd)
 INCLUDE_FLAGS := $(shell pkg-config --cflags libsystemd)
@@ -53,7 +52,8 @@ distclean: clean
 
 SPHINXOPTS = -D version=$(VERSION) -D release=$(VERSION)
 sphinx-%: build
-	PYTHONPATH=$(builddir) $(SPHINX_BUILD) -b $* $(SPHINXOPTS) docs build/$*
+	cd build && \
+	  PYTHONPATH=../$(builddir) $(PYTHON) -m sphinx -b $* $(SPHINXOPTS) ../docs $*
 	@echo Output has been generated in build/$*
 
 doc: sphinx-html
