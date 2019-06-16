@@ -85,7 +85,7 @@ static PyObject* make_uuid(sd_id128_t id) {
                 sd_id128_t id;                                          \
                 int r;                                                  \
                                                                         \
-                assert(args == NULL);                                   \
+                assert(!args);                                          \
                                                                         \
                 r = sd_id128_##name(&id);                               \
                 if (r < 0) {                                            \
@@ -104,7 +104,7 @@ static PyMethodDef methods[] = {
         { "randomize", randomize, METH_NOARGS, randomize__doc__},
         { "get_machine", get_machine, METH_NOARGS, get_machine__doc__},
         { "get_boot", get_boot, METH_NOARGS, get_boot__doc__},
-        { NULL, NULL, 0, NULL }        /* Sentinel */
+        {}        /* Sentinel */
 };
 
 static int add_id(PyObject *module, const char* name, sd_id128_t id) {
@@ -124,7 +124,7 @@ PyMODINIT_FUNC initid128(void) {
         PyObject *m;
 
         m = Py_InitModule3("id128", methods, module__doc__);
-        if (m == NULL)
+        if (!m)
                 return;
 
         /* a series of lines like 'add_id() ;' follow */
@@ -139,10 +139,10 @@ REENABLE_WARNING;
 
 static struct PyModuleDef module = {
         PyModuleDef_HEAD_INIT,
-        "id128", /* name of module */
-        module__doc__, /* module documentation, may be NULL */
-        -1, /* size of per-interpreter state of the module */
-        methods
+        .m_name = "id128", /* name of module */
+        .m_doc = module__doc__, /* module documentation */
+        .m_size = -1, /* size of per-interpreter state of the module */
+        .m_methods = methods,
 };
 
 DISABLE_WARNING_MISSING_PROTOTYPES;
@@ -150,7 +150,7 @@ PyMODINIT_FUNC PyInit_id128(void) {
         PyObject *m;
 
         m = PyModule_Create(&module);
-        if (m == NULL)
+        if (!m)
                 return NULL;
 
         if ( /* a series of lines like 'add_id() ||' follow */

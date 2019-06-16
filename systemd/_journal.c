@@ -54,7 +54,7 @@ static PyObject *journal_sendv(PyObject *self, PyObject *args) {
 
                 if (PyUnicode_Check(item)) {
                         encoded[i] = PyUnicode_AsEncodedString(item, "utf-8", "strict");
-                        if (encoded[i] == NULL)
+                        if (!encoded[i])
                                 goto out;
                         item = encoded[i];
                 }
@@ -110,7 +110,7 @@ static PyObject* journal_stream_fd(PyObject *self, PyObject *args) {
 static PyMethodDef methods[] = {
         { "sendv",  journal_sendv, METH_VARARGS, journal_sendv__doc__ },
         { "stream_fd", journal_stream_fd, METH_VARARGS, journal_stream_fd__doc__ },
-        { NULL, NULL, 0, NULL }        /* Sentinel */
+        {}        /* Sentinel */
 };
 
 #if PY_MAJOR_VERSION < 3
@@ -120,7 +120,7 @@ PyMODINIT_FUNC init_journal(void) {
         PyObject *m;
 
         m = Py_InitModule("_journal", methods);
-        if (m == NULL)
+        if (!m)
                 return;
 
         PyModule_AddStringConstant(m, "__version__", PACKAGE_VERSION);
@@ -131,10 +131,9 @@ REENABLE_WARNING;
 
 static struct PyModuleDef module = {
         PyModuleDef_HEAD_INIT,
-        "_journal", /* name of module */
-        NULL, /* module documentation, may be NULL */
-        -1, /* size of per-interpreter state of the module */
-        methods
+        .m_name = "_journal", /* name of module */
+        .m_size = -1, /* size of per-interpreter state of the module */
+        .m_methods = methods,
 };
 
 DISABLE_WARNING_MISSING_PROTOTYPES;
@@ -142,7 +141,7 @@ PyMODINIT_FUNC PyInit__journal(void) {
         PyObject *m;
 
         m = PyModule_Create(&module);
-        if (m == NULL)
+        if (!m)
                 return NULL;
 
         if (PyModule_AddStringConstant(m, "__version__", PACKAGE_VERSION)) {

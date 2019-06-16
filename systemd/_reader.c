@@ -286,7 +286,7 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
                 _cleanup_Py_DECREF_ PyObject *item0 = NULL;
 
                 item0 = PySequence_GetItem(_files, 0);
-                if (item0 == NULL || !PyLong_Check(item0)) {
+                if (!item0 || !PyLong_Check(item0)) {
                         _cleanup_strv_free_ char **files = NULL;
 
                         if (!strv_converter(_files, &files))
@@ -1184,7 +1184,7 @@ static PyObject* Reader_get_data_threshold(Reader *self, void *closure) {
 static int Reader_set_data_threshold(Reader *self, PyObject *value, void *closure) {
         int r;
 
-        if (value == NULL) {
+        if (!value) {
                 PyErr_SetString(PyExc_AttributeError, "Cannot delete data threshold");
                 return -1;
         }
@@ -1201,7 +1201,7 @@ static int Reader_set_data_threshold(Reader *self, PyObject *value, void *closur
 PyDoc_STRVAR(closed__doc__,
              "True iff journal is closed");
 static PyObject* Reader_get_closed(Reader *self, void *closure) {
-        return PyBool_FromLong(self->j == NULL);
+        return PyBool_FromLong(!self->j);
 }
 
 static PyGetSetDef Reader_getsetters[] = {
@@ -1276,10 +1276,10 @@ static PyMethodDef methods[] = {
 #if PY_MAJOR_VERSION >= 3
 static PyModuleDef module = {
         PyModuleDef_HEAD_INIT,
-        "_reader",
-        module__doc__,
-        -1,
-        methods,
+        .m_name = "_reader",
+        .m_doc = module__doc__,
+        .m_size = -1,
+        .m_methods = methods,
 };
 #endif
 
@@ -1309,7 +1309,7 @@ init_reader(void)
 
 #if PY_MAJOR_VERSION >= 3
         m = PyModule_Create(&module);
-        if (m == NULL)
+        if (!m)
                 return NULL;
 
         if (!initialized) {
@@ -1318,7 +1318,7 @@ init_reader(void)
         }
 #else
         m = Py_InitModule3("_reader", methods, module__doc__);
-        if (m == NULL)
+        if (!m)
                 return;
 #endif
 

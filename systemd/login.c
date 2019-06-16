@@ -38,7 +38,7 @@ static PyObject* name(PyObject *self, PyObject *args) {                 \
         int r;                                                          \
         PyObject *ans;                                                  \
                                                                         \
-        assert(args == NULL);                                           \
+        assert(!args);                                                  \
                                                                         \
         r = sd_get_##name(&list);                                       \
         if (r < 0) {                                                    \
@@ -73,7 +73,7 @@ static PyObject* uids(PyObject *self, PyObject *args) {
         int r;
         PyObject *ans;
 
-        assert(args == NULL);
+        assert(!args);
 
         r = sd_get_uids(&list);
         if (r < 0) {
@@ -323,7 +323,7 @@ PyMODINIT_FUNC initlogin(void) {
                 return;
 
         m = Py_InitModule3("login", methods, module__doc__);
-        if (m == NULL)
+        if (!m)
                 return;
 
         PyModule_AddStringConstant(m, "__version__", PACKAGE_VERSION);
@@ -351,7 +351,7 @@ PyMODINIT_FUNC PyInit_login(void) {
                 return NULL;
 
         m = PyModule_Create(&module);
-        if (m == NULL)
+        if (!m)
                 return NULL;
 
         if (PyModule_AddStringConstant(m, "__version__", PACKAGE_VERSION)) {

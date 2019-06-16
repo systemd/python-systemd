@@ -65,7 +65,7 @@ PyDoc_STRVAR(booted__doc__,
 
 static PyObject* booted(PyObject *self, PyObject *args) {
         int r;
-        assert(args == NULL);
+        assert(!args);
 
         r = sd_booted();
         if (set_error(r, NULL, NULL) < 0)
@@ -108,7 +108,7 @@ static PyObject* notify(PyObject *self, PyObject *args, PyObject *keywds) {
         if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|OiO:notify",
                                          (char**) kwlist, &msg, &obj, &_pid, &fds))
                 return NULL;
-        if (obj != NULL)
+        if (obj)
                 unset = PyObject_IsTrue(obj);
         if (unset < 0)
                 return NULL;
@@ -119,7 +119,7 @@ static PyObject* notify(PyObject *self, PyObject *args, PyObject *keywds) {
                 return NULL;
         }
 
-        if (fds != NULL) {
+        if (fds) {
                 Py_ssize_t i, len;
 
                 len = PySequence_Length(fds);
@@ -149,9 +149,9 @@ static PyObject* notify(PyObject *self, PyObject *args, PyObject *keywds) {
                 n_fds = len;
         }
 
-        if (pid == 0 && fds == NULL)
+        if (pid == 0 && !fds)
                 r = sd_notify(unset, msg);
-        else if (fds == NULL) {
+        else if (!fds) {
 #ifdef HAVE_PID_NOTIFY
                 r = sd_pid_notify(pid, unset, msg);
 #else
@@ -195,7 +195,7 @@ static PyObject* listen_fds(PyObject *self, PyObject *args, PyObject *keywds) {
         if (!PyArg_ParseTupleAndKeywords(args, keywds, "|O:_listen_fds",
                                          (char**) kwlist, &obj))
                 return NULL;
-        if (obj != NULL)
+        if (obj)
                 unset = PyObject_IsTrue(obj);
         if (unset < 0)
                 return NULL;
@@ -507,7 +507,7 @@ PyMODINIT_FUNC init_daemon(void) {
         PyObject *m;
 
         m = Py_InitModule3("_daemon", methods, module__doc__);
-        if (m == NULL)
+        if (!m)
                 return;
 
         PyModule_AddIntConstant(m, "LISTEN_FDS_START", SD_LISTEN_FDS_START);
@@ -519,10 +519,10 @@ REENABLE_WARNING;
 
 static struct PyModuleDef module = {
         PyModuleDef_HEAD_INIT,
-        "_daemon", /* name of module */
-        module__doc__, /* module documentation, may be NULL */
-        0, /* size of per-interpreter state of the module */
-        methods
+        .m_name = "_daemon", /* name of module */
+        .m_doc = module__doc__, /* module documentation, may be NULL */
+        .m_size = 0, /* size of per-interpreter state of the module */
+        .m_methods = methods,
 };
 
 DISABLE_WARNING_MISSING_PROTOTYPES;
@@ -530,7 +530,7 @@ PyMODINIT_FUNC PyInit__daemon(void) {
         PyObject *m;
 
         m = PyModule_Create(&module);
-        if (m == NULL)
+        if (!m)
                 return NULL;
 
         if (PyModule_AddIntConstant(m, "LISTEN_FDS_START", SD_LISTEN_FDS_START) ||
