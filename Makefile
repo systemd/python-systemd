@@ -6,8 +6,6 @@ INCLUDE_FLAGS := $(shell pkg-config --cflags libsystemd)
 VERSION := $(shell $(PYTHON) setup.py --version)
 TESTFLAGS = -v
 
-CFLAGS = -std=c99
-
 define buildscript
 import sys,sysconfig
 print("build/lib.{}-{}.{}".format(sysconfig.get_platform(), *sys.version_info[:2]))
@@ -32,7 +30,7 @@ update-constants: update-constants.py $(INCLUDE_DIR)/systemd/sd-messages.h
 	mv docs/id128.rst{.tmp,}
 
 build:
-	CFLAGS=$(CFLAGS) $(PYTHON) setup.py build_ext $(INCLUDE_FLAGS)
+	$(PYTHON) setup.py build_ext $(INCLUDE_FLAGS)
 	$(PYTHON) setup.py build
 
 install:
