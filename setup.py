@@ -21,7 +21,7 @@ def pkgconfig(package, **kw):
     for token in result.split():
         kw.setdefault(flag_map.get(token[:2]), []).append(token[2:])
 
-    # allow version detection to be overriden using environment variables
+    # allow version detection to be overridden using environment variables
     version = os.getenv(pkg_version)
     if not version:
         version = check_output([pkgconf, '--modversion', package],
