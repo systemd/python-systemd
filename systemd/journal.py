@@ -140,7 +140,7 @@ class Reader(_Reader):
     journal.
 
     """
-    def __init__(self, flags=None, path=None, files=None, converters=None):
+    def __init__(self, flags=None, path=None, files=None, converters=None, namespace=None):
         """Create a new Reader.
 
         Argument `flags` defines the open flags of the journal, which can be one
@@ -149,8 +149,8 @@ class Reader(_Reader):
         and SYSTEM_ONLY opens only journal files of system services and the kernel.
 
         Argument `path` is the directory of journal files, either a file system
-        path or a file descriptor. Note that `flags`, `path`, and `files` are
-        exclusive.
+        path or a file descriptor. Specify `namespace` to read from specific journal
+        namespace. Note that `flags`, `path`, `files` and `namespace` are exclusive.
 
         Argument `converters` is a dictionary which updates the
         DEFAULT_CONVERTERS to convert journal field values. Field names are used
@@ -171,7 +171,7 @@ class Reader(_Reader):
             else:
                 flags = 0
 
-        super(Reader, self).__init__(flags, path, files)
+        super(Reader, self).__init__(flags, path, files, namespace)
         if _sys.version_info >= (3, 3):
             self.converters = _ChainMap()
             if converters is not None:
