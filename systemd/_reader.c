@@ -43,6 +43,12 @@
 #define HAVE_HAS_RUNTIME_FILES     (LIBSYSTEMD_VERSION >= 229)
 #define HAVE_HAS_PERSISTENT_FILES  (LIBSYSTEMD_VERSION >= 229)
 
+#if LIBSYSTEMD_VERSION >= 245
+#  define HAVE_JOURNAL_OPEN_NAMESPACE 1
+#else
+#  define HAVE_JOURNAL_OPEN_NAMESPACE 0
+#endif
+
 #if LIBSYSTEMD_VERSION >= 230
 #  define HAVE_JOURNAL_OPEN_DIRECTORY_FD 1
 #else
@@ -84,17 +90,17 @@ static PyStructSequence_Desc Monotonic_desc = {
  * Convert a str or bytes object into a C-string path.
  * Returns NULL on error.
  */
-static char* convert_path(PyObject *path, PyObject **bytes) {
+static char* str_converter(PyObject *str, PyObject **bytes) {
 #if PY_MAJOR_VERSION >=3 && PY_MINOR_VERSION >= 1
                 int r;
 
-                r = PyUnicode_FSConverter(path, bytes);
+                r = PyUnicode_FSConverter(str, bytes);
                 if (r == 0)
                         return NULL;
 
                 return PyBytes_AsString(*bytes);
 #else
-                return PyString_AsString(path);
+                return PyString_AsString(str);
 #endif
 }
 
@@ -141,7 +147,7 @@ static int strv_converter(PyObject* obj, void *_result) {
                 char *s;
 
                 item = PySequence_ITEM(obj, i);
-                s = convert_path(item, &bytes);
+                s = str_converter(item, &bytes);
                 if (!s)
                         goto cleanup;
 
@@ -220,7 +226,7 @@ static void Reader_dealloc(Reader* self) {
 }
 
 PyDoc_STRVAR(Reader__doc__,
-             "_Reader([flags | path | files]) -> ...\n\n"
+             "_Reader([flags | path | files | namespace]) -> ...\n\n"
              "_Reader allows filtering and retrieval of Journal entries.\n"
              "Note: this is a low-level interface, and probably not what you\n"
              "want, use systemd.journal.Reader instead.\n\n"
@@ -231,23 +237,25 @@ PyDoc_STRVAR(Reader__doc__,
              "OS_ROOT is used to open the journal from directories relative to the specified\n"
              "directory path or file descriptor.\n"
              "\n"
-             "Instead of opening the system journal, argument `path` may specify a directory\n"
-             "which contains the journal. It maybe be either a file system path (a string), or\n"
-             "a file descriptor (an integer). Alternatively, argument `files` may specify a list\n"
-             "of journal file names. Note that `flags`, `path`, `files`, `directory_fd` are\n"
-             "exclusive.\n\n"
+             "If `namespace` argument is specified, the specific journal namespace will be open\n"
+             "(supported since systemd v245). Instead of opening the system journal, argument\n"
+             "`path` may specify a directory which contains the journal. It maybe be either\n"
+             "a file system path (a string), or a file descriptor (an integer). Alternatively,\n"
+             "argument `files` may specify a list of journal file names. Note that `flags`, `path`,\n"
+             "`files`, `directory_fd`, `namespace` are exclusive.\n\n"
              "_Reader implements the context manager protocol: the journal will be closed when\n"
              "exiting the block.");
 static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
         unsigned flags = SD_JOURNAL_LOCAL_ONLY;
-        PyObject *_path = NULL, *_files = NULL;
+        PyObject *_path = NULL, *_files = NULL, *_namespace = NULL;
         int r;
 
-        static const char* const kwlist[] = {"flags", "path", "files", NULL};
-        if (!PyArg_ParseTupleAndKeywords(args, keywds, "|iO&O&:__init__", (char**) kwlist,
+        static const char* const kwlist[] = {"flags", "path", "files", "namespace", NULL};
+        if (!PyArg_ParseTupleAndKeywords(args, keywds, "|iO&O&O&:__init__", (char**) kwlist,
                                          &flags,
                                          null_converter, &_path,
-                                         null_converter, &_files))
+                                         null_converter, &_files,
+                                         null_converter, &_namespace))
                 return -1;
 
         if (!!_path + !!_files > 1) {
@@ -274,7 +282,7 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
                         char *path = NULL;
                         _cleanup_Py_DECREF_ PyObject *path_bytes = NULL;
 
-                        path = convert_path(_path, &path_bytes);
+                        path = str_converter(_path, &path_bytes);
                         if (!path)
                                 return -1;
 
@@ -314,6 +322,20 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
                         r = -ENOSYS;
 #endif
                 }
+        } else if (_namespace) {
+#if HAVE_JOURNAL_OPEN_NAMESPACE
+                char *namespace = NULL;
+                _cleanup_Py_DECREF_ PyObject *ns_bytes = NULL;
+                namespace = str_converter(_namespace, &ns_bytes);
+                if (!namespace)
+                        return -1;
+
+                Py_BEGIN_ALLOW_THREADS
+                r = sd_journal_open_namespace(&self->j, namespace, flags);
+                Py_END_ALLOW_THREADS
+#else
+                r = -ENOSYS;
+#endif
         } else {
                 Py_BEGIN_ALLOW_THREADS
                 r = sd_journal_open(&self->j, flags);
