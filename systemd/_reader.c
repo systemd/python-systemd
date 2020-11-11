@@ -1339,7 +1339,7 @@ init_reader(void)
             PyModule_AddIntConstant(m, "LOCAL_ONLY", SD_JOURNAL_LOCAL_ONLY) ||
             PyModule_AddIntConstant(m, "RUNTIME_ONLY", SD_JOURNAL_RUNTIME_ONLY) ||
             PyModule_AddIntConstant(m, "SYSTEM", SD_JOURNAL_SYSTEM) ||
-            PyModule_AddIntConstant(m, "SYSTEM_ONLY", SD_JOURNAL_SYSTEM_ONLY) ||
+            PyModule_AddIntConstant(m, "SYSTEM_ONLY", SD_JOURNAL_SYSTEM) ||
             PyModule_AddIntConstant(m, "CURRENT_USER", SD_JOURNAL_CURRENT_USER) ||
             PyModule_AddIntConstant(m, "OS_ROOT", SD_JOURNAL_OS_ROOT) ||
             PyModule_AddStringConstant(m, "__version__", PACKAGE_VERSION)) {
