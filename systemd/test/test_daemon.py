@@ -297,6 +297,8 @@ def test_listen_fds_with_names_multiple():
     assert listen_fds_with_names() == {}
 
 def test_notify_no_socket():
+    os.environ.pop('NOTIFY_SOCKET', None)
+
     assert notify('READY=1') is False
     with skip_enosys():
         assert notify('FDSTORE=1', fds=[]) is False
