@@ -18,7 +18,12 @@
   along with python-systemd; If not, see <http://www.gnu.org/licenses/>.
 ***/
 
+#define PY_SSIZE_T_CLEAN
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wredundant-decls"
 #include <Python.h>
+#pragma GCC diagnostic pop
+
 #include <structmember.h>
 #include <datetime.h>
 #include <time.h>
@@ -710,11 +715,17 @@ PyDoc_STRVAR(Reader_add_match__doc__,
              "Match is a string of the form \"FIELD=value\".");
 static PyObject* Reader_add_match(Reader *self, PyObject *args, PyObject *keywds) {
         char *match;
-        int match_len, r;
+        Py_ssize_t match_len;
+        int r;
         if (!PyArg_ParseTuple(args, "s#:add_match", &match, &match_len))
                 return NULL;
 
-        r = sd_journal_add_match(self->j, match, match_len);
+        if (match_len > INT_MAX) {
+                set_error(-ENOBUFS, NULL, NULL);
+                return NULL;
+        }
+
+        r = sd_journal_add_match(self->j, match, (int) match_len);
         if (set_error(r, NULL, "Invalid match") < 0)
                 return NULL;
 
