@@ -24,8 +24,9 @@ def pkgconfig(package, **kw):
     # allow version detection to be overridden using environment variables
     version = os.getenv(pkg_version)
     if not version:
-        version = check_output([pkgconf, '--modversion', package],
+        version_output = check_output([pkgconf, '--modversion', package],
                                universal_newlines=True).strip()
+        version = version_output.split()[0]
     pair = (pkg_version, version)
     defines = kw.setdefault('define_macros', [])
     if pair not in defines:
