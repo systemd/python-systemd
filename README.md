@@ -119,7 +119,7 @@ Show entries by a specific executable (`journalctl /usr/bin/vim`):
     for entry in j:
         print(entry['MESSAGE'])
 
-Show kernel ring buffer:
+Show kernel ring buffer (`journalctl -k`):
 
     from systemd import journal
     j = journal.Reader()
