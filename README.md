@@ -76,6 +76,76 @@ The journald sendv call can also be accessed directly:
 
 The two examples should give the same results in the log.
 
+Reading from the journal is often similar to using the `journalctl` utility.
+
+Show all entries since 20 minutes ago (`journalctl --since "20 minutes ago"`):
+
+    from systemd import journal
+    from datetime import datetime, timedelta
+    j = journal.Reader()
+    j.seek_realtime(datetime.now() - timedelta(minutes=20))
+    for entry in j:
+        print(entry['MESSAGE'])
+
+Show entries between two timestamps (`journalctl --since "50 minutes ago" --until "10 minutes ago"`):
+
+    from systemd import journal
+    from datetime import datetime, timedelta
+    j = journal.Reader()
+    since = datetime.now() - timedelta(minutes=50)
+    until = datetime.now() - timedelta(minutes=10)
+    j.seek_realtime(since)
+    for entry in j:
+      if entry['__REALTIME_TIMESTAMP'] > until:
+        break
+      print(entry['MESSAGE'])
+
+Show explanations of log messages alongside entries (`journalctl -x`):
+
+    from systemd import journal
+    j = journal.Reader()
+    for entry in j:
+        print("MESSAGE: ", entry['MESSAGE'])
+        try:
+            print("CATALOG: ", j.get_catalog())
+        except:
+            pass
+
+Show entries by a specific executable (`journalctl /usr/bin/vim`):
+
+    from systemd import journal
+    j = journal.Reader()
+    j.add_match('_EXE=/usr/bin/vim')
+    for entry in j:
+        print(entry['MESSAGE'])
+
+ - Note: matches can be added from many different fields, for example entries from a specific process ID can be matched with the `_PID` field, and entries from a specific unit (ie. `journalctl -u systemd-udevd.service`) can be matched with `_SYSTEMD_UNIT`. See all fields available at the [systemd.journal-fields docs](https://www.freedesktop.org/software/systemd/man/systemd.journal-fields.html).
+
+Show kernel ring buffer (`journalctl -k`):
+
+    from systemd import journal
+    j = journal.Reader()
+    j.add_match('_TRANSPORT=kernel')
+    for entry in j:
+        print(entry['MESSAGE'])
+
+Read entries in reverse (`journalctl _EXE=/usr/bin/vim -r`):
+  
+    from systemd import journal
+    class ReverseReader(journal.Reader):
+        def __next__(self):
+            ans = self.get_previous()
+            if ans:
+                return ans
+            raise StopIteration()
+
+    j = ReverseReader()
+    j.add_match('_EXE=/usr/bin/vim')
+    j.seek_tail()
+    for entry in j:
+      print(entry['MESSAGE'])
+
+
 Notes
 -----
 
