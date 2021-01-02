@@ -119,6 +119,8 @@ Show entries by a specific executable (`journalctl /usr/bin/vim`):
     for entry in j:
         print(entry['MESSAGE'])
 
+ - Note: matches can be added from many different fields, for example entries from a specific process ID can be matched with the `_PID` field, and entries from a specific unit (ie. `journalctl -u systemd-udevd.service`) can be matched with `_SYSTEMD_UNIT`. See all fields available at the [systemd.journal-fields docs](https://www.freedesktop.org/software/systemd/man/systemd.journal-fields.html).
+
 Show kernel ring buffer (`journalctl -k`):
 
     from systemd import journal
