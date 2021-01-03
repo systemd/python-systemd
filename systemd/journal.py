@@ -318,6 +318,14 @@ class Reader(_Reader):
             realtime = int(realtime * 1000000)
         return super(Reader, self).seek_realtime(realtime)
 
+    def get_start(self):
+        start = super(Reader, self)._get_start()
+        return _convert_realtime(start)
+
+    def get_end(self):
+        end = super(Reader, self)._get_end()
+        return _convert_realtime(end)
+
     def seek_monotonic(self, monotonic, bootid=None):
         """Seek to a matching journal entry nearest to `monotonic` time.
 

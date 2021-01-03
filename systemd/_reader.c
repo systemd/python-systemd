@@ -883,6 +883,48 @@ static PyObject* Reader_seek_monotonic(Reader *self, PyObject *args) {
         Py_RETURN_NONE;
 }
 
+PyDoc_STRVAR(Reader_get_start__doc__,
+        "get_start() -> int\n\n"
+        "Return the realtime timestamp of the first journal entry\n\n"
+        "in microseconds.\n\n"
+        "Wraps sd_journal_get_cutoff_realtime_usec().\n"
+        "See :manpage:`sd_journal_get_cutoff_realtime_usec(3)`.");
+static PyObject* Reader_get_start(Reader *self, PyObject *args) {
+        uint64_t start, end;
+        int r;
+
+        assert(self);
+        assert(!args);
+
+        r = sd_journal_get_cutoff_realtime_usec(self->j, &start, &end);
+        if (set_error(r, NULL, NULL) < 0)
+                return NULL;
+
+        assert_cc(sizeof(unsigned long long) == sizeof(start));
+        return PyLong_FromUnsignedLongLong(start);
+}
+
+PyDoc_STRVAR(Reader_get_end__doc__,
+        "get_end() -> int\n\n"
+        "Return the realtime timestamp of the last journal entry\n\n"
+        "in microseconds.\n\n"
+        "Wraps sd_journal_get_cutoff_realtime_usec().\n"
+        "See :manpage:`sd_journal_get_cutoff_realtime_usec(3)`.");
+static PyObject* Reader_get_end(Reader *self, PyObject *args) {
+        uint64_t start, end;
+        int r;
+
+        assert(self);
+        assert(!args);
+
+        r = sd_journal_get_cutoff_realtime_usec(self->j, &start, &end);
+        if (set_error(r, NULL, NULL) < 0)
+                return NULL;
+
+        assert_cc(sizeof(unsigned long long) == sizeof(end));
+        return PyLong_FromUnsignedLongLong(end);
+}
+
 
 PyDoc_STRVAR(Reader_process__doc__,
              "process() -> state change (integer)\n\n"
@@ -1278,6 +1320,8 @@ static PyMethodDef Reader_methods[] = {
         {"seek_tail",            (PyCFunction) Reader_seek_tail, METH_NOARGS, Reader_seek_tail__doc__},
         {"seek_realtime",        (PyCFunction) Reader_seek_realtime, METH_VARARGS, Reader_seek_realtime__doc__},
         {"seek_monotonic",       (PyCFunction) Reader_seek_monotonic, METH_VARARGS, Reader_seek_monotonic__doc__},
+        {"_get_start",           (PyCFunction) Reader_get_start, METH_NOARGS, Reader_get_start__doc__},
+        {"_get_end",             (PyCFunction) Reader_get_end, METH_NOARGS, Reader_get_end__doc__},
         {"process",              (PyCFunction) Reader_process, METH_NOARGS, Reader_process__doc__},
         {"wait",                 (PyCFunction) Reader_wait, METH_VARARGS, Reader_wait__doc__},
         {"seek_cursor",          (PyCFunction) Reader_seek_cursor, METH_VARARGS, Reader_seek_cursor__doc__},
