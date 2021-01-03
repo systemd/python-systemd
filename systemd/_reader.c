@@ -890,13 +890,13 @@ PyDoc_STRVAR(Reader_get_start__doc__,
         "Wraps sd_journal_get_cutoff_realtime_usec().\n"
         "See :manpage:`sd_journal_get_cutoff_realtime_usec(3)`.");
 static PyObject* Reader_get_start(Reader *self, PyObject *args) {
-        uint64_t start, end;
+        uint64_t start;
         int r;
 
         assert(self);
         assert(!args);
 
-        r = sd_journal_get_cutoff_realtime_usec(self->j, &start, &end);
+        r = sd_journal_get_cutoff_realtime_usec(self->j, &start, NULL);
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
 
@@ -911,13 +911,13 @@ PyDoc_STRVAR(Reader_get_end__doc__,
         "Wraps sd_journal_get_cutoff_realtime_usec().\n"
         "See :manpage:`sd_journal_get_cutoff_realtime_usec(3)`.");
 static PyObject* Reader_get_end(Reader *self, PyObject *args) {
-        uint64_t start, end;
+        uint64_t end;
         int r;
 
         assert(self);
         assert(!args);
 
-        r = sd_journal_get_cutoff_realtime_usec(self->j, &start, &end);
+        r = sd_journal_get_cutoff_realtime_usec(self->j, NULL, &end);
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
 
