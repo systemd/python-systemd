@@ -49,7 +49,7 @@ PyDoc_STRVAR(module__doc__,
 
 PyDoc_STRVAR(booted__doc__,
              "booted() -> bool\n\n"
-             "Return True iff this system is running under systemd.\n"
+             "Return True if this system is running under systemd.\n"
              "Wraps sd_booted(3)."
 );
 
@@ -306,7 +306,7 @@ static PyObject* is_fifo(PyObject *self, PyObject *args) {
 
 PyDoc_STRVAR(is_mq__doc__,
              "_is_mq(fd, path) -> bool\n\n"
-             "Returns True iff the descriptor refers to a POSIX message queue.\n"
+             "Returns True if the descriptor refers to a POSIX message queue.\n"
              "Wraps sd_is_mq(3)."
 );
 
@@ -338,7 +338,7 @@ static PyObject* is_mq(PyObject *self, PyObject *args) {
 
 PyDoc_STRVAR(is_socket__doc__,
              "_is_socket(fd, family=AF_UNSPEC, type=0, listening=-1) -> bool\n\n"
-             "Returns True iff the descriptor refers to a socket.\n"
+             "Returns True if the descriptor refers to a socket.\n"
              "Wraps sd_is_socket(3).\n\n"
              "Constants for `family` are defined in the socket module."
 );
