@@ -92,7 +92,7 @@ A handler class for the Python logging framework is also provided:
     import logging
     from systemd import journal
     logger = logging.getLogger('custom_logger_name')
-    logger.addHandler(journal.JournalHandler())
+    logger.addHandler(journal.JournalHandler(SYSLOG_IDENTIFIER='custom_unit_name'))
     logger.warning("Some message: %s", 'detail')
 
 libsytemd version compatibility
