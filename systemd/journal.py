@@ -51,13 +51,13 @@ def _convert_monotonic(m):
 def _convert_source_monotonic(s):
     return _datetime.timedelta(microseconds=int(s))
 
+_LOCAL_TIMEZONE = _datetime.datetime.now().astimezone().tzinfo
 
 def _convert_realtime(t):
-    return _datetime.datetime.fromtimestamp(t / 1000000)
-
+    return _datetime.datetime.fromtimestamp(t / 1000000, _LOCAL_TIMEZONE)
 
 def _convert_timestamp(s):
-    return _datetime.datetime.fromtimestamp(int(s) / 1000000)
+    return _datetime.datetime.fromtimestamp(int(s) / 1000000, _LOCAL_TIMEZONE)
 
 
 def _convert_trivial(x):
