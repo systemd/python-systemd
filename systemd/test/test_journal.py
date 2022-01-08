@@ -290,6 +290,18 @@ def test_reader_convert_entry(tmpdir):
                    'x2' : ['YYY', 'YYY'],
                    'y2' : [b'\200\200', b'\200\201']}
 
+def test_reader_convert_timestamps(tmpdir):
+    j = journal.Reader(path=tmpdir.strpath)
+
+    val = j._convert_field('_SOURCE_REALTIME_TIMESTAMP', 1641651559324187)
+    assert val.tzinfo is not None
+
+    val = j._convert_field('__REALTIME_TIMESTAMP', 1641651559324187)
+    assert val.tzinfo is not None
+
+    val = j._convert_field('COREDUMP_TIMESTAMP', 1641651559324187)
+    assert val.tzinfo is not None
+
 def test_seek_realtime(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)
 
