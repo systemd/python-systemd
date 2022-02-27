@@ -1,5 +1,5 @@
 import sys, os
-from distutils.core import setup, Extension
+from setuptools import setup, Extension
 from subprocess import Popen, PIPE, check_output
 
 def call(*cmd):
