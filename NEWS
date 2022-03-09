@@ -2,11 +2,25 @@ Python wrappers for libsystemd API
 
 CHANGES WITH 235:
 
-	* Adapt the rename of systemd-activate to systemd-socket-activate
-	  performed in systemd 230
+        * Adapt the rename of systemd-activate to systemd-socket-activate
+          performed in systemd 230.
 
-	* Support for the new sd_listen_fds_with_names added in systemd 227
-	  is added.
+        * Support for the new sd_listen_fds_with_names added in systemd 227
+          is added.
+
+        * Make the Reader PY_SSIZE_T_CLEAN for py3.10 compatibility.
+
+        * id128: update for systemd-243 compatibility and other fixes.
+
+        * C syntax modernization.  A minimum of C99 is assumed.
+
+        * Fix seek_realtime to work with timezone aware date.
+
+        * journal: add namespace support.
+
+        * Memory leak fixes.
+
+        * Documentation and other fixes.
 
 CHANGES WITH 234:
 
