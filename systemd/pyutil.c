@@ -58,7 +58,6 @@ int set_error(int r, const char* path, const char* invalid_message) {
         return -1;
 }
 
-#if PY_MAJOR_VERSION >=3 && PY_MINOR_VERSION >= 1
 int Unicode_FSConverter(PyObject* obj, void *_result) {
         PyObject **result = _result;
 
@@ -76,4 +75,3 @@ int Unicode_FSConverter(PyObject* obj, void *_result) {
 
         return PyUnicode_FSConverter(obj, result);
 }
-#endif

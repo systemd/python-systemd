@@ -313,28 +313,6 @@ static PyTypeObject MonitorType = {
         .tp_new = PyType_GenericNew,
 };
 
-#if PY_MAJOR_VERSION < 3
-
-DISABLE_WARNING_MISSING_PROTOTYPES;
-PyMODINIT_FUNC initlogin(void) {
-        PyObject *m;
-
-        if (PyType_Ready(&MonitorType) < 0)
-                return;
-
-        m = Py_InitModule3("login", methods, module__doc__);
-        if (!m)
-                return;
-
-        PyModule_AddStringConstant(m, "__version__", PACKAGE_VERSION);
-
-        Py_INCREF(&MonitorType);
-        PyModule_AddObject(m, "Monitor", (PyObject *) &MonitorType);
-}
-REENABLE_WARNING;
-
-#else
-
 static struct PyModuleDef module = {
         PyModuleDef_HEAD_INIT,
         "login", /* name of module */
@@ -369,5 +347,3 @@ PyMODINIT_FUNC PyInit_login(void) {
         return m;
 }
 REENABLE_WARNING;
-
-#endif

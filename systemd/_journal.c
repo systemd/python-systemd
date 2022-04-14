@@ -113,22 +113,6 @@ static PyMethodDef methods[] = {
         {}        /* Sentinel */
 };
 
-#if PY_MAJOR_VERSION < 3
-
-DISABLE_WARNING_MISSING_PROTOTYPES;
-PyMODINIT_FUNC init_journal(void) {
-        PyObject *m;
-
-        m = Py_InitModule("_journal", methods);
-        if (!m)
-                return;
-
-        PyModule_AddStringConstant(m, "__version__", PACKAGE_VERSION);
-}
-REENABLE_WARNING;
-
-#else
-
 static struct PyModuleDef module = {
         PyModuleDef_HEAD_INIT,
         .m_name = "_journal", /* name of module */
@@ -152,5 +136,3 @@ PyMODINIT_FUNC PyInit__journal(void) {
         return m;
 }
 REENABLE_WARNING;
-
-#endif

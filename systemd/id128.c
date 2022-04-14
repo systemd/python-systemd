@@ -161,26 +161,6 @@ static int add_id(PyObject *module, const char* name, sd_id128_t id) {
         return PyModule_AddObject(module, name, obj);
 }
 
-#if PY_MAJOR_VERSION < 3
-
-DISABLE_WARNING_MISSING_PROTOTYPES;
-PyMODINIT_FUNC initid128(void) {
-        PyObject *m;
-
-        m = Py_InitModule3("id128", methods, module__doc__);
-        if (!m)
-                return;
-
-        /* a series of lines like 'add_id() ;' follow */
-#define JOINER ;
-#include "id128-constants.h"
-#undef JOINER
-        PyModule_AddStringConstant(m, "__version__", PACKAGE_VERSION);
-}
-REENABLE_WARNING;
-
-#else
-
 static struct PyModuleDef module = {
         PyModuleDef_HEAD_INIT,
         .m_name = "id128", /* name of module */
@@ -209,5 +189,3 @@ PyMODINIT_FUNC PyInit_id128(void) {
         return m;
 }
 REENABLE_WARNING;
-
-#endif
