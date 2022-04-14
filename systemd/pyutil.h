@@ -29,25 +29,13 @@ void cleanup_Py_DECREFp(PyObject **p);
 PyObject* absolute_timeout(uint64_t t);
 int set_error(int r, const char* path, const char* invalid_message);
 
-#if PY_MAJOR_VERSION >=3 && PY_MINOR_VERSION >= 1
 int Unicode_FSConverter(PyObject* obj, void *_result);
-#endif
 
 #define _cleanup_Py_DECREF_ _cleanup_(cleanup_Py_DECREFp)
 
-#if PY_MAJOR_VERSION >=3
 # define unicode_FromStringAndSize PyUnicode_FromStringAndSize
 # define unicode_FromString PyUnicode_FromString
 # define long_FromLong PyLong_FromLong
 # define long_FromSize_t PyLong_FromSize_t
 # define long_Check PyLong_Check
 # define long_AsLong PyLong_AsLong
-#else
-/* Python 3 type naming convention is used */
-# define unicode_FromStringAndSize PyString_FromStringAndSize
-# define unicode_FromString PyString_FromString
-# define long_FromLong PyInt_FromLong
-# define long_FromSize_t PyInt_FromSize_t
-# define long_Check PyInt_Check
-# define long_AsLong PyInt_AsLong
-#endif

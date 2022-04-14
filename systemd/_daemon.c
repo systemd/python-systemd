@@ -89,20 +89,9 @@ static PyObject* notify(PyObject *self, PyObject *args, PyObject *keywds) {
                 "fds",
                 NULL,
         };
-#if PY_MAJOR_VERSION >=3 && PY_MINOR_VERSION >= 3
         if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|piO:notify",
                                          (char**) kwlist, &msg, &unset, &_pid, &fds))
                 return NULL;
-#else
-        PyObject *obj = NULL;
-        if (!PyArg_ParseTupleAndKeywords(args, keywds, "s|OiO:notify",
-                                         (char**) kwlist, &msg, &obj, &_pid, &fds))
-                return NULL;
-        if (obj)
-                unset = PyObject_IsTrue(obj);
-        if (unset < 0)
-                return NULL;
-#endif
         pid = _pid;
         if (pid < 0 || pid != _pid) {
                 PyErr_SetString(PyExc_OverflowError, "Bad pid_t");
@@ -176,20 +165,9 @@ static PyObject* listen_fds(PyObject *self, PyObject *args, PyObject *keywds) {
         int unset = true;
 
         static const char* const kwlist[] = {"unset_environment", NULL};
-#if PY_MAJOR_VERSION >=3 && PY_MINOR_VERSION >= 3
         if (!PyArg_ParseTupleAndKeywords(args, keywds, "|p:_listen_fds",
                                          (char**) kwlist, &unset))
                 return NULL;
-#else
-        PyObject *obj = NULL;
-        if (!PyArg_ParseTupleAndKeywords(args, keywds, "|O:_listen_fds",
-                                         (char**) kwlist, &obj))
-                return NULL;
-        if (obj)
-                unset = PyObject_IsTrue(obj);
-        if (unset < 0)
-                return NULL;
-#endif
 
         r = sd_listen_fds(unset);
         if (set_error(r, NULL, NULL) < 0)
@@ -223,20 +201,9 @@ static PyObject* listen_fds_with_names(PyObject *self, PyObject *args, PyObject 
         PyObject *tpl, *item;
 
         static const char* const kwlist[] = {"unset_environment", NULL};
-#if PY_MAJOR_VERSION >=3 && PY_MINOR_VERSION >= 3
         if (!PyArg_ParseTupleAndKeywords(args, keywds, "|p:_listen_fds_with_names",
                                          (char**) kwlist, &unset))
                 return NULL;
-#else
-        PyObject *obj = NULL;
-        if (!PyArg_ParseTupleAndKeywords(args, keywds, "|O:_listen_fds_with_names",
-                                         (char**) kwlist, &obj))
-                return NULL;
-        if (obj != NULL)
-                unset = PyObject_IsTrue(obj);
-        if (unset < 0)
-                return NULL;
-#endif
 
 #if HAVE_SD_LISTEN_FDS_WITH_NAMES
         r = sd_listen_fds_with_names(unset, &names);
@@ -284,17 +251,12 @@ static PyObject* is_fifo(PyObject *self, PyObject *args) {
         int fd;
         const char *path = NULL;
 
-#if PY_MAJOR_VERSION >=3 && PY_MINOR_VERSION >= 1
         _cleanup_Py_DECREF_ PyObject *_path = NULL;
         if (!PyArg_ParseTuple(args, "i|O&:_is_fifo",
                               &fd, Unicode_FSConverter, &_path))
                 return NULL;
         if (_path)
                 path = PyBytes_AsString(_path);
-#else
-        if (!PyArg_ParseTuple(args, "i|z:_is_fifo", &fd, &path))
-                return NULL;
-#endif
 
         r = sd_is_fifo(fd, path);
         if (set_error(r, path, NULL) < 0)
@@ -315,17 +277,12 @@ static PyObject* is_mq(PyObject *self, PyObject *args) {
         int fd;
         const char *path = NULL;
 
-#if PY_MAJOR_VERSION >=3 && PY_MINOR_VERSION >= 1
         _cleanup_Py_DECREF_ PyObject *_path = NULL;
         if (!PyArg_ParseTuple(args, "i|O&:_is_mq",
                               &fd, Unicode_FSConverter, &_path))
                 return NULL;
         if (_path)
                 path = PyBytes_AsString(_path);
-#else
-        if (!PyArg_ParseTuple(args, "i|z:_is_mq", &fd, &path))
-                return NULL;
-#endif
 
         r = sd_is_mq(fd, path);
         if (set_error(r, path, NULL) < 0)
@@ -451,7 +408,6 @@ static PyObject* is_socket_unix(PyObject *self, PyObject *args) {
         char* path = NULL;
         Py_ssize_t length = 0;
 
-#if PY_MAJOR_VERSION >=3 && PY_MINOR_VERSION >= 1
         _cleanup_Py_DECREF_ PyObject *_path = NULL;
         if (!PyArg_ParseTuple(args, "i|iiO&:_is_socket_unix",
                               &fd, &type, &listening, Unicode_FSConverter, &_path))
@@ -461,11 +417,6 @@ static PyObject* is_socket_unix(PyObject *self, PyObject *args) {
                 if (PyBytes_AsStringAndSize(_path, &path, &length))
                         return NULL;
         }
-#else
-        if (!PyArg_ParseTuple(args, "i|iiz#:_is_socket_unix",
-                              &fd, &type, &listening, &path, &length))
-                return NULL;
-#endif
 
         r = sd_is_socket_unix(fd, type, listening, path, length);
         if (set_error(r, path, NULL) < 0)
@@ -489,23 +440,6 @@ static PyMethodDef methods[] = {
         { "_is_socket_unix", is_socket_unix, METH_VARARGS, is_socket_unix__doc__},
         {}        /* Sentinel */
 };
-
-#if PY_MAJOR_VERSION < 3
-
-DISABLE_WARNING_MISSING_PROTOTYPES;
-PyMODINIT_FUNC init_daemon(void) {
-        PyObject *m;
-
-        m = Py_InitModule3("_daemon", methods, module__doc__);
-        if (!m)
-                return;
-
-        PyModule_AddIntConstant(m, "LISTEN_FDS_START", SD_LISTEN_FDS_START);
-        PyModule_AddStringConstant(m, "__version__", PACKAGE_VERSION);
-}
-REENABLE_WARNING;
-
-#else
 
 static struct PyModuleDef module = {
         PyModuleDef_HEAD_INIT,
@@ -532,5 +466,3 @@ PyMODINIT_FUNC PyInit__daemon(void) {
         return m;
 }
 REENABLE_WARNING;
-
-#endif

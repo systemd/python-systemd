@@ -306,24 +306,20 @@ def test_notify_no_socket():
     assert notify('FDSTORE=1', pid=os.getpid()) is False
     assert notify('FDSTORE=1', pid=os.getpid(), fds=(1,)) is False
 
-if sys.version_info >= (3,):
-    connection_error = ConnectionRefusedError
-else:
-    connection_error = OSError
 
 def test_notify_bad_socket():
     os.environ['NOTIFY_SOCKET'] = '/dev/null'
 
-    with pytest.raises(connection_error):
+    with pytest.raises(ConnectionRefusedError):
         notify('READY=1')
-    with pytest.raises(connection_error):
+    with pytest.raises(ConnectionRefusedError):
         with skip_enosys():
             notify('FDSTORE=1', fds=[])
-    with pytest.raises(connection_error):
+    with pytest.raises(ConnectionRefusedError):
         notify('FDSTORE=1', fds=[1, 2])
-    with pytest.raises(connection_error):
+    with pytest.raises(ConnectionRefusedError):
         notify('FDSTORE=1', pid=os.getpid())
-    with pytest.raises(connection_error):
+    with pytest.raises(ConnectionRefusedError):
         notify('FDSTORE=1', pid=os.getpid(), fds=(1,))
 
 def test_notify_with_socket(tmpdir):

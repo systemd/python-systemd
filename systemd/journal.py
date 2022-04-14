@@ -34,13 +34,8 @@ from ._reader import (_Reader, NOP, APPEND, INVALIDATE,
                       LOCAL_ONLY, RUNTIME_ONLY,
                       SYSTEM, SYSTEM_ONLY, CURRENT_USER,
                       OS_ROOT,
-                      _get_catalog)
+                      _get_catalog, Monotonic)
 from . import id128 as _id128
-
-if _sys.version_info >= (3,):
-    from ._reader import Monotonic
-else:
-    Monotonic = tuple
 
 
 def _convert_monotonic(m):
@@ -63,11 +58,10 @@ def _convert_timestamp(s):
 def _convert_trivial(x):
     return x
 
-if _sys.version_info >= (3,):
-    def _convert_uuid(s):
-        return _uuid.UUID(s.decode())
-else:
-    _convert_uuid = _uuid.UUID
+
+def _convert_uuid(s):
+    return _uuid.UUID(s.decode())
+
 
 DEFAULT_CONVERTERS = {
     'MESSAGE_ID': _convert_uuid,
@@ -218,9 +212,6 @@ class Reader(_Reader):
             return ans
         else:
             raise StopIteration()
-
-    if _sys.version_info < (3,):
-        next = __next__
 
     def add_match(self, *args, **kwargs):
         """Add one or more matches to the filter journal log entries.

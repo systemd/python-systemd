@@ -71,7 +71,6 @@ PyDoc_STRVAR(module__doc__,
              "Class to reads the systemd journal similar to journalctl.");
 
 
-#if PY_MAJOR_VERSION >= 3
 static PyTypeObject MonotonicType;
 
 PyDoc_STRVAR(MonotonicType__doc__,
@@ -89,14 +88,12 @@ static PyStructSequence_Desc Monotonic_desc = {
         MonotonicType_fields,
         2,
 };
-#endif
 
 /**
  * Convert a str or bytes object into a C-string path.
  * Returns NULL on error.
  */
 static char* str_converter(PyObject *str, PyObject **bytes) {
-#if PY_MAJOR_VERSION >=3 && PY_MINOR_VERSION >= 1
                 int r;
 
                 r = PyUnicode_FSConverter(str, bytes);
@@ -104,9 +101,6 @@ static char* str_converter(PyObject *str, PyObject **bytes) {
                         return NULL;
 
                 return PyBytes_AsString(*bytes);
-#else
-                return PyString_AsString(str);
-#endif
 }
 
 /**
@@ -706,11 +700,7 @@ static PyObject* Reader_get_monotonic(Reader *self, PyObject *args) {
         assert_cc(sizeof(unsigned long long) == sizeof(timestamp));
         monotonic = PyLong_FromUnsignedLongLong(timestamp);
         bootid = PyBytes_FromStringAndSize((const char*) &id.bytes, sizeof(id.bytes));
-#if PY_MAJOR_VERSION >= 3
         tuple = PyStructSequence_New(&MonotonicType);
-#else
-        tuple = PyTuple_New(2);
-#endif
         if (!monotonic || !bootid || !tuple) {
                 Py_XDECREF(monotonic);
                 Py_XDECREF(bootid);
@@ -718,13 +708,8 @@ static PyObject* Reader_get_monotonic(Reader *self, PyObject *args) {
                 return NULL;
         }
 
-#if PY_MAJOR_VERSION >= 3
         PyStructSequence_SET_ITEM(tuple, 0, monotonic);
         PyStructSequence_SET_ITEM(tuple, 1, bootid);
-#else
-        PyTuple_SET_ITEM(tuple, 0, monotonic);
-        PyTuple_SET_ITEM(tuple, 1, bootid);
-#endif
 
         return tuple;
 }
@@ -1353,7 +1338,6 @@ static PyMethodDef methods[] = {
         {} /* Sentinel */
 };
 
-#if PY_MAJOR_VERSION >= 3
 static PyModuleDef module = {
         PyModuleDef_HEAD_INIT,
         .m_name = "_reader",
@@ -1361,33 +1345,20 @@ static PyModuleDef module = {
         .m_size = -1,
         .m_methods = methods,
 };
-#endif
-
-#if PY_MAJOR_VERSION >= 3
 static bool initialized = false;
-#endif
 
 DISABLE_WARNING_MISSING_PROTOTYPES;
 
 PyMODINIT_FUNC
-#if PY_MAJOR_VERSION >= 3
 PyInit__reader(void)
-#else
-init_reader(void)
-#endif
 {
         PyObject* m;
 
         PyDateTime_IMPORT;
 
         if (PyType_Ready(&ReaderType) < 0)
-#if PY_MAJOR_VERSION >= 3
                 return NULL;
-#else
-                return;
-#endif
 
-#if PY_MAJOR_VERSION >= 3
         m = PyModule_Create(&module);
         if (!m)
                 return NULL;
@@ -1396,20 +1367,11 @@ init_reader(void)
                 PyStructSequence_InitType(&MonotonicType, &Monotonic_desc);
                 initialized = true;
         }
-#else
-        m = Py_InitModule3("_reader", methods, module__doc__);
-        if (!m)
-                return;
-#endif
 
         Py_INCREF(&ReaderType);
-#if PY_MAJOR_VERSION >= 3
         Py_INCREF(&MonotonicType);
-#endif
         if (PyModule_AddObject(m, "_Reader", (PyObject *) &ReaderType) ||
-#if PY_MAJOR_VERSION >= 3
             PyModule_AddObject(m, "Monotonic", (PyObject*) &MonotonicType) ||
-#endif
             PyModule_AddIntConstant(m, "NOP", SD_JOURNAL_NOP) ||
             PyModule_AddIntConstant(m, "APPEND", SD_JOURNAL_APPEND) ||
             PyModule_AddIntConstant(m, "INVALIDATE", SD_JOURNAL_INVALIDATE) ||
@@ -1420,15 +1382,11 @@ init_reader(void)
             PyModule_AddIntConstant(m, "CURRENT_USER", SD_JOURNAL_CURRENT_USER) ||
             PyModule_AddIntConstant(m, "OS_ROOT", SD_JOURNAL_OS_ROOT) ||
             PyModule_AddStringConstant(m, "__version__", PACKAGE_VERSION)) {
-#if PY_MAJOR_VERSION >= 3
                 Py_DECREF(m);
                 return NULL;
-#endif
         }
 
-#if PY_MAJOR_VERSION >= 3
         return m;
-#endif
 }
 
 REENABLE_WARNING;
