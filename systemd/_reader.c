@@ -918,7 +918,7 @@ PyDoc_STRVAR(Reader_wait__doc__,
              "See :manpage:`sd_journal_wait(3)` for further discussion.");
 static PyObject* Reader_wait(Reader *self, PyObject *args) {
         int r;
-        int64_t timeout;
+        int64_t timeout = -1;
 
         if (!PyArg_ParseTuple(args, "|L:wait", &timeout))
                 return NULL;
