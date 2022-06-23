@@ -95,7 +95,7 @@ A handler class for the Python logging framework is also provided:
     logger.addHandler(journal.JournalHandler())
     logger.warning("Some message: %s", 'detail')
 
-libsytemd version compatibility
+libsystemd version compatibility
 -------------------------------
 
 This module may be compiled against any version of libsystemd. At
