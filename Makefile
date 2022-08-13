@@ -48,7 +48,7 @@ clean:
 distclean: clean
 	rm -rf dist MANIFEST
 
-SPHINXOPTS = -D version=$(VERSION) -D release=$(VERSION)
+SPHINXOPTS += -D version=$(VERSION) -D release=$(VERSION)
 sphinx-%: build
 	cd build && \
 	  PYTHONPATH=../$(builddir) $(PYTHON) -m sphinx -b $* $(SPHINXOPTS) ../docs $*

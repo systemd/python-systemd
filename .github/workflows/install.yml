@@ -1,0 +1,77 @@
+---
+# vi: ts=2 sw=2 et:
+# SPDX-License-Identifier: LGPL-2.1-or-later
+#
+name: Install test
+on: [pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ matrix.container }}-${{ github.ref }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        container: [
+            "archlinux:latest",
+            "debian:testing",
+            "quay.io/centos/centos:stream8",
+            "quay.io/fedora/fedora:rawhide",
+            "ubuntu:focal",
+        ]
+    container:
+      image: ${{ matrix.container }}
+    name: ${{ matrix.container }}
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        shell: bash
+        run: |
+          DIST_ID="$(sed -nr 's/^ID="?(\w+)"?/\1/p' /etc/os-release)"
+          echo "Distribution ID: $DIST_ID"
+
+          DEPS_COMMON=(
+              gcc
+              git
+              pkg-config
+              python3
+              systemd
+          )
+
+          case "$DIST_ID" in
+          arch)
+              pacman --noconfirm -Sy "${DEPS_COMMON[@]}" systemd-libs
+              python3 -m ensurepip
+              ;;
+          centos|fedora)
+              dnf -y install "${DEPS_COMMON[@]}" systemd-devel python3-devel python3-pip
+              ;;
+          ubuntu|debian)
+              apt -y update
+              DEBIAN_FRONTEND=noninteractive apt -y install "${DEPS_COMMON[@]}" libsystemd-dev python3-dev python3-pip
+              ;;
+          *)
+              echo >&2 "Invalid distribution ID: $DISTRO_ID"
+              exit 1
+          esac
+
+          python3 -m pip install pytest sphinx
+
+      - name: Build & install
+        shell: bash
+        run: |
+          set -x
+          python3 -m pip install -I -v .
+          # Avoid importing the systemd module from the git repository
+          cd /
+          python3 -c 'from systemd import journal; print(journal.__version__)'
+          # Initialize /etc/machine-id if it's empty to make the tests happy
+          [[ ! -s /etc/machine-id ]] && systemd-id128 new >/etc/machine-id
+          pytest -v --pyargs systemd

@@ -1,0 +1,51 @@
+---
+# vi: ts=2 sw=2 et:
+# SPDX-License-Identifier: LGPL-2.1-or-later
+#
+name: Build test
+on: [pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    concurrency:
+      group: ${{ github.workflow }}-${{ matrix.python }}-${{ github.ref }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        python: [
+          "3.7",
+          "3.8",
+          "3.9",
+          "3.10",
+        ]
+    name: Python ${{ matrix.python }}
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v2
+
+      - name: Configure Python ${{ matrix.python }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+
+      - name: Install dependencies
+        run: |
+          sudo apt -y update
+          sudo apt -y install gcc libsystemd-dev
+          python -m pip install pytest sphinx
+
+      - name: Build (Python ${{ matrix.python }})
+        run: |
+          set -x
+          make -j
+          make doc SPHINXOPTS="-W -v"
+
+      - name: Test (Python ${{ matrix.python }})
+        run: |
+          make check
