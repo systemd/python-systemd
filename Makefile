@@ -7,8 +7,10 @@ VERSION := $(shell $(PYTHON) setup.py --version)
 TESTFLAGS = -v
 
 define buildscript
-import sys,sysconfig
-print("build/lib.{}-{}.{}".format(sysconfig.get_platform(), *sys.version_info[:2]))
+import sys, sysconfig, setuptools
+sversion = int(setuptools.__version__.split(".")[0])
+end = sys.implementation.cache_tag if sversion >= 61 else "{}.{}".format(*sys.version_info[:2])
+print("build/lib.{}-{}".format(sysconfig.get_platform(), end))
 endef
 
 builddir := $(shell $(PYTHON) -c '$(buildscript)')
