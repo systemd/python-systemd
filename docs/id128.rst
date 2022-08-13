@@ -11,10 +11,13 @@
    .. autoattribute:: systemd.id128.SD_MESSAGE_BOOTCHART
    .. autoattribute:: systemd.id128.SD_MESSAGE_CONFIG_ERROR
    .. autoattribute:: systemd.id128.SD_MESSAGE_COREDUMP
+   .. autoattribute:: systemd.id128.SD_MESSAGE_DEVICE_PATH_NOT_SUITABLE
    .. autoattribute:: systemd.id128.SD_MESSAGE_DNSSEC_DOWNGRADE
    .. autoattribute:: systemd.id128.SD_MESSAGE_DNSSEC_FAILURE
    .. autoattribute:: systemd.id128.SD_MESSAGE_DNSSEC_TRUST_ANCHOR_REVOKED
+   .. autoattribute:: systemd.id128.SD_MESSAGE_FACTORY_RESET
    .. autoattribute:: systemd.id128.SD_MESSAGE_FORWARD_SYSLOG_MISSED
+   .. autoattribute:: systemd.id128.SD_MESSAGE_HIBERNATE_KEY_LONG_PRESS
    .. autoattribute:: systemd.id128.SD_MESSAGE_HIBERNATE_KEY
    .. autoattribute:: systemd.id128.SD_MESSAGE_INVALID_CONFIGURATION
    .. autoattribute:: systemd.id128.SD_MESSAGE_JOURNAL_DROPPED
@@ -26,8 +29,13 @@
    .. autoattribute:: systemd.id128.SD_MESSAGE_LID_OPENED
    .. autoattribute:: systemd.id128.SD_MESSAGE_MACHINE_START
    .. autoattribute:: systemd.id128.SD_MESSAGE_MACHINE_STOP
+   .. autoattribute:: systemd.id128.SD_MESSAGE_MOUNT_POINT_PATH_NOT_SUITABLE
+   .. autoattribute:: systemd.id128.SD_MESSAGE_NOBODY_USER_UNSUITABLE
    .. autoattribute:: systemd.id128.SD_MESSAGE_OVERMOUNTING
+   .. autoattribute:: systemd.id128.SD_MESSAGE_POWER_KEY_LONG_PRESS
    .. autoattribute:: systemd.id128.SD_MESSAGE_POWER_KEY
+   .. autoattribute:: systemd.id128.SD_MESSAGE_REBOOT_KEY_LONG_PRESS
+   .. autoattribute:: systemd.id128.SD_MESSAGE_REBOOT_KEY
    .. autoattribute:: systemd.id128.SD_MESSAGE_SEAT_START
    .. autoattribute:: systemd.id128.SD_MESSAGE_SEAT_STOP
    .. autoattribute:: systemd.id128.SD_MESSAGE_SESSION_START
@@ -37,24 +45,30 @@
    .. autoattribute:: systemd.id128.SD_MESSAGE_SLEEP_STOP
    .. autoattribute:: systemd.id128.SD_MESSAGE_SPAWN_FAILED
    .. autoattribute:: systemd.id128.SD_MESSAGE_STARTUP_FINISHED
+   .. autoattribute:: systemd.id128.SD_MESSAGE_SUSPEND_KEY_LONG_PRESS
    .. autoattribute:: systemd.id128.SD_MESSAGE_SUSPEND_KEY
    .. autoattribute:: systemd.id128.SD_MESSAGE_SYSTEM_DOCKED
+   .. autoattribute:: systemd.id128.SD_MESSAGE_SYSTEMD_UDEV_SETTLE_DEPRECATED
    .. autoattribute:: systemd.id128.SD_MESSAGE_SYSTEM_UNDOCKED
    .. autoattribute:: systemd.id128.SD_MESSAGE_TAINTED
    .. autoattribute:: systemd.id128.SD_MESSAGE_TIME_CHANGE
+   .. autoattribute:: systemd.id128.SD_MESSAGE_TIME_SYNC
    .. autoattribute:: systemd.id128.SD_MESSAGE_TIMEZONE_CHANGE
    .. autoattribute:: systemd.id128.SD_MESSAGE_TRUNCATED_CORE
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_FAILED
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_FAILURE_RESULT
+   .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_OOMD_KILL
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_OUT_OF_MEMORY
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_PROCESS_EXIT
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_RELOADED
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_RELOADING
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_RESOURCES
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_RESTART_SCHEDULED
+   .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_SKIPPED
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_STARTED
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_STARTING
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_STOPPED
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_STOPPING
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_SUCCESS
+   .. autoattribute:: systemd.id128.SD_MESSAGE_UNSAFE_USER_NAME
    .. autoattribute:: systemd.id128.SD_MESSAGE_USER_STARTUP_FINISHED
