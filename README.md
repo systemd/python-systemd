@@ -17,17 +17,22 @@ Installation
 
 This module should be packaged for almost all Linux distributions. Use
 
-On Fedora/RHEL/CentOS
+On Fedora:
 
-    dnf install python-systemd python3-systemd
+    dnf install python3-systemd
 
-On Debian/Ubuntu/Mint
+On Debian/Ubuntu/Mint:
 
-    apt-get install python-systemd python3-systemd
+    apt-get update
+    apt-get install python3-systemd
 
-On openSUSE and SLE
+On openSUSE and SLE:
 
-    zypper in python-systemd
+    zypper in python3-systemd
+
+On Arch:
+
+    pacman -Sy python-systemd
 
 To build from source
 --------------------
