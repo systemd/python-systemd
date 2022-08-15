@@ -23,8 +23,8 @@ On Fedora:
 
 On Debian/Ubuntu/Mint:
 
-    apt-get update
-    apt-get install python3-systemd
+    apt update
+    apt install python3-systemd
 
 On openSUSE and SLE:
 
@@ -49,11 +49,11 @@ On Fedora with Python 3:
 
 On Debian or Ubuntu with Python 2:
 
-    apt-get install libsystemd-{journal,daemon,login,id128}-dev gcc python-dev pkg-config
+    apt install libsystemd-{journal,daemon,login,id128}-dev gcc python-dev pkg-config
 
 On Debian or Ubuntu with Python 3:
 
-    apt-get install libsystemd-{journal,daemon,login,id128}-dev gcc python3-dev pkg-config
+    apt install libsystemd-{journal,daemon,login,id128}-dev gcc python3-dev pkg-config
 
 The project is also available on pypi as `systemd-python`.
 
