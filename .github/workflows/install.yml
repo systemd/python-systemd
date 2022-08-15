@@ -3,7 +3,11 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
 #
 name: Install test
-on: [pull_request]
+on:
+  pull_request:
+  push:
+    branches:
+      - main
 
 permissions:
   contents: read
