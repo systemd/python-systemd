@@ -3,13 +3,13 @@ python-systemd
 
 Python module for native access to the systemd facilities. Functionality
 is separated into a number of modules:
-- systemd.journal supports sending of structured messages to the journal
+- `systemd.journal` supports sending of structured messages to the journal
   and reading journal files,
-- systemd.daemon wraps parts of libsystemd useful for writing daemons
+- `systemd.daemon` wraps parts of `libsystemd` useful for writing daemons
   and socket activation,
-- systemd.id128 provides functions for querying machine and boot identifiers
+- `systemd.id128` provides functions for querying machine and boot identifiers
   and a lists of message identifiers provided by systemd,
-- systemd.login wraps parts of libsystemd used to query logged in users
+- `systemd.login` wraps parts of `libsystemd` used to query logged in users
   and available seats and machines.
 
 Installation
@@ -35,12 +35,12 @@ To build from source
 On CentOS, RHEL, and Fedora with Python 2:
 
     dnf install git python-pip gcc python-devel systemd-devel
-    pip install git+https://github.com/systemd/python-systemd.git#egg=systemd-python
+    pip install 'git+https://github.com/systemd/python-systemd.git#egg=systemd-python'
 
 On Fedora with Python 3:
 
     dnf install git python3-pip gcc python3-devel systemd-devel
-    pip3 install git+https://github.com/systemd/python-systemd.git#egg=systemd-python
+    pip3 install 'git+https://github.com/systemd/python-systemd.git#egg=systemd-python'
 
 On Debian or Ubuntu with Python 2:
 
@@ -62,7 +62,7 @@ Quick example:
     journal.send('Hello, again, world', FIELD2='Greetings!', FIELD3='Guten tag')
     journal.send('Binary message', BINARY=b'\xde\xad\xbe\xef')
 
-There is one required argument -- the message, and additional fields
+There is one required argument — the message, and additional fields
 can be specified as keyword arguments. Following the journald API, all
 names are uppercase.
 
@@ -119,7 +119,12 @@ Show entries by a specific executable (`journalctl /usr/bin/vim`):
     for entry in j:
         print(entry['MESSAGE'])
 
- - Note: matches can be added from many different fields, for example entries from a specific process ID can be matched with the `_PID` field, and entries from a specific unit (ie. `journalctl -u systemd-udevd.service`) can be matched with `_SYSTEMD_UNIT`. See all fields available at the [systemd.journal-fields docs](https://www.freedesktop.org/software/systemd/man/systemd.journal-fields.html).
+ - Note: matches can be added from many different fields, for example
+   entries from a specific process ID can be matched with the `_PID`
+   field, and entries from a specific unit (ie. `journalctl -u
+   systemd-udevd.service`) can be matched with `_SYSTEMD_UNIT`.
+   See all fields available at the
+   [systemd.journal-fields docs](https://www.freedesktop.org/software/systemd/man/systemd.journal-fields.html).
 
 Show kernel ring buffer (`journalctl -k`):
 
@@ -149,13 +154,13 @@ Read entries in reverse (`journalctl _EXE=/usr/bin/vim -r`):
 Notes
 -----
 
- * Unlike the native C version of journald's sd_journal_send(),
-   printf-style substitution is not supported. Perform any
-   substitution using Python's % operator or .format() capabilities
-   first.
- * A ValueError is raised if sd_journald_sendv() results in an error.
-   This might happen if there are no arguments or one of them is
-   invalid.
+* Unlike the native C version of journald's `sd_journal_send()`,
+  printf-style substitution is not supported. Perform any
+  substitution using Python's f-strings first (or .format()
+  capabilities or `%` operator).
+* A `ValueError` is raised if `sd_journald_sendv()` results in an
+  error. This might happen if there are no arguments or one of them
+  is invalid.
 
 A handler class for the Python logging framework is also provided:
 
@@ -165,16 +170,16 @@ A handler class for the Python logging framework is also provided:
     logger.addHandler(journal.JournalHandler(SYSLOG_IDENTIFIER='custom_unit_name'))
     logger.warning("Some message: %s", 'detail')
 
-libsystemd version compatibility
--------------------------------
+`libsystemd` version compatibility
+----------------------------------
 
-This module may be compiled against any version of libsystemd. At
+This module may be compiled against any version of `libsystemd`. At
 compilation time, any functionality that is not available in that
-version of systemd is disabled, and the resulting binary module will
-depend on symbols that were available at compilation time. This means
-that the resulting binary module is compatible with that or any later
-version of libsystemd. To obtain maximum possible functionality, this
-module must be compile against suitably recent libsystemd.
+version is disabled, and the resulting binary module will depend on
+symbols that were available at compilation time. This means that the
+resulting binary module is compatible with that or any later version
+of `libsystemd`. To obtain maximum possible functionality, this module
+must be compile against suitably recent libsystemd.
 
 Documentation
 =============
