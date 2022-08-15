@@ -35,12 +35,12 @@ To build from source
 On CentOS, RHEL, and Fedora with Python 2:
 
     dnf install git python-pip gcc python-devel systemd-devel
-    pip install git+https://github.com/systemd/python-systemd.git#egg=systemd
+    pip install git+https://github.com/systemd/python-systemd.git#egg=systemd-python
 
 On Fedora with Python 3:
 
     dnf install git python3-pip gcc python3-devel systemd-devel
-    pip3 install git+https://github.com/systemd/python-systemd.git#egg=systemd
+    pip3 install git+https://github.com/systemd/python-systemd.git#egg=systemd-python
 
 On Debian or Ubuntu with Python 2:
 
