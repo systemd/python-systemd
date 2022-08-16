@@ -353,7 +353,7 @@ def test_daemon_notify_memleak():
 
     try:
         notify('', True, 0, fds)
-    except ConnectionRefusedError:
+    except connection_error:
         pass
 
     assert sys.getrefcount(fd) <= ref_cnt, 'leak'
