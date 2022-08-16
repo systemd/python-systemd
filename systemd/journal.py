@@ -51,7 +51,10 @@ def _convert_monotonic(m):
 def _convert_source_monotonic(s):
     return _datetime.timedelta(microseconds=int(s))
 
-_LOCAL_TIMEZONE = _datetime.datetime.now().astimezone().tzinfo
+try:
+    _LOCAL_TIMEZONE = _datetime.datetime.now().astimezone().tzinfo
+except TypeError:
+    _LOCAL_TIMEZONE = None
 
 def _convert_realtime(t):
     return _datetime.datetime.fromtimestamp(t / 1000000, _LOCAL_TIMEZONE)
@@ -313,7 +316,13 @@ class Reader(_Reader):
         >>> j.seek_realtime(yesterday)
         """
         if isinstance(realtime, _datetime.datetime):
-            realtime = int(float(realtime.astimezone().strftime("%s.%f")) * 1000000)
+            try:
+                realtime = realtime.astimezone()
+            except TypeError:
+                # With python2: Required argument 'tz' (pos 1) not found
+                pass
+
+            realtime = int(float(realtime.strftime("%s.%f")) * 1000000)
         elif not isinstance(realtime, int):
             realtime = int(realtime * 1000000)
         return super(Reader, self).seek_realtime(realtime)

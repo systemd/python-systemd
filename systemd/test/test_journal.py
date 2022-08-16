@@ -6,6 +6,7 @@ import logging
 import os
 import time
 import uuid
+import sys
 import traceback as _traceback
 
 from systemd import journal, id128
@@ -294,13 +295,16 @@ def test_reader_convert_timestamps(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)
 
     val = j._convert_field('_SOURCE_REALTIME_TIMESTAMP', 1641651559324187)
-    assert val.tzinfo is not None
+    if sys.version_info >= (3,):
+        assert val.tzinfo is not None
 
     val = j._convert_field('__REALTIME_TIMESTAMP', 1641651559324187)
-    assert val.tzinfo is not None
+    if sys.version_info >= (3,):
+        assert val.tzinfo is not None
 
     val = j._convert_field('COREDUMP_TIMESTAMP', 1641651559324187)
-    assert val.tzinfo is not None
+    if sys.version_info >= (3,):
+        assert val.tzinfo is not None
 
 def test_seek_realtime(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)
