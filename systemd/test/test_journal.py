@@ -6,7 +6,8 @@ import logging
 import os
 import time
 import uuid
-import traceback as _traceback
+import sys
+import traceback
 
 from systemd import journal, id128
 from systemd.journal import _make_line
@@ -30,7 +31,7 @@ class MockSender:
             args.append('MESSAGE_ID=' + id)
 
         if CODE_LINE is CODE_FILE is CODE_FUNC is None:
-            CODE_FILE, CODE_LINE, CODE_FUNC = _traceback.extract_stack(limit=2)[0][:3]
+            CODE_FILE, CODE_LINE, CODE_FUNC = traceback.extract_stack(limit=2)[0][:3]
         if CODE_FILE is not None:
             args.append('CODE_FILE=' + CODE_FILE)
         if CODE_LINE is not None:
@@ -294,13 +295,16 @@ def test_reader_convert_timestamps(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)
 
     val = j._convert_field('_SOURCE_REALTIME_TIMESTAMP', 1641651559324187)
-    assert val.tzinfo is not None
+    if sys.version_info >= (3,):
+        assert val.tzinfo is not None
 
     val = j._convert_field('__REALTIME_TIMESTAMP', 1641651559324187)
-    assert val.tzinfo is not None
+    if sys.version_info >= (3,):
+        assert val.tzinfo is not None
 
     val = j._convert_field('COREDUMP_TIMESTAMP', 1641651559324187)
-    assert val.tzinfo is not None
+    if sys.version_info >= (3,):
+        assert val.tzinfo is not None
 
 def test_seek_realtime(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)

@@ -160,12 +160,11 @@ Notes
 -----
 
 * Unlike the native C version of journald's `sd_journal_send()`,
-  printf-style substitution is not supported. Perform any
-  substitution using Python's f-strings first (or .format()
-  capabilities or `%` operator).
+  printf-style substitution is not supported. Perform any substitution
+  using Python's f-strings first (or `.format()` or the `%` operator).
 * A `ValueError` is raised if `sd_journald_sendv()` results in an
-  error. This might happen if there are no arguments or one of them
-  is invalid.
+  error. This might happen if there are no arguments or one of them is
+  invalid.
 
 A handler class for the Python logging framework is also provided:
 

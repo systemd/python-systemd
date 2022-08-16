@@ -12,15 +12,15 @@ CHANGES WITH 235:
 
         * id128: update for systemd-243 compatibility and other fixes.
 
-        * C syntax modernization.  A minimum of C99 is assumed.
+        * C syntax modernization. A minimum of C99 is assumed.
 
-        * Fix seek_realtime to work with timezone aware date.
+        * Fix seek_realtime to work with timezone aware date on Python 3.
 
         * journal: add namespace support.
 
-        * Memory leak fixes.
+        * Fixes for memory leaks and documentation.
 
-        * Documentation and other fixes.
+        * Support for Python 2 will be removed after this release.
 
 CHANGES WITH 234:
 
