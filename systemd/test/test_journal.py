@@ -7,7 +7,7 @@ import os
 import time
 import uuid
 import sys
-import traceback as _traceback
+import traceback
 
 from systemd import journal, id128
 from systemd.journal import _make_line
@@ -31,7 +31,7 @@ class MockSender:
             args.append('MESSAGE_ID=' + id)
 
         if CODE_LINE is CODE_FILE is CODE_FUNC is None:
-            CODE_FILE, CODE_LINE, CODE_FUNC = _traceback.extract_stack(limit=2)[0][:3]
+            CODE_FILE, CODE_LINE, CODE_FUNC = traceback.extract_stack(limit=2)[0][:3]
         if CODE_FILE is not None:
             args.append('CODE_FILE=' + CODE_FILE)
         if CODE_LINE is not None:
