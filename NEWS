@@ -5,8 +5,10 @@ CHANGES WITH 235:
         * Adapt the rename of systemd-activate to systemd-socket-activate
           performed in systemd 230.
 
-        * Support for the new sd_listen_fds_with_names added in systemd 227
-          is added.
+        * Support for sd_listen_fds_with_names added in systemd 227.
+
+        * Support for sd_journal_get_cutoff_realtime_usec added in systemd
+          186.
 
         * Make the Reader PY_SSIZE_T_CLEAN for py3.10 compatibility.
 
@@ -21,6 +23,13 @@ CHANGES WITH 235:
         * Fixes for memory leaks and documentation.
 
         * Support for Python 2 will be removed after this release.
+
+        Contributions from: Alexander Olekhnovich, Andrew Stone,
+        Architector #4, Chris Mullins, Dan Bungert, Dominik Prien,
+        Federico Ceratto, Frantisek Sumsal, Glandos, Hendrikto, Khem
+        Raj, Léonard Gérard, Marcel Waldvogel, Marco Paolini, Samuel
+        BF, Tamaki Nishino, Tim Orling, Tomasz Meresiński, Zbigniew
+        Jędrzejewski-Szmek, ytyt-yt
 
 CHANGES WITH 234:
 
