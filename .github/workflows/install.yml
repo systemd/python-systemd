@@ -76,6 +76,4 @@ jobs:
           # Avoid importing the systemd module from the git repository
           cd /
           python3 -c 'from systemd import journal; print(journal.__version__)'
-          # Initialize /etc/machine-id if it's empty to make the tests happy
-          [[ ! -s /etc/machine-id ]] && systemd-id128 new >/etc/machine-id
           pytest -v --pyargs systemd

@@ -233,7 +233,11 @@ def test_reader_this_boot(tmpdir):
 def test_reader_this_machine(tmpdir):
     j = journal.Reader(path=tmpdir.strpath)
     with j:
-        j.this_machine()
+        try:
+            j.this_machine()
+        except OSError:
+            pass
+
         j.this_machine(TEST_MID)
         j.this_machine(TEST_MID.hex)
 
