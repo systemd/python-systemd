@@ -6,11 +6,11 @@ import pytest
 from systemd import id128
 
 @contextlib.contextmanager
-def skip_oserror(code):
+def skip_oserror(*errnos):
     try:
         yield
     except (OSError, IOError) as e:
-        if e.errno == code:
+        if e.errno in errnos:
             pytest.skip()
         raise
 
@@ -21,7 +21,10 @@ def test_randomize():
     assert u1 != u2
 
 def test_get_machine():
-    u1 = id128.get_machine()
+    # yikes, python2 doesn't know ENOMEDIUM
+    with skip_oserror(errno.ENOENT, errno.ENOSYS, 123):
+        u1 = id128.get_machine()
+
     u2 = id128.get_machine()
     assert u1 == u2
 
@@ -29,7 +32,7 @@ def test_get_machine_app_specific():
     a1 = uuid.uuid1()
     a2 = uuid.uuid1()
 
-    with skip_oserror(errno.ENOSYS):
+    with skip_oserror(errno.ENOENT, errno.ENOSYS, 123):
         u1 = id128.get_machine_app_specific(a1)
 
     u2 = id128.get_machine_app_specific(a2)
