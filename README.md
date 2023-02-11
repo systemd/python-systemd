@@ -34,6 +34,10 @@ On Arch:
 
     pacman -Sy python-systemd
 
+The project is also available on pypi as `systemd-python`:
+
+[![PyPI](https://img.shields.io/pypi/v/systemd-python.svg)](https://pypi.python.org/pypi)
+
 To build from source
 --------------------
 
@@ -54,8 +58,6 @@ On Debian or Ubuntu with Python 2:
 On Debian or Ubuntu with Python 3:
 
     apt install libsystemd-{journal,daemon,login,id128}-dev gcc python3-dev pkg-config
-
-The project is also available on pypi as `systemd-python`.
 
 Usage
 =====
