@@ -36,7 +36,7 @@ On Arch:
 
 The project is also available on pypi as `systemd-python`:
 
-[![PyPI](https://img.shields.io/pypi/v/systemd-python.svg)](https://pypi.python.org/pypi)
+[![PyPI](https://img.shields.io/pypi/v/systemd-python.svg)](https://pypi.org/project/systemd-python/)
 
 To build from source
 --------------------
