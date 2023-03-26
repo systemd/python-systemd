@@ -41,21 +41,12 @@ The project is also available on pypi as `systemd-python`:
 To build from source
 --------------------
 
-On CentOS, RHEL, and Fedora with Python 2:
-
-    dnf install git python-pip gcc python-devel systemd-devel
-    pip install 'git+https://github.com/systemd/python-systemd.git#egg=systemd-python'
-
-On Fedora with Python 3:
+On CentOS, RHEL, and Fedora:
 
     dnf install git python3-pip gcc python3-devel systemd-devel
     pip3 install 'git+https://github.com/systemd/python-systemd.git#egg=systemd-python'
 
-On Debian or Ubuntu with Python 2:
-
-    apt install libsystemd-{journal,daemon,login,id128}-dev gcc python-dev pkg-config
-
-On Debian or Ubuntu with Python 3:
+On Debian or Ubuntu:
 
     apt install libsystemd-{journal,daemon,login,id128}-dev gcc python3-dev pkg-config
 
