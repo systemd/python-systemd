@@ -33,6 +33,7 @@
 #include <unistd.h>
 #include <net/if.h>
 
+#include "macro.h"
 #include "util.h"
 
 int safe_atou(const char *s, unsigned *ret_u) {
@@ -112,7 +113,8 @@ static int assign_address(const char *s,
 int parse_sockaddr(const char *s,
                    union sockaddr_union *addr, unsigned *addr_len) {
 
-        char *e, *n;
+        char *e;
+        _cleanup_free_ char *n = NULL;
         unsigned u;
         int r;
 
@@ -123,7 +125,7 @@ int parse_sockaddr(const char *s,
                 if (!e)
                         return -EINVAL;
 
-                n = strndupa(s+1, e-s-1);
+                n = strndup(s+1, e-s-1);
 
                 errno = 0;
                 if (inet_pton(AF_INET6, n, &addr->in6.sin6_addr) <= 0)
@@ -158,7 +160,7 @@ int parse_sockaddr(const char *s,
                         if (u <= 0 || u > 0xFFFF)
                                 return -EINVAL;
 
-                        n = strndupa(s, e-s);
+                        n = strndup(s, e-s);
                         return assign_address(n, u, addr, addr_len);
 
                 } else {
