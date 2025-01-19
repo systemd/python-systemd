@@ -275,6 +275,5 @@ epub_copyright = u'2013, David Strauss, Zbigniew Jędrzejewski-Szmek, Marti Raud
 # Allow duplicate toc entries.
 #epub_tocdup = True
 
-
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'http://docs.python.org/': None}
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
