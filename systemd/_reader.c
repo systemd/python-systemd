@@ -468,8 +468,10 @@ static PyObject* Reader_close(Reader *self, PyObject *args) {
         assert(self);
         assert(!args);
 
-        self->closed = 1;
-        decr_ref_count(self); /* decrement initial reference (without incr) */
+        if (!self->closed) {
+                self->closed = 1;
+                decr_ref_count(self); /* decrement initial reference (without incr) */
+        }
         Py_RETURN_NONE;
 }
 
