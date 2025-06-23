@@ -2,12 +2,13 @@
 # vi: ts=2 sw=2 et:
 # SPDX-License-Identifier: LGPL-2.1-or-later
 #
-name: Install test
+name: Install then test
 on:
   pull_request:
   push:
     branches:
       - main
+      - feature/meson-build
 
 permissions:
   contents: read
@@ -24,16 +25,16 @@ jobs:
         container: [
             "archlinux:latest",
             "debian:testing",
-            "quay.io/centos/centos:stream8",
+            "quay.io/centos/centos:stream10",
             "quay.io/fedora/fedora:rawhide",
-            "ubuntu:focal",
+            "ubuntu:noble",
         ]
     container:
       image: ${{ matrix.container }}
     name: ${{ matrix.container }}
     steps:
       - name: Repository checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install dependencies
         shell: bash
@@ -51,8 +52,7 @@ jobs:
 
           case "$DIST_ID" in
           arch)
-              pacman --noconfirm -Sy "${DEPS_COMMON[@]}" systemd-libs
-              python3 -m ensurepip
+              pacman --noconfirm -Sy "${DEPS_COMMON[@]}" systemd-libs python-pip
               ;;
           centos|fedora)
               dnf -y install "${DEPS_COMMON[@]}" systemd-devel python3-devel python3-pip
@@ -66,13 +66,13 @@ jobs:
               exit 1
           esac
 
-          python3 -m pip install pytest sphinx
+          python3 -m pip install --break-system-packages pytest sphinx
 
-      - name: Build & install
+      - name: Install & test
         shell: bash
         run: |
           set -x
-          python3 -m pip install -I -v .
+          python3 -m pip install -I -v --break-system-packages .
           # Avoid importing the systemd module from the git repository
           cd /
           python3 -c 'from systemd import journal; print(journal.__version__)'

@@ -2,39 +2,48 @@
 # vi: ts=2 sw=2 et:
 # SPDX-License-Identifier: LGPL-2.1-or-later
 #
-name: Build test
+name: Build
 on:
   pull_request:
   push:
     branches:
       - main
+      - feature/meson-build
 
 permissions:
   contents: read
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
-    concurrency:
-      group: ${{ github.workflow }}-${{ matrix.python }}-${{ github.ref }}
-      cancel-in-progress: true
     strategy:
       fail-fast: false
       matrix:
+        os: ["ubuntu-22.04", "ubuntu-24.04"]
         python: [
           "3.7",
           "3.8",
           "3.9",
           "3.10",
-          "3.11.0-rc.1",
+          "3.11",
+          "3.12",
+          "3.13",
         ]
-    name: Python ${{ matrix.python }}
+        exclude:
+          - os: "ubuntu-22.04"
+            python: "3.13"
+          - os: "ubuntu-24.04"
+            python: "3.7"
+    runs-on: ${{ matrix.os }}
+    concurrency:
+      group: ${{ github.workflow }}-${{ matrix.python }}-${{ matrix.os }}-${{ github.ref }}
+      cancel-in-progress: true
+    name: Python ${{ matrix.python }} on ${{ matrix.os }}
     steps:
       - name: Repository checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Configure Python ${{ matrix.python }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
           architecture: x64
@@ -43,14 +52,11 @@ jobs:
         run: |
           sudo apt -y update
           sudo apt -y install gcc libsystemd-dev
-          python -m pip install pytest sphinx
+          python -m pip install --break-system-packages pytest sphinx build
 
       - name: Build (Python ${{ matrix.python }})
         run: |
           set -x
-          make -j
-          make doc SPHINXOPTS="-W -v"
-
-      - name: Test (Python ${{ matrix.python }})
-        run: |
-          make check
+          python -m build -Cbuild-dir=_build
+          python -m pip install .
+          cd _build && python -m sphinx -b html -W -v ../docs html
