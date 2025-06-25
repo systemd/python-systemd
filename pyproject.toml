@@ -46,7 +46,7 @@ build-backend = "mesonpy"
 
 [tool.coverage.run]
 source = ["systemd"]
-omit = ["systemd/test/*", "setup.py"]
+omit = ["systemd/test/*"]
 
 [tool.coverage.report]
 exclude_lines = [

@@ -98,3 +98,72 @@ python.install_sources(
         'systemd/test/test_id128.py',
         subdir: 'systemd/test',
 )
+
+# Run target to generate TAGS file for Emacs
+run_target(
+        'etags',
+        command: ['etags', '-R', '@SOURCE_ROOT@/systemd'],
+)
+
+# Use 'uv run' to ensure Sphinx and its dependencies are installed before being run.
+uv_prog = find_program('uv')
+
+# The '--no-editable' option tells uv to install the systemd package so that Sphinx can import it and extract docstrings.
+run_target(
+        'doc',
+        command: [
+                uv_prog,
+                'run',
+                '--group', 'docs',
+                '--no-editable',
+                '-m', 'sphinx',
+                '-b', 'html',
+                '-D', 'version=' + meson.project_version(),
+                '-D', 'release=' + meson.project_version(),
+                '@SOURCE_ROOT@/docs',
+                'html',
+        ],
+)
+
+# The '--no-editable' option tells uv to install the systemd package so tests can import it.
+test(
+        'pytest',
+        uv_prog,
+        args: [
+                'run',
+                '--group', 'test',
+                '--no-editable',
+                '-m', 'pytest',
+                '../systemd/test',
+        ],
+        workdir: meson.project_build_root(),
+)
+
+# Sync built HTML docs to the remote server using rsync.
+run_target(
+        'doc-sync',
+        command: [
+                'rsync',
+                '-rlv',
+                '--delete',
+                '--omit-dir-times', 'html/',
+                'www.freedesktop.org:/srv/www.freedesktop.org/www/software/systemd/python-systemd/',
+        ],
+)
+
+# Upload distribution tarball and signature using twine-3.
+version = meson.project_version()
+archive = 'dist/systemd-python-' + version + '.tar.gz'
+signature_filename = 'systemd-python-' + version + '.tar.gz.asc'
+
+# Run target to sign the distribution tarball using GPG.
+run_target(
+        'sign',
+        command: ['gpg', '--detach-sign', '-a', archive],
+)
+
+# NOTE: Run 'sign' target before 'upload' to ensure the signature file exists.
+run_target(
+        'upload',
+        command: ['uvx', 'twine', 'upload', archive, signature_filename],
+)
