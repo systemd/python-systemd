@@ -32,90 +32,28 @@ common_c_args = [
         '-DLIBSYSTEMD_VERSION=' + libsystemd_dep.version(),
 ]
 
-# Build _journal extension module
-python.extension_module(
-        '_journal',
-        ['systemd/_journal.c', 'systemd/pyutil.c'],
-        dependencies: [libsystemd_dep],
-        c_args: common_c_args,
-        install: true,
-        subdir: 'systemd',
-)
+subdir('src')
 
-# Build _reader extension module
-python.extension_module(
-        '_reader',
-        ['systemd/_reader.c', 'systemd/pyutil.c', 'systemd/strv.c'],
-        dependencies: [libsystemd_dep],
-        c_args: common_c_args,
-        install: true,
-        subdir: 'systemd',
-)
-
-# Build _daemon extension module
-python.extension_module(
-        '_daemon',
-        ['systemd/_daemon.c', 'systemd/pyutil.c', 'systemd/util.c'],
-        dependencies: [libsystemd_dep],
-        c_args: common_c_args,
-        install: true,
-        subdir: 'systemd',
-)
-
-# Build id128 extension module
-python.extension_module(
-        'id128',
-        ['systemd/id128.c', 'systemd/pyutil.c'],
-        dependencies: [libsystemd_dep],
-        c_args: common_c_args,
-        install: true,
-        subdir: 'systemd',
-)
-
-# Build login extension module
-python.extension_module(
-        'login',
-        ['systemd/login.c', 'systemd/pyutil.c', 'systemd/strv.c'],
-        dependencies: [libsystemd_dep],
-        c_args: common_c_args,
-        install: true,
-        subdir: 'systemd',
-)
-
-# Install Python modules (matching py_modules in setup.py)
-python.install_sources(
-        'systemd/__init__.py',
-        'systemd/journal.py',
-        'systemd/daemon.py',
-        subdir: 'systemd',
-)
-
-# Install test modules
-python.install_sources(
-        'systemd/test/test_daemon.py',
-        'systemd/test/test_journal.py',
-        'systemd/test/test_login.py',
-        'systemd/test/test_id128.py',
-        subdir: 'systemd/test',
+run_target(
+        'update-constants',
+        command: [
+                python,
+                files('update-constants.py'),
+                '-i', libsystemd_dep.get_variable('includedir'),
+                '-s', meson.project_source_root() / 'systemd',
+        ],
 )
 
 # Run target to generate TAGS file for Emacs
 run_target(
-        'etags',
-        command: ['etags', '-R', '@SOURCE_ROOT@/systemd'],
+        'ctags',
+        command: ['ctags', '-R', '@SOURCE_ROOT@/systemd'],
 )
 
-# Use 'uv run' to ensure Sphinx and its dependencies are installed before being run.
-uv_prog = find_program('uv')
-
-# The '--no-editable' option tells uv to install the systemd package so that Sphinx can import it and extract docstrings.
 run_target(
         'doc',
         command: [
-                uv_prog,
-                'run',
-                '--group', 'docs',
-                '--no-editable',
+                python,
                 '-m', 'sphinx',
                 '-b', 'html',
                 '-D', 'version=' + meson.project_version(),
@@ -125,14 +63,10 @@ run_target(
         ],
 )
 
-# The '--no-editable' option tells uv to install the systemd package so tests can import it.
 test(
         'pytest',
-        uv_prog,
+        python,
         args: [
-                'run',
-                '--group', 'test',
-                '--no-editable',
                 '-m', 'pytest',
                 '../systemd/test',
         ],
@@ -165,5 +99,5 @@ run_target(
 # NOTE: Run 'sign' target before 'upload' to ensure the signature file exists.
 run_target(
         'upload',
-        command: ['uvx', 'twine', 'upload', archive, signature_filename],
+        command: [python, '-m', 'twine', 'upload', archive, signature_filename],
 )

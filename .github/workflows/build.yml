@@ -48,15 +48,18 @@ jobs:
           python-version: ${{ matrix.python }}
           architecture: x64
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
       - name: Install dependencies
         run: |
           sudo apt -y update
-          sudo apt -y install gcc libsystemd-dev
-          python -m pip install --break-system-packages pytest sphinx build
+          sudo apt -y install gcc libsystemd-dev universal-ctags
 
       - name: Build (Python ${{ matrix.python }})
         run: |
           set -x
-          python -m build -Cbuild-dir=_build
-          python -m pip install .
-          cd _build && python -m sphinx -b html -W -v ../docs html
+          uv build
+          uv sync --no-editable
+          cd _build
+          uv run --no-editable --group docs -m sphinx -b html -W -v ../docs html

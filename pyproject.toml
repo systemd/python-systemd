@@ -39,10 +39,24 @@ Documentation = "https://www.freedesktop.org/software/systemd/python-systemd/"
 [dependency-groups]
 test = ["pytest", "pytest-cov"]
 docs = ["sphinx"]
+build = [
+    "meson>=1.8.2",
+    "twine>=4.0.2",
+]
 
 [build-system]
 requires = ["meson-python", "ninja", "meson"]
 build-backend = "mesonpy"
+
+[tool.uv]
+package = true
+
+[tool.uv.config-settings]
+build-dir = "_build"
+
+[tool.uv.build-backend]
+module-name = "systemd"
+module-root = "src"
 
 [tool.coverage.run]
 source = ["systemd"]
