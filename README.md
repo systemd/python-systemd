@@ -133,7 +133,7 @@ Show kernel ring buffer (`journalctl -k`):
         print(entry['MESSAGE'])
 
 Read entries in reverse (`journalctl _EXE=/usr/bin/vim -r`):
-  
+
     from systemd import journal
     class ReverseReader(journal.Reader):
         def __next__(self):
@@ -199,8 +199,23 @@ Quick way to view output with all fields as it comes in:
 Test Builds (for Development)
 =============================
 
-    python setup.py build_ext -i
+Create a virtual environment:
+
+    python3 -m venv .venv
+    source .venv/bin/activate
+    python -m pip install build
+    python -m pip install .
     python
+    >>> import systemd.journal
+    >>> systemd.journal.send("Test")
+
+You can also build with [`uv`](https://docs.astral.sh/uv/).
+
+    uv build
+    uv sync --no-editable
+    # `--no-editable` is required, because `uv` seems not to work well with meson-python and cause
+    # "python not found" with editable mode.
+    uv run --no-editable python
     >>> from systemd import journal
     >>> journal.send("Test")
 
