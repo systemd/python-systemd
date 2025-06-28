@@ -34,20 +34,14 @@ common_c_args = [
 
 subdir('src')
 
-run_target(
-        'update-constants',
-        command: [
-                python,
-                files('update-constants.py'),
-                '-i', libsystemd_dep.get_variable('includedir'),
-                '-s', meson.project_source_root() / 'systemd',
+test(
+        'pytest',
+        python,
+        args: [
+                '-m', 'pytest',
+                meson.project_source_root() / 'src/systemd/test',
         ],
-)
-
-# Run target to generate TAGS file for Emacs
-run_target(
-        'ctags',
-        command: ['ctags', '-R', '@SOURCE_ROOT@/systemd'],
+        workdir: meson.project_build_root(),
 )
 
 run_target(
@@ -63,20 +57,31 @@ run_target(
         ],
 )
 
-test(
-        'pytest',
-        python,
-        args: [
-                '-m', 'pytest',
-                '../systemd/test',
+run_target(
+        'update-constants',
+        command: [
+                python,
+                files('update-constants.py'),
+                '-i', libsystemd_dep.get_variable('includedir'),
+                '-s', meson.project_source_root() / 'systemd',
         ],
-        workdir: meson.project_build_root(),
 )
+
+# Trick to keep Meson from demanding other tools to be available at building Python extention time.
+env_bin = find_program('env', required: false)
+
+# Run target to generate TAGS file for Emacs
+run_target(
+        'ctags',
+        command: [env_bin, 'ctags', '-R', '@SOURCE_ROOT@/src/systemd'],
+)
+
 
 # Sync built HTML docs to the remote server using rsync.
 run_target(
         'doc-sync',
         command: [
+                env_bin,
                 'rsync',
                 '-rlv',
                 '--delete',
@@ -93,7 +98,7 @@ signature_filename = 'systemd-python-' + version + '.tar.gz.asc'
 # Run target to sign the distribution tarball using GPG.
 run_target(
         'sign',
-        command: ['gpg', '--detach-sign', '-a', archive],
+        command: [env_bin, 'gpg', '--detach-sign', '-a', archive],
 )
 
 # NOTE: Run 'sign' target before 'upload' to ensure the signature file exists.

@@ -46,25 +46,23 @@ jobs:
               pkg-config
               python3
               systemd
-              rsync
-              wget
           )
 
           case "$DIST_ID" in
           arch)
-              pacman --noconfirm -Sy -u "${DEPS_COMMON[@]}" systemd-libs python-pip ctags gnupg
+              pacman --noconfirm -Sy -u "${DEPS_COMMON[@]}" systemd-libs python-pip
               ;;
           centos)
               dnf config-manager --set-enabled crb
               dnf install -y epel-release
-              dnf -y install "${DEPS_COMMON[@]}" systemd-devel python3-devel python3-pip ctags gnupg2
+              dnf -y install "${DEPS_COMMON[@]}" systemd-devel python3-devel python3-pip
               ;;
           fedora)
-              dnf -y install "${DEPS_COMMON[@]}" systemd-devel python3-devel python3-pip ctags gnupg2
+              dnf -y install "${DEPS_COMMON[@]}" systemd-devel python3-devel python3-pip
               ;;
           ubuntu|debian)
               apt -y update
-              DEBIAN_FRONTEND=noninteractive apt -y install "${DEPS_COMMON[@]}" libsystemd-dev python3-dev python3-pip universal-ctags gpg
+              DEBIAN_FRONTEND=noninteractive apt -y install "${DEPS_COMMON[@]}" libsystemd-dev python3-dev python3-pip
               ;;
           *)
               echo >&2 "Invalid distribution ID: $DISTRO_ID"
@@ -72,12 +70,12 @@ jobs:
           esac
 
           python3 -m pip install --break-system-packages build pytest
-          wget -qO- https://astral.sh/uv/install.sh | sh
 
       - name: Fix Git config to satisfy Meson
         run: git config --global safe.directory "*"
 
-      # Checkout repo after installing Git, or the GH Action delete our .git folder.
+      # Checkout repo after installing Git, or the "checkout" GH Action will download our source as non-Git repo, making Meson fail
+      # to build Python source dist.
       - name: Repository checkout
         uses: actions/checkout@v4
 
