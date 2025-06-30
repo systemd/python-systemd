@@ -2,7 +2,7 @@
 # vi: ts=2 sw=2 et:
 # SPDX-License-Identifier: LGPL-2.1-or-later
 #
-name: Install test
+name: Install then test
 on:
   pull_request:
   push:
@@ -24,16 +24,14 @@ jobs:
         container: [
             "archlinux:latest",
             "debian:testing",
-            "quay.io/centos/centos:stream8",
+            "quay.io/centos/centos:stream10",
             "quay.io/fedora/fedora:rawhide",
-            "ubuntu:focal",
+            "ubuntu:noble",
         ]
     container:
       image: ${{ matrix.container }}
     name: ${{ matrix.container }}
     steps:
-      - name: Repository checkout
-        uses: actions/checkout@v2
 
       - name: Install dependencies
         shell: bash
@@ -51,10 +49,14 @@ jobs:
 
           case "$DIST_ID" in
           arch)
-              pacman --noconfirm -Sy "${DEPS_COMMON[@]}" systemd-libs
-              python3 -m ensurepip
+              pacman --noconfirm -Sy -u "${DEPS_COMMON[@]}" systemd-libs python-pip
               ;;
-          centos|fedora)
+          centos)
+              dnf config-manager --set-enabled crb
+              dnf install -y epel-release
+              dnf -y install "${DEPS_COMMON[@]}" systemd-devel python3-devel python3-pip
+              ;;
+          fedora)
               dnf -y install "${DEPS_COMMON[@]}" systemd-devel python3-devel python3-pip
               ;;
           ubuntu|debian)
@@ -66,14 +68,22 @@ jobs:
               exit 1
           esac
 
-          python3 -m pip install pytest sphinx
+          python3 -m pip install -U --break-system-packages build pytest
 
-      - name: Build & install
+      - name: Fix Git config to satisfy Meson
+        run: git config --global safe.directory "*"
+
+      # Checkout repo after installing Git, or the "checkout" GH Action will download our source as non-Git repo, making Meson fail
+      # to build Python source dist.
+      - name: Repository checkout
+        uses: actions/checkout@v4
+
+      - name: Install & test
         shell: bash
         run: |
           set -x
-          python3 -m pip install -I -v .
-          # Avoid importing the systemd module from the git repository
-          cd /
+          git --version
+          python3 -m build
+          python3 -m pip install --break-system-packages .
           python3 -c 'from systemd import journal; print(journal.__version__)'
           pytest -v --pyargs systemd
