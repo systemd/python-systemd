@@ -15,8 +15,6 @@ classifiers = [
     "Operating System :: POSIX :: Linux",
     "Programming Language :: C",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
@@ -27,7 +25,7 @@ classifiers = [
     "Topic :: System :: Systems Administration",
 ]
 keywords = ["systemd", "journal", "logging", "daemon"]
-requires-python = ">=3.7"
+requires-python = ">=3.9"
 dependencies = []
 
 [project.urls]
@@ -45,7 +43,7 @@ build = [
 ]
 
 [build-system]
-requires = ["meson-python", "ninja", "meson"]
+requires = ["meson-python"]
 build-backend = "mesonpy"
 
 [tool.coverage.run]

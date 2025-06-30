@@ -19,8 +19,6 @@ jobs:
       matrix:
         os: ["ubuntu-22.04", "ubuntu-24.04"]
         python: [
-          "3.7",
-          "3.8",
           "3.9",
           "3.10",
           "3.11",
@@ -30,8 +28,6 @@ jobs:
         exclude:
           - os: "ubuntu-22.04"
             python: "3.13"
-          - os: "ubuntu-24.04"
-            python: "3.7"
     runs-on: ${{ matrix.os }}
     concurrency:
       group: ${{ github.workflow }}-${{ matrix.python }}-${{ matrix.os }}-${{ github.ref }}
@@ -53,19 +49,12 @@ jobs:
           sudo apt -y install gcc libsystemd-dev
           python -m pip install -U --break-system-packages pip build
 
-      - name: Install Sphinx (old pip)
-        if: ${{ matrix.python == '3.7' || matrix.python == '3.8' }}
-        run: python -m pip install sphinx
-
-      - name: Install Sphinx (new pip)
-        if: ${{ matrix.python != '3.7' && matrix.python != '3.8' }}
-        run: python -m pip install --group docs
-
       # Note: The `pip install --group` is available on pip v25+
       - name: Build (Python ${{ matrix.python }})
         run: |
           set -x
           python -m build -Cbuild-dir=build
+          python -m pip install --group docs
           python -m pip install .
           cd build
           python -m sphinx -b html -W -v ../docs html
