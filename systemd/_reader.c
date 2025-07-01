@@ -249,7 +249,6 @@ static int intlist_converter(PyObject* obj, int **_result, size_t *_len) {
 static void Reader_dealloc(Reader* self) {
         if (self->j) {
                 sd_journal_close(self->j);
-                self->j = NULL;
         }
         Py_TYPE(self)->tp_free((PyObject*)self);
 }
