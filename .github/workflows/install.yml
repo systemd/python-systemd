@@ -24,7 +24,7 @@ jobs:
         container: [
             "archlinux:latest",
             "debian:testing",
-            "quay.io/centos/centos:stream8",
+            "quay.io/centos/centos:stream9",
             "quay.io/fedora/fedora:rawhide",
             "ubuntu:focal",
         ]
@@ -33,7 +33,7 @@ jobs:
     name: ${{ matrix.container }}
     steps:
       - name: Repository checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install dependencies
         shell: bash
@@ -45,20 +45,25 @@ jobs:
               gcc
               git
               pkg-config
-              python3
               systemd
           )
 
           case "$DIST_ID" in
           arch)
+              pacman --noconfirm -Sy python3 || echo "Issue installing/upgrading python3"
+              pacman --noconfirm -Sy python-pip
+              python3 -m pip install --upgrade pip || echo "can't upgrade pip"
               pacman --noconfirm -Sy "${DEPS_COMMON[@]}" systemd-libs
-              python3 -m ensurepip
               ;;
           centos|fedora)
-              dnf -y install "${DEPS_COMMON[@]}" systemd-devel python3-devel python3-pip
+              dnf -y install python3 python3-devel python3-pip
+              python3 -m pip install --upgrade pip || echo "can't upgrade pip"
+              dnf -y install "${DEPS_COMMON[@]}" systemd-devel
               ;;
           ubuntu|debian)
               apt -y update
+              DEBIAN_FRONTEND=noninteractive apt -y install python3 python3-dev python3-pip
+              python3 -m pip install --upgrade pip || echo "can't upgrade pip"
               DEBIAN_FRONTEND=noninteractive apt -y install "${DEPS_COMMON[@]}" libsystemd-dev python3-dev python3-pip
               ;;
           *)
@@ -66,13 +71,13 @@ jobs:
               exit 1
           esac
 
-          python3 -m pip install pytest sphinx
+          python3 -m pip install --break-system-packages pytest sphinx
 
       - name: Build & install
         shell: bash
         run: |
           set -x
-          python3 -m pip install -I -v .
+          python3 -m pip install --break-system-packages -I -v .
           # Avoid importing the systemd module from the git repository
           cd /
           python3 -c 'from systemd import journal; print(journal.__version__)'
