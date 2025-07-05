@@ -76,10 +76,12 @@ login = Extension('systemd/login',
                                 'systemd/strv.c'],
                      extra_compile_args=['-std=c99', '-Werror=implicit-function-declaration'],
                      **lib('libsystemd', 'libsystemd-login', **defines))
+with open("README.md") as f:
+    long_description = f.read()
 setup (name = 'systemd-python',
        version = version,
        description = 'Python interface for libsystemd',
-       long_description=open("README.md").read(),
+       long_description=long_description,
        long_description_content_type="text/markdown",
        author_email = 'david@davidstrauss.net',
        maintainer = 'systemd developers',
