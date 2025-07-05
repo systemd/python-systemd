@@ -43,7 +43,7 @@ jobs:
         run: |
           sudo apt -y update
           sudo apt -y install gcc libsystemd-dev
-          python -m pip install pytest sphinx
+          python -m pip install --break-system-packages pytest sphinx
 
       - name: Build (Python ${{ matrix.python }})
         run: |
