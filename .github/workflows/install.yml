@@ -72,7 +72,7 @@ jobs:
         shell: bash
         run: |
           set -x
-          python3 -m pip install -I -v .
+          python3 -m pip install -I -v --break-system-packages .
           # Avoid importing the systemd module from the git repository
           cd /
           python3 -c 'from systemd import journal; print(journal.__version__)'
