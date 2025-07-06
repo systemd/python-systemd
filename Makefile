@@ -1,4 +1,4 @@
-PYTHON = python
+PYTHON = python3
 SED = sed
 ETAGS = etags
 INCLUDE_DIR := $(shell pkg-config --variable=includedir libsystemd)
