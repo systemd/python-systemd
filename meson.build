@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
 project(
         'python-systemd',
         'c',
@@ -18,5 +20,4 @@ common_c_args = [
         '-DLIBSYSTEMD_VERSION=@0@'.format(libsystemd_dep.version()),
 ]
 
-subdir('src')
-
+subdir('src/systemd')

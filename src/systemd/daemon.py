@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
 from socket import AF_UNSPEC as _AF_UNSPEC
 
 from ._daemon import (__version__,

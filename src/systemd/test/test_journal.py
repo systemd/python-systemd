@@ -1,4 +1,5 @@
-from __future__ import print_function
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
 import contextlib
 import datetime
 import errno

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
 # Build _journal extension module
 python.extension_module(
         '_journal',
@@ -49,7 +51,12 @@ python.extension_module(
 )
 
 # Install Python modules
-python.install_sources('__init__.py', 'journal.py', 'daemon.py', subdir: 'systemd')
+python.install_sources(
+        '__init__.py',
+        'journal.py',
+        'daemon.py',
+        subdir: 'systemd',
+)
 
 # Install test modules
 python.install_sources(
