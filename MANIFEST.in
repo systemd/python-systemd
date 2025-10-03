@@ -3,6 +3,5 @@ include README.md
 include NEWS
 include LICENSE.txt
 include Makefile
-include pytest.ini
 graft docs
 exclude docs/__pycache__/*
