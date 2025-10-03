@@ -185,9 +185,9 @@ Online documentation can be found at [freedesktop.org](https://www.freedesktop.o
 
 To build it locally run:
 
-    make sphinx-html
+    ninja -C build html
 
-Or use any other builder, see `man sphinx-build` for a list. The compiled docs will be e.g. in `docs/html`.
+Or use any other builder, see `man sphinx-build` for a list. The compiled docs will be e.g. in `build/html`.
 
 Viewing Output
 ==============
