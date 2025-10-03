@@ -18,5 +18,4 @@ common_c_args = [
         '-DLIBSYSTEMD_VERSION=@0@'.format(libsystemd_dep.version()),
 ]
 
-subdir('src')
-
+subdir('src/systemd')
