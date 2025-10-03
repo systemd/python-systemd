@@ -1,7 +1,0 @@
-include systemd/*.h
-include README.md
-include NEWS
-include LICENSE.txt
-include Makefile
-graft docs
-exclude docs/__pycache__/*
