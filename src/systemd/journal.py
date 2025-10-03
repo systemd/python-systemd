@@ -1,4 +1,3 @@
-#  -*- Mode: python; coding:utf-8; indent-tabs-mode: nil -*- */
 #
 #
 #  Copyright 2012 David Strauss <david@davidstrauss.net>

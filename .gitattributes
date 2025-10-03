@@ -1,0 +1,2 @@
+*.[ch] whitespace=tab-in-indent,trailing-space
+*.py whitespace=tab-in-indent,trailing-space
