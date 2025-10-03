@@ -17,8 +17,6 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with python-systemd; If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import division
-
 import sys as _sys
 import datetime as _datetime
 import uuid as _uuid
@@ -479,7 +477,6 @@ def stream(identifier=None, priority=LOG_INFO, level_prefix=False):
 
     This interface can be used conveniently with the print function:
 
-    >>> from __future__ import print_function
     >>> stream = journal.stream()                              # doctest: +SKIP
     >>> print('message...', file=stream)                       # doctest: +SKIP
 
