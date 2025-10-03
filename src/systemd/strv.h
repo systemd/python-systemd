@@ -1,9 +1,5 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
-/***
-  Copyright 2010 Lennart Poettering
-***/
-
 #include "macro.h"
 
 char **strv_free(char **l);

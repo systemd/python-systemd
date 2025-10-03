@@ -2,10 +2,6 @@
 
 #pragma once
 
-/***
-  Copyright 2010 Lennart Poettering
-***/
-
 #define DISABLE_WARNING_MISSING_PROTOTYPES                              \
         _Pragma("GCC diagnostic push");                                 \
         _Pragma("GCC diagnostic ignored \"-Wmissing-prototypes\"")

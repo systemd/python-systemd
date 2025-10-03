@@ -2,10 +2,6 @@
 
 #pragma once
 
-/***
-  Copyright 2010 Lennart Poettering
-***/
-
 #include <netinet/ip.h>
 #include <arpa/inet.h>
 
