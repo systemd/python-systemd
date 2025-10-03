@@ -57,3 +57,7 @@ exclude_lines = [
     "raise AssertionError",
     "raise NotImplementedError",
 ]
+
+[tool.pytest.ini_options]
+addopts = "--doctest-modules --doctest-glob=*.rst --ignore=setup.py"
+norecursedirs = ".git build"
