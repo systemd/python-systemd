@@ -1,0 +1,59 @@
+[project]
+name = "systemd-python"
+dynamic = ["version"]
+description = "Python interface for libsystemd"
+readme = "README.md"
+license = { text = "LGPL-2.1-or-later" }
+authors = [{ email = "david@davidstrauss.net" }]
+maintainers = [
+    { name = "systemd developers", email = "systemd-devel@lists.freedesktop.org" },
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: C",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Logging",
+    "Topic :: System :: Systems Administration",
+]
+keywords = ["systemd", "journal", "logging", "daemon"]
+requires-python = ">=3.9"
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/systemd/python-systemd"
+Repository = "https://github.com/systemd/python-systemd.git"
+Issues = "https://github.com/systemd/python-systemd/issues"
+Documentation = "https://www.freedesktop.org/software/systemd/python-systemd/"
+
+[dependency-groups]
+test = ["pytest", "pytest-cov"]
+docs = ["sphinx"]
+build = [
+    "meson>=1.8.2",
+    "twine>=4.0.2",
+]
+
+[build-system]
+requires = ["meson-python"]
+build-backend = "mesonpy"
+
+[tool.coverage.run]
+source = ["systemd"]
+omit = ["systemd/test/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+]

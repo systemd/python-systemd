@@ -199,7 +199,8 @@ Quick way to view output with all fields as it comes in:
 Test Builds (for Development)
 =============================
 
-    python setup.py build_ext -i
+    python -m build
+    python -m pip install .
     python
     >>> from systemd import journal
     >>> journal.send("Test")
