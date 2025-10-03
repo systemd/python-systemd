@@ -1,7 +1,7 @@
-.. python-systemd documentation master file, created by
+.. SPDX-License-Identifier: LGPL-2.1-or-later
+
+.. python-systemd documentation main file, created by
    sphinx-quickstart on Sat Feb  9 13:49:42 2013.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
 
 .. _index:
 

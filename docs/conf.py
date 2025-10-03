@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: LGPL-2.1-or-later
+
 # -*- coding: utf-8 -*-
 #
 # python-systemd documentation build configuration file, created by
