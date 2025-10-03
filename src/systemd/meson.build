@@ -66,3 +66,15 @@ python.install_sources(
         'test/test_id128.py',
         subdir: 'systemd/test',
 )
+
+include_dir = libsystemd_dep.get_variable(pkgconfig: 'includedir')
+
+update_constants = custom_target(
+        output: 'update-constants-impl',
+        command: [
+                update_constants_py,
+                meson.current_source_dir() / 'id128-constants.h',
+                meson.project_source_root() / 'docs/id128.rst',
+                meson.current_source_dir() / 'id128-defines.h',
+                include_dir / 'systemd/sd-messages.h',
+        ])

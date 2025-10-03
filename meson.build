@@ -20,4 +20,8 @@ common_c_args = [
         '-DLIBSYSTEMD_VERSION=@0@'.format(libsystemd_dep.version()),
 ]
 
+update_constants_py = files('update-constants.py')
+
 subdir('src/systemd')
+
+alias_target('update-constants', update_constants)
