@@ -1,9 +1,5 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
-/***
-  Copyright 2013 Steven Hiscocks
-***/
-
 #define PY_SSIZE_T_CLEAN
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wredundant-decls"
