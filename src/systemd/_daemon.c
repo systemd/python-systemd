@@ -1,9 +1,5 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
-/***
-  Copyright 2013-2016 Zbigniew Jędrzejewski-Szmek <zbyszek@in.waw.pl>
-***/
-
 #define PY_SSIZE_T_CLEAN
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wredundant-decls"
