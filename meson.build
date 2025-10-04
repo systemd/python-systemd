@@ -21,3 +21,17 @@ common_c_args = [
 ]
 
 subdir('src/systemd')
+
+# Docs
+sphinx_build = find_program('sphinx-build', disabler: true, required: get_option('docs'))
+if get_option('docs')
+        sphinx_args = ['-Dversion=' + meson.project_version(), '-Drelease=' + meson.project_version()]
+        input_dir = meson.current_source_dir() / 'docs'
+        output_dir = meson.current_build_dir() / 'html'
+        output_file = output_dir / 'index.html'
+        custom_target('build-docs',
+                output: 'index.html',
+                input: files('docs/conf.py'),
+                command: [sphinx_build, '-b', 'html', sphinx_args, input_dir, output_dir],
+        )
+endif
