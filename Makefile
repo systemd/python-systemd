@@ -11,20 +11,6 @@ BUILD_DIR = build
 
 all: build
 
-.PHONY: update-constants
-update-constants: update-constants.py $(INCLUDE_DIR)/systemd/sd-messages.h
-	$(PYTHON) $+ src/systemd/id128-defines.h | \
-	  sort -u | \
-	  tee src/systemd/id128-defines.h.tmp | \
-	  $(SED) -n -r 's/,//g; s/#define (SD_MESSAGE_[A-Z0-9_]+)\s.*/add_id(m, "\1", \1) JOINER/p' | \
-	  sort -u > src/systemd/id128-constants.h.tmp
-	mv src/systemd/id128-defines.h{.tmp,}
-	mv src/systemd/id128-constants.h{.tmp,}
-	($(SED) 9q <docs/id128.rst && \
-	  sed -n -r 's/#define (SD_MESSAGE_[A-Z0-9_]+) .*/   .. autoattribute:: systemd.id128.\1/p' \
-	  src/systemd/id128-defines.h) >docs/id128.rst.tmp
-	mv docs/id128.rst{.tmp,}
-
 build:
 	$(PYTHON) -m build -Cbuild-dir=$(BUILD_DIR)
 
