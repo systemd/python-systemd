@@ -1,9 +1,5 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
-/***
-  Copyright 2013 Zbigniew Jędrzejewski-Szmek <zbyszek@in.waw.pl>
-***/
-
 #include <Python.h>
 
 /* Our include is first, so that our defines are replaced by the ones

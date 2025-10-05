@@ -1,8 +1,4 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
-#
-#  Copyright 2012 David Strauss <david@davidstrauss.net>
-#  Copyright 2012 Zbigniew Jędrzejewski-Szmek <zbyszek@in.waw.pl>
-#  Copyright 2012 Marti Raudsepp <marti@juffo.org>
 
 import sys as _sys
 import datetime as _datetime

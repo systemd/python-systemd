@@ -1,7 +1,4 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
-/***
-  Copyright 2010 Lennart Poettering
-***/
 
 /* stuff imported from systemd without any changes */
 

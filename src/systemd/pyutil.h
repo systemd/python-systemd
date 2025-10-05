@@ -2,10 +2,6 @@
 
 #pragma once
 
-/***
-  Copyright 2013 Zbigniew Jędrzejewski-Szmek <zbyszek@in.waw.pl>
-***/
-
 #ifndef Py_TYPE
 /* avoid duplication warnings from errors in Python 2.7 headers */
 # include <Python.h>
