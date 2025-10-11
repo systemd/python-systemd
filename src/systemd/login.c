@@ -106,10 +106,10 @@ PyDoc_STRVAR(uids__doc__,
 );
 
 static PyMethodDef methods[] = {
-        { "seats", seats, METH_NOARGS, seats__doc__},
-        { "sessions", sessions, METH_NOARGS, sessions__doc__},
-        { "machine_names", machine_names, METH_NOARGS, machine_names__doc__},
-        { "uids", uids, METH_NOARGS, uids__doc__},
+        { "seats",         seats,         METH_NOARGS, seats__doc__         },
+        { "sessions",      sessions,      METH_NOARGS, sessions__doc__      },
+        { "machine_names", machine_names, METH_NOARGS, machine_names__doc__ },
+        { "uids",          uids,          METH_NOARGS, uids__doc__          },
         {} /* Sentinel */
 };
 
@@ -289,14 +289,14 @@ static PyObject* Monitor___exit__(Monitor *self, PyObject *args) {
 
 
 static PyMethodDef Monitor_methods[] = {
-        {"fileno",          (PyCFunction) Monitor_fileno, METH_NOARGS, Monitor_fileno__doc__},
-        {"get_events",      (PyCFunction) Monitor_get_events, METH_NOARGS, Monitor_get_events__doc__},
-        {"get_timeout",     (PyCFunction) Monitor_get_timeout, METH_NOARGS, Monitor_get_timeout__doc__},
-        {"get_timeout_ms",  (PyCFunction) Monitor_get_timeout_ms, METH_NOARGS, Monitor_get_timeout_ms__doc__},
-        {"close",           (PyCFunction) Monitor_close, METH_NOARGS, Monitor_close__doc__},
-        {"flush",           (PyCFunction) Monitor_flush, METH_NOARGS, Monitor_flush__doc__},
-        {"__enter__",       (PyCFunction) Monitor___enter__, METH_NOARGS, Monitor___enter____doc__},
-        {"__exit__",        (PyCFunction) Monitor___exit__, METH_VARARGS, Monitor___exit____doc__},
+        { "fileno",          (PyCFunction) Monitor_fileno,         METH_NOARGS,  Monitor_fileno__doc__         },
+        { "get_events",      (PyCFunction) Monitor_get_events,     METH_NOARGS,  Monitor_get_events__doc__     },
+        { "get_timeout",     (PyCFunction) Monitor_get_timeout,    METH_NOARGS,  Monitor_get_timeout__doc__    },
+        { "get_timeout_ms",  (PyCFunction) Monitor_get_timeout_ms, METH_NOARGS,  Monitor_get_timeout_ms__doc__ },
+        { "close",           (PyCFunction) Monitor_close,          METH_NOARGS,  Monitor_close__doc__          },
+        { "flush",           (PyCFunction) Monitor_flush,          METH_NOARGS,  Monitor_flush__doc__          },
+        { "__enter__",       (PyCFunction) Monitor___enter__,      METH_NOARGS,  Monitor___enter____doc__      },
+        { "__exit__",        (PyCFunction) Monitor___exit__,       METH_VARARGS, Monitor___exit____doc__       },
         {}  /* Sentinel */
 };
 

@@ -126,10 +126,10 @@ static PyObject *get_machine_app_specific(PyObject *self _unused_, PyObject *arg
 }
 
 static PyMethodDef methods[] = {
-        { "randomize", randomize, METH_NOARGS, randomize__doc__},
-        { "get_machine", get_machine, METH_NOARGS, get_machine__doc__},
-        { "get_machine_app_specific", get_machine_app_specific, METH_O, get_machine_app_specific__doc__},
-        { "get_boot", get_boot, METH_NOARGS, get_boot__doc__},
+        { "randomize",                randomize,                METH_NOARGS, randomize__doc__                },
+        { "get_machine",              get_machine,              METH_NOARGS, get_machine__doc__              },
+        { "get_machine_app_specific", get_machine_app_specific, METH_O,      get_machine_app_specific__doc__ },
+        { "get_boot",                 get_boot,                 METH_NOARGS, get_boot__doc__                 },
         {}        /* Sentinel */
 };
 

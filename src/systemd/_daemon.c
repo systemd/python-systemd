@@ -411,17 +411,17 @@ static PyObject* is_socket_unix(PyObject *self _unused_, PyObject *args) {
 
 
 static PyMethodDef methods[] = {
-        { "booted", booted, METH_NOARGS, booted__doc__},
-        { "notify", (PyCFunction) notify, METH_VARARGS | METH_KEYWORDS, notify__doc__},
-        { "_listen_fds", (PyCFunction) listen_fds, METH_VARARGS | METH_KEYWORDS, listen_fds__doc__},
+        { "booted",                 booted,                   METH_NOARGS,                  booted__doc__                },
+        { "notify",                 (PyCFunction) notify,     METH_VARARGS | METH_KEYWORDS, notify__doc__                },
+        { "_listen_fds",            (PyCFunction) listen_fds, METH_VARARGS | METH_KEYWORDS, listen_fds__doc__            },
         { "_listen_fds_with_names", (PyCFunction) listen_fds_with_names,
-                METH_VARARGS | METH_KEYWORDS, listen_fds_with_names__doc__},
-        { "_is_fifo", is_fifo, METH_VARARGS, is_fifo__doc__},
-        { "_is_mq", is_mq, METH_VARARGS, is_mq__doc__},
-        { "_is_socket", is_socket, METH_VARARGS, is_socket__doc__},
-        { "_is_socket_inet", is_socket_inet, METH_VARARGS, is_socket_inet__doc__},
-        { "_is_socket_sockaddr", is_socket_sockaddr, METH_VARARGS, is_socket_sockaddr__doc__},
-        { "_is_socket_unix", is_socket_unix, METH_VARARGS, is_socket_unix__doc__},
+                                                              METH_VARARGS | METH_KEYWORDS, listen_fds_with_names__doc__ },
+        { "_is_fifo",               is_fifo,                  METH_VARARGS,                 is_fifo__doc__               },
+        { "_is_mq",                 is_mq,                    METH_VARARGS,                 is_mq__doc__                 },
+        { "_is_socket",             is_socket,                METH_VARARGS,                 is_socket__doc__             },
+        { "_is_socket_inet",        is_socket_inet,           METH_VARARGS,                 is_socket_inet__doc__        },
+        { "_is_socket_sockaddr",    is_socket_sockaddr,       METH_VARARGS,                 is_socket_sockaddr__doc__    },
+        { "_is_socket_unix",        is_socket_unix,           METH_VARARGS,                 is_socket_unix__doc__        },
         {}        /* Sentinel */
 };
 

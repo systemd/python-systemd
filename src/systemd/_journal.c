@@ -90,7 +90,7 @@ static PyObject* journal_stream_fd(PyObject *self _unused_, PyObject *args) {
 }
 
 static PyMethodDef methods[] = {
-        { "sendv",  journal_sendv, METH_VARARGS, journal_sendv__doc__ },
+        { "sendv",     journal_sendv,     METH_VARARGS, journal_sendv__doc__     },
         { "stream_fd", journal_stream_fd, METH_VARARGS, journal_stream_fd__doc__ },
         {}        /* Sentinel */
 };
