@@ -492,7 +492,7 @@ PyDoc_STRVAR(Reader_next__doc__,
              "the `skip`\\-th log entry.\n"
              "Returns False if at end of file, True otherwise.");
 static PyObject* Reader_next(Reader *self, PyObject *args) {
-        int64_t skip = 1LL;
+        int64_t skip = 1;
         int r = -EUCLEAN;
 
         assert(self);
@@ -500,19 +500,19 @@ static PyObject* Reader_next(Reader *self, PyObject *args) {
         if (!PyArg_ParseTuple(args, "|L:next", &skip))
                 return NULL;
 
-        if (skip == 0LL) {
+        if (skip == 0) {
                 PyErr_SetString(PyExc_ValueError, "skip must be nonzero");
                 return NULL;
         }
 
         Py_BEGIN_ALLOW_THREADS
-        if (skip == 1LL)
+        if (skip == 1)
                 r = sd_journal_next(self->j);
-        else if (skip == -1LL)
+        else if (skip == -1)
                 r = sd_journal_previous(self->j);
-        else if (skip > 1LL)
+        else if (skip > 1)
                 r = sd_journal_next_skip(self->j, skip);
-        else if (skip < -1LL)
+        else if (skip < -1)
                 r = sd_journal_previous_skip(self->j, -skip);
         else
                 assert(!"should be here");
