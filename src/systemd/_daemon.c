@@ -410,6 +410,7 @@ static PyObject* is_socket_unix(PyObject *self _unused_, PyObject *args) {
 }
 
 
+DISABLE_WARNING_CAST_FUNCTION_TYPE;
 static PyMethodDef methods[] = {
         { "booted",                 booted,                   METH_NOARGS,                  booted__doc__                },
         { "notify",                 (PyCFunction) notify,     METH_VARARGS | METH_KEYWORDS, notify__doc__                },
@@ -424,6 +425,7 @@ static PyMethodDef methods[] = {
         { "_is_socket_unix",        is_socket_unix,           METH_VARARGS,                 is_socket_unix__doc__        },
         {}        /* Sentinel */
 };
+REENABLE_WARNING;
 
 static struct PyModuleDef module = {
         PyModuleDef_HEAD_INIT,
