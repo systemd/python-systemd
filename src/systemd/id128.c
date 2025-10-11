@@ -79,7 +79,7 @@ static PyObject* make_uuid(sd_id128_t id) {
                 r = sd_id128_##name(&id);                                \
                 if (r < 0) {                                             \
                         errno = -r;                                      \
-                        return PyErr_SetFromErrno(PyExc_IOError);        \
+                        return PyErr_SetFromErrno(PyExc_OSError);        \
                 }                                                        \
                                                                          \
                 return make_uuid(id);                                    \
@@ -114,7 +114,7 @@ static PyObject *get_machine_app_specific(PyObject *self _unused_, PyObject *arg
         PyBuffer_Release(&buffer);
         if (r < 0) {
                 errno = -r;
-                return PyErr_SetFromErrno(PyExc_IOError);
+                return PyErr_SetFromErrno(PyExc_OSError);
         }
 
         return make_uuid(app_id);

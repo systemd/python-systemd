@@ -24,7 +24,7 @@ static PyObject* name(PyObject *self _unused_, PyObject *args) {        \
         r = sd_get_##name(&list);                                       \
         if (r < 0) {                                                    \
                 errno = -r;                                             \
-                return PyErr_SetFromErrno(PyExc_IOError);               \
+                return PyErr_SetFromErrno(PyExc_OSError);               \
         }                                                               \
                                                                         \
         PyObject *ans = PyList_New(r);                                  \
@@ -58,7 +58,7 @@ static PyObject* uids(PyObject *self _unused_, PyObject *args) {
         r = sd_get_uids(&list);
         if (r < 0) {
                 errno = -r;
-                return PyErr_SetFromErrno(PyExc_IOError);
+                return PyErr_SetFromErrno(PyExc_OSError);
         }
 
         PyObject *ans = PyList_New(r);

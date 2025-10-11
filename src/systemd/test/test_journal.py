@@ -47,7 +47,7 @@ class MockSender:
 def skip_oserror(code):
     try:
         yield
-    except (OSError, IOError) as e:
+    except OSError as e:
         if e.errno == code:
             pytest.skip()
         raise

@@ -48,7 +48,7 @@ static PyObject* journal_sendv(PyObject *self _unused_, PyObject *args) {
         r = sd_journal_sendv(iov, argc);
         if (r < 0) {
                 errno = -r;
-                PyErr_SetFromErrno(PyExc_IOError);
+                PyErr_SetFromErrno(PyExc_OSError);
                 goto out;
         }
 
@@ -80,7 +80,7 @@ static PyObject* journal_stream_fd(PyObject *self _unused_, PyObject *args) {
         fd = sd_journal_stream_fd(identifier, priority, level_prefix);
         if (fd < 0) {
                 errno = -fd;
-                return PyErr_SetFromErrno(PyExc_IOError);
+                return PyErr_SetFromErrno(PyExc_OSError);
         }
 
         return PyLong_FromLong(fd);
