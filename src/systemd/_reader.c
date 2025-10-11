@@ -108,21 +108,20 @@ static int null_converter(PyObject* obj, void *_result) {
  */
 static int strv_converter(PyObject* obj, void *_result) {
         char ***result = _result;
-        Py_ssize_t i, len;
 
         assert(result);
 
         if (!PySequence_Check(obj))
                 return 0;
 
-        len = PySequence_Length(obj);
+        Py_ssize_t len = PySequence_Length(obj);
         *result = new0(char*, len + 1);
         if (!*result) {
                 set_error(-ENOMEM, NULL, NULL);
                 return 0;
         }
 
-        for (i = 0; i < len; i++) {
+        for (Py_ssize_t i = 0; i < len; i++) {
                 PyObject *item;
                 _cleanup_Py_DECREF_ PyObject *bytes = NULL;
                 char *s;
@@ -168,23 +167,21 @@ static int long_as_fd(PyObject *obj, int *fd) {
  * Convert a Python sequence object into an int array.
  */
 static int intlist_converter(PyObject* obj, int **_result, size_t *_len) {
-        _cleanup_free_ int *result = NULL;
-        Py_ssize_t i, len;
-
         assert(_result);
         assert(_len);
 
         if (!PySequence_Check(obj))
                 return 0;
 
-        len = PySequence_Length(obj);
-        result = new0(int, len);
+        Py_ssize_t len = PySequence_Length(obj);
+        _cleanup_free_ int *result = new0(int, len);
+
         if (!result) {
                 set_error(-ENOMEM, NULL, NULL);
                 return 0;
         }
 
-        for (i = 0; i < len; i++) {
+        for (Py_ssize_t i = 0; i < len; i++) {
                 PyObject *item;
                 int fd;
 

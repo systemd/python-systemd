@@ -18,7 +18,6 @@ PyDoc_STRVAR(module__doc__,
 static PyObject* name(PyObject *self _unused_, PyObject *args) {        \
         _cleanup_strv_free_ char **list = NULL;                         \
         int r;                                                          \
-        PyObject *ans;                                                  \
                                                                         \
         assert(!args);                                                  \
                                                                         \
@@ -28,7 +27,7 @@ static PyObject* name(PyObject *self _unused_, PyObject *args) {        \
                 return PyErr_SetFromErrno(PyExc_IOError);               \
         }                                                               \
                                                                         \
-        ans = PyList_New(r);                                            \
+        PyObject *ans = PyList_New(r);                                  \
         if (!ans)                                                       \
                 return NULL;                                            \
                                                                         \
@@ -53,7 +52,6 @@ helper(machine_names)
 static PyObject* uids(PyObject *self _unused_, PyObject *args) {
         _cleanup_free_ uid_t *list = NULL;
         int r;
-        PyObject *ans;
 
         assert(!args);
 
@@ -63,7 +61,7 @@ static PyObject* uids(PyObject *self _unused_, PyObject *args) {
                 return PyErr_SetFromErrno(PyExc_IOError);
         }
 
-        ans = PyList_New(r);
+        PyObject *ans = PyList_New(r);
         if (!ans)
                 return NULL;
 
@@ -121,7 +119,7 @@ typedef struct {
 static PyTypeObject MonitorType;
 
 static void Monitor_dealloc(Monitor* self) {
-        sd_login_monitor_unref(self->monitor);
+        self->monitor = sd_login_monitor_unref(self->monitor);
         Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
@@ -241,8 +239,7 @@ static PyObject* Monitor_close(Monitor *self, PyObject *args) {
         assert(self);
         assert(!args);
 
-        sd_login_monitor_unref(self->monitor);
-        self->monitor = NULL;
+        self->monitor = sd_login_monitor_unref(self->monitor);
         Py_RETURN_NONE;
 }
 

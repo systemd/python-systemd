@@ -15,21 +15,18 @@ PyDoc_STRVAR(journal_sendv__doc__,
 );
 
 static PyObject* journal_sendv(PyObject *self _unused_, PyObject *args) {
-        struct iovec *iov = NULL;
-        int argc;
-        int i, r;
         PyObject *ret = NULL;
-        PyObject **encoded;
+        int r;
 
         /* Allocate an array for the argument strings */
-        argc = PyTuple_Size(args);
-        encoded = alloca0(argc * sizeof(PyObject*));
+        int argc = PyTuple_Size(args);
+        PyObject **encoded = alloca0(argc * sizeof(PyObject*));
 
         /* Allocate sufficient iovector space for the arguments. */
-        iov = alloca(argc * sizeof(struct iovec));
+        struct iovec *iov = alloca(argc * sizeof(struct iovec));
 
         /* Iterate through the Python arguments and fill the iovector. */
-        for (i = 0; i < argc; ++i) {
+        for (int i = 0; i < argc; ++i) {
                 PyObject *item = PyTuple_GetItem(args, i);
                 char *stritem;
                 Py_ssize_t length;
@@ -60,7 +57,7 @@ static PyObject* journal_sendv(PyObject *self _unused_, PyObject *args) {
         ret = Py_None;
 
 out:
-        for (i = 0; i < argc; ++i)
+        for (int i = 0; i < argc; i++)
                 Py_XDECREF(encoded[i]);
 
         return ret;
