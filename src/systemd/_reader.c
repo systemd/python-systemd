@@ -337,6 +337,9 @@ PyDoc_STRVAR(Reader_fileno__doc__,
 static PyObject* Reader_fileno(Reader *self, PyObject *args) {
         int fd;
 
+        assert(self);
+        assert(!args);
+
         fd = sd_journal_get_fd(self->j);
         set_error(fd, NULL, NULL);
         if (fd < 0)
@@ -352,6 +355,9 @@ PyDoc_STRVAR(Reader_reliable_fd__doc__,
 static PyObject* Reader_reliable_fd(Reader *self, PyObject *args) {
         int r;
 
+        assert(self);
+        assert(!args);
+
         r = sd_journal_reliable_fd(self->j);
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
@@ -365,6 +371,9 @@ PyDoc_STRVAR(Reader_get_events__doc__,
              "See :manpage:`sd_journal_get_events(3)` for further discussion.");
 static PyObject* Reader_get_events(Reader *self, PyObject *args) {
         int r;
+
+        assert(self);
+        assert(!args);
 
         r = sd_journal_get_events(self->j);
         if (set_error(r, NULL, NULL) < 0)
@@ -383,6 +392,9 @@ PyDoc_STRVAR(Reader_get_timeout__doc__,
 static PyObject* Reader_get_timeout(Reader *self, PyObject *args) {
         int r;
         uint64_t t;
+
+        assert(self);
+        assert(!args);
 
         r = sd_journal_get_timeout(self->j, &t);
         if (set_error(r, NULL, NULL) < 0)
@@ -403,6 +415,9 @@ PyDoc_STRVAR(Reader_get_timeout_ms__doc__,
 static PyObject* Reader_get_timeout_ms(Reader *self, PyObject *args) {
         int r;
         uint64_t t;
+
+        assert(self);
+        assert(!args);
 
         r = sd_journal_get_timeout(self->j, &t);
         if (set_error(r, NULL, NULL) < 0)
@@ -438,6 +453,9 @@ static PyObject* Reader_get_usage(Reader *self, PyObject *args) {
         int r;
         uint64_t bytes;
 
+        assert(self);
+        assert(!args);
+
         r = sd_journal_get_usage(self->j, &bytes);
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
@@ -462,7 +480,9 @@ PyDoc_STRVAR(Reader___exit____doc__,
              "__exit__(type, value, traceback) -> None\n\n"
              "Part of the context manager protocol.\n"
              "Closes the journal.\n");
-static PyObject* Reader___exit__(Reader *self, PyObject *args) {
+static PyObject* Reader___exit__(Reader *self, PyObject *args _unused_) {
+        assert(self);
+
         return Reader_close(self, NULL);
 }
 
@@ -474,6 +494,8 @@ PyDoc_STRVAR(Reader_next__doc__,
 static PyObject* Reader_next(Reader *self, PyObject *args) {
         int64_t skip = 1LL;
         int r = -EUCLEAN;
+
+        assert(self);
 
         if (!PyArg_ParseTuple(args, "|L:next", &skip))
                 return NULL;
@@ -589,6 +611,9 @@ static PyObject* Reader_get_all(Reader *self, PyObject *args) {
         const void *msg;
         size_t msg_len;
         int r;
+
+        assert(self);
+        assert(!args);
 
         dict = PyDict_New();
         if (!dict)
@@ -706,6 +731,7 @@ static PyObject* Reader_add_match(Reader *self, PyObject *args, PyObject *keywds
         char *match;
         Py_ssize_t match_len;
         int r;
+
         if (!PyArg_ParseTuple(args, "s#:add_match", &match, &match_len))
                 return NULL;
 
@@ -729,6 +755,10 @@ PyDoc_STRVAR(Reader_add_disjunction__doc__,
              "See :manpage:`sd_journal_add_disjunction(3)` for explanation.");
 static PyObject* Reader_add_disjunction(Reader *self, PyObject *args) {
         int r;
+
+        assert(self);
+        assert(!args);
+
         r = sd_journal_add_disjunction(self->j);
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
@@ -743,6 +773,10 @@ PyDoc_STRVAR(Reader_add_conjunction__doc__,
              "See :manpage:`sd_journal_add_disjunction(3)` for explanation.");
 static PyObject* Reader_add_conjunction(Reader *self, PyObject *args) {
         int r;
+
+        assert(self);
+        assert(!args);
+
         r = sd_journal_add_conjunction(self->j);
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
@@ -753,6 +787,9 @@ PyDoc_STRVAR(Reader_flush_matches__doc__,
              "flush_matches() -> None\n\n"
              "Clear all current match filters.");
 static PyObject* Reader_flush_matches(Reader *self, PyObject *args) {
+        assert(self);
+        assert(!args);
+
         sd_journal_flush_matches(self->j);
         Py_RETURN_NONE;
 }
@@ -764,6 +801,10 @@ PyDoc_STRVAR(Reader_seek_head__doc__,
              "See :manpage:`sd_journal_seek_head(3)`.");
 static PyObject* Reader_seek_head(Reader *self, PyObject *args) {
         int r;
+
+        assert(self);
+        assert(!args);
+
         Py_BEGIN_ALLOW_THREADS
         r = sd_journal_seek_head(self->j);
         Py_END_ALLOW_THREADS
@@ -782,6 +823,9 @@ PyDoc_STRVAR(Reader_seek_tail__doc__,
 static PyObject* Reader_seek_tail(Reader *self, PyObject *args) {
         int r;
 
+        assert(self);
+        assert(!args);
+
         Py_BEGIN_ALLOW_THREADS
         r = sd_journal_seek_tail(self->j);
         Py_END_ALLOW_THREADS
@@ -798,6 +842,8 @@ PyDoc_STRVAR(Reader_seek_realtime__doc__,
 static PyObject* Reader_seek_realtime(Reader *self, PyObject *args) {
         uint64_t timestamp;
         int r;
+
+        assert(self);
 
         if (!PyArg_ParseTuple(args, "K:seek_realtime", &timestamp))
                 return NULL;
@@ -823,6 +869,8 @@ static PyObject* Reader_seek_monotonic(Reader *self, PyObject *args) {
         uint64_t timestamp;
         sd_id128_t id;
         int r;
+
+        assert(self);
 
         if (!PyArg_ParseTuple(args, "K|z:seek_monotonic", &timestamp, &bootid))
                 return NULL;
@@ -1061,6 +1109,9 @@ PyDoc_STRVAR(Reader_enumerate_fields__doc__,
              "Return a set of field names appearing in the journal.\n"
              "See sd_journal_enumerate_fields(3).");
 static PyObject* Reader_enumerate_fields(Reader *self, PyObject *args) {
+        assert(self);
+        assert(!args);
+
 #if HAVE_ENUMERATE_FIELDS
         _cleanup_Py_DECREF_ PyObject *_value_set = NULL;
         PyObject *value_set;
@@ -1103,6 +1154,9 @@ PyDoc_STRVAR(Reader_has_runtime_files__doc__,
              "Returns true if runtime journal files have been found.\n\n"
              "See :manpage:`sd_journal_test_cursor(3)`.");
 static PyObject* Reader_has_runtime_files(Reader *self, PyObject *args) {
+        assert(self);
+        assert(!args);
+
 #if HAVE_ENUMERATE_FIELDS
         int r;
 
@@ -1124,6 +1178,9 @@ PyDoc_STRVAR(Reader_has_persistent_files__doc__,
              "Returns true if persistent journal files have been found.\n\n"
              "See :manpage:`sd_journal_test_cursor(3)`.");
 static PyObject* Reader_has_persistent_files(Reader *self, PyObject *args) {
+        assert(self);
+        assert(!args);
+
 #if HAVE_ENUMERATE_FIELDS
         int r;
 
@@ -1185,7 +1242,7 @@ PyDoc_STRVAR(get_catalog__doc__,
              "get_catalog(id128) -> str\n\n"
              "Retrieve a message catalog entry for the given id.\n"
              "Wraps :manpage:`sd_journal_get_catalog_for_message_id(3)`.");
-static PyObject* get_catalog(PyObject *self, PyObject *args) {
+static PyObject* get_catalog(PyObject *self _unused_, PyObject *args) {
         int r;
         char *id_ = NULL;
         sd_id128_t id;
@@ -1215,9 +1272,11 @@ PyDoc_STRVAR(data_threshold__doc__,
              "Fields longer than this will be truncated to the threshold size.\n"
              "Defaults to 64Kb.");
 
-static PyObject* Reader_get_data_threshold(Reader *self, void *closure) {
+static PyObject* Reader_get_data_threshold(Reader *self, void *closure _unused_) {
         size_t cvalue;
         int r;
+
+        assert(self);
 
         r = sd_journal_get_data_threshold(self->j, &cvalue);
         if (set_error(r, NULL, NULL) < 0)
@@ -1226,8 +1285,10 @@ static PyObject* Reader_get_data_threshold(Reader *self, void *closure) {
         return long_FromSize_t(cvalue);
 }
 
-static int Reader_set_data_threshold(Reader *self, PyObject *value, void *closure) {
+static int Reader_set_data_threshold(Reader *self, PyObject *value, void *closure _unused_) {
         int r;
+
+        assert(self);
 
         if (!value) {
                 PyErr_SetString(PyExc_AttributeError, "Cannot delete data threshold");
@@ -1245,7 +1306,9 @@ static int Reader_set_data_threshold(Reader *self, PyObject *value, void *closur
 
 PyDoc_STRVAR(closed__doc__,
              "True iff journal is closed");
-static PyObject* Reader_get_closed(Reader *self, void *closure) {
+static PyObject* Reader_get_closed(Reader *self, void *closure _unused_) {
+        assert(self);
+
         return PyBool_FromLong(!self->j);
 }
 

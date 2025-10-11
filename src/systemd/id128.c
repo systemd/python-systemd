@@ -69,27 +69,27 @@ static PyObject* make_uuid(sd_id128_t id) {
         return PyObject_Call(UUID, args, kwargs);
 }
 
-#define helper(name)                                                    \
-        static PyObject *name(PyObject *self, PyObject *args) {         \
-                sd_id128_t id;                                          \
-                int r;                                                  \
-                                                                        \
-                assert(!args);                                          \
-                                                                        \
-                r = sd_id128_##name(&id);                               \
-                if (r < 0) {                                            \
-                        errno = -r;                                     \
-                        return PyErr_SetFromErrno(PyExc_IOError);       \
-                }                                                       \
-                                                                        \
-                return make_uuid(id);                                   \
+#define helper(name)                                                     \
+        static PyObject *name(PyObject *self _unused_, PyObject *args) { \
+                sd_id128_t id;                                           \
+                int r;                                                   \
+                                                                         \
+                assert(!args);                                           \
+                                                                         \
+                r = sd_id128_##name(&id);                                \
+                if (r < 0) {                                             \
+                        errno = -r;                                      \
+                        return PyErr_SetFromErrno(PyExc_IOError);        \
+                }                                                        \
+                                                                         \
+                return make_uuid(id);                                    \
         }
 
 helper(randomize)
 helper(get_machine)
 helper(get_boot)
 
-static PyObject *get_machine_app_specific(PyObject *self, PyObject *args) {
+static PyObject *get_machine_app_specific(PyObject *self _unused_, PyObject *args) {
         _cleanup_Py_DECREF_ PyObject *uuid_bytes = NULL;
 
         uuid_bytes = PyObject_GetAttrString(args, "bytes");

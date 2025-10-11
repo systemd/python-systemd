@@ -14,7 +14,7 @@ PyDoc_STRVAR(journal_sendv__doc__,
              "Send an entry to the journal."
 );
 
-static PyObject *journal_sendv(PyObject *self, PyObject *args) {
+static PyObject* journal_sendv(PyObject *self _unused_, PyObject *args) {
         struct iovec *iov = NULL;
         int argc;
         int i, r;
@@ -71,7 +71,7 @@ PyDoc_STRVAR(journal_stream_fd__doc__,
              "Open a stream to journal by calling sd_journal_stream_fd(3)."
 );
 
-static PyObject* journal_stream_fd(PyObject *self, PyObject *args) {
+static PyObject* journal_stream_fd(PyObject *self _unused_, PyObject *args) {
         const char* identifier;
         int priority, level_prefix;
         int fd;

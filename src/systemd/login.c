@@ -15,7 +15,7 @@ PyDoc_STRVAR(module__doc__,
 );
 
 #define helper(name)                                                    \
-static PyObject* name(PyObject *self, PyObject *args) {                 \
+static PyObject* name(PyObject *self _unused_, PyObject *args) {        \
         _cleanup_strv_free_ char **list = NULL;                         \
         int r;                                                          \
         PyObject *ans;                                                  \
@@ -50,7 +50,7 @@ helper(sessions)
 helper(machine_names)
 #undef helper
 
-static PyObject* uids(PyObject *self, PyObject *args) {
+static PyObject* uids(PyObject *self _unused_, PyObject *args) {
         _cleanup_free_ uid_t *list = NULL;
         int r;
         PyObject *ans;
@@ -153,6 +153,9 @@ PyDoc_STRVAR(Monitor_fileno__doc__,
              "Get a file descriptor to poll for events.\n"
              "This method wraps sd_login_monitor_get_fd(3).");
 static PyObject* Monitor_fileno(Monitor *self, PyObject *args) {
+        assert(self);
+        assert(!args);
+
         int fd = sd_login_monitor_get_fd(self->monitor);
         set_error(fd, NULL, NULL);
         if (fd < 0)
@@ -167,7 +170,12 @@ PyDoc_STRVAR(Monitor_get_events__doc__,
              "by .fileno().\n\n"
              "See :manpage:`sd_login_monitor_get_events(3)` for further discussion.");
 static PyObject* Monitor_get_events(Monitor *self, PyObject *args) {
-        int r = sd_login_monitor_get_events(self->monitor);
+        int r;
+
+        assert(self);
+        assert(!args);
+
+        r = sd_login_monitor_get_events(self->monitor);
         set_error(r, NULL, NULL);
         if (r < 0)
                 return NULL;
@@ -186,6 +194,9 @@ PyDoc_STRVAR(Monitor_get_timeout__doc__,
 static PyObject* Monitor_get_timeout(Monitor *self, PyObject *args) {
         int r;
         uint64_t t;
+
+        assert(self);
+        assert(!args);
 
         r = sd_login_monitor_get_timeout(self->monitor, &t);
         set_error(r, NULL, NULL);
@@ -208,6 +219,9 @@ PyDoc_STRVAR(Monitor_get_timeout_ms__doc__,
 static PyObject* Monitor_get_timeout_ms(Monitor *self, PyObject *args) {
         int r;
         uint64_t t;
+
+        assert(self);
+        assert(!args);
 
         r = sd_login_monitor_get_timeout(self->monitor, &t);
         set_error(r, NULL, NULL);
@@ -267,6 +281,9 @@ PyDoc_STRVAR(Monitor___exit____doc__,
              "Part of the context manager protocol.\n"
              "Closes the monitor..\n");
 static PyObject* Monitor___exit__(Monitor *self, PyObject *args) {
+        assert(self);
+        assert(!args);
+
         return Monitor_close(self, args);
 }
 

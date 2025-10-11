@@ -25,6 +25,7 @@
                 (void *) memset(_new_, 0, _len_);       \
         })
 
+#define _unused_ __attribute__((__unused__))
 #define _cleanup_(x) __attribute__((cleanup(x)))
 
 static inline void freep(void *p) {
