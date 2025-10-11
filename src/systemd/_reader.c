@@ -727,7 +727,7 @@ PyDoc_STRVAR(Reader_add_match__doc__,
              "fields are combined with logical AND, and matches of the same field\n"
              "are automatically combined with logical OR.\n"
              "Match is a string of the form \"FIELD=value\".");
-static PyObject* Reader_add_match(Reader *self, PyObject *args, PyObject *keywds) {
+static PyObject* Reader_add_match(Reader *self, PyObject *args) {
         char *match;
         Py_ssize_t match_len;
         int r;
@@ -1342,7 +1342,7 @@ static PyMethodDef Reader_methods[] = {
         {"_get_all",             (PyCFunction) Reader_get_all, METH_NOARGS, Reader_get_all__doc__},
         {"_get_realtime",        (PyCFunction) Reader_get_realtime, METH_NOARGS, Reader_get_realtime__doc__},
         {"_get_monotonic",       (PyCFunction) Reader_get_monotonic, METH_NOARGS, Reader_get_monotonic__doc__},
-        {"add_match",            (PyCFunction) Reader_add_match, METH_VARARGS|METH_KEYWORDS, Reader_add_match__doc__},
+        {"add_match",            (PyCFunction) Reader_add_match, METH_VARARGS, Reader_add_match__doc__},
         {"add_disjunction",      (PyCFunction) Reader_add_disjunction, METH_NOARGS, Reader_add_disjunction__doc__},
         {"add_conjunction",      (PyCFunction) Reader_add_conjunction, METH_NOARGS, Reader_add_conjunction__doc__},
         {"flush_matches",        (PyCFunction) Reader_flush_matches, METH_NOARGS, Reader_flush_matches__doc__},
