@@ -314,10 +314,11 @@ static PyTypeObject MonitorType = {
 
 static struct PyModuleDef module = {
         PyModuleDef_HEAD_INIT,
-        "login", /* name of module */
-        module__doc__, /* module documentation, may be NULL */
-        -1, /* size of per-interpreter state of the module */
-        methods
+        .m_name = "login",      /* name of module */
+        .m_doc = module__doc__, /* module documentation, may be NULL */
+        .m_size = -1,           /* size of per-interpreter state of the module */
+        .m_methods = methods,
+        .m_slots = NULL,
 };
 
 DISABLE_WARNING_MISSING_PROTOTYPES;
