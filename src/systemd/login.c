@@ -32,7 +32,7 @@ static PyObject* name(PyObject *self _unused_, PyObject *args) {        \
                 return NULL;                                            \
                                                                         \
         for (r--; r >= 0; r--) {                                        \
-                PyObject *s = unicode_FromString(list[r]);              \
+                PyObject *s = PyUnicode_FromString(list[r]);              \
                 if (!s) {                                               \
                         Py_DECREF(ans);                                 \
                         return NULL;                                    \
@@ -66,7 +66,7 @@ static PyObject* uids(PyObject *self _unused_, PyObject *args) {
                 return NULL;
 
         for (r--; r >= 0; r--) {
-                PyObject *s = long_FromLong(list[r]);
+                PyObject *s = PyLong_FromLong(list[r]);
                 if (!s) {
                         Py_DECREF(ans);
                         return NULL;
@@ -158,7 +158,7 @@ static PyObject* Monitor_fileno(Monitor *self, PyObject *args) {
         set_error(fd, NULL, NULL);
         if (fd < 0)
                 return NULL;
-        return long_FromLong(fd);
+        return PyLong_FromLong(fd);
 }
 
 
@@ -177,7 +177,7 @@ static PyObject* Monitor_get_events(Monitor *self, PyObject *args) {
         set_error(r, NULL, NULL);
         if (r < 0)
                 return NULL;
-        return long_FromLong(r);
+        return PyLong_FromLong(r);
 }
 
 

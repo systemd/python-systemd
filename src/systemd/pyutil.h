@@ -14,10 +14,3 @@ int set_error(int r, const char* path, const char* invalid_message);
 int Unicode_FSConverter(PyObject* obj, void *_result);
 
 #define _cleanup_Py_DECREF_ _cleanup_(cleanup_Py_DECREFp)
-
-# define unicode_FromStringAndSize PyUnicode_FromStringAndSize
-# define unicode_FromString PyUnicode_FromString
-# define long_FromLong PyLong_FromLong
-# define long_FromSize_t PyLong_FromSize_t
-# define long_Check PyLong_Check
-# define long_AsLong PyLong_AsLong

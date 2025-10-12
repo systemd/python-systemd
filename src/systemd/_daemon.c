@@ -156,7 +156,7 @@ static PyObject* listen_fds(PyObject *self _unused_, PyObject *args, PyObject *k
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
 
-        return long_FromLong(r);
+        return PyLong_FromLong(r);
 }
 
 PyDoc_STRVAR(listen_fds_with_names__doc__,
@@ -198,7 +198,7 @@ static PyObject* listen_fds_with_names(PyObject *self _unused_, PyObject *args, 
         if (tpl == NULL)
                 return NULL;
 
-        item = long_FromLong(r);
+        item = PyLong_FromLong(r);
         if (item == NULL) {
                 Py_DECREF(tpl);
                 return NULL;
@@ -208,7 +208,7 @@ static PyObject* listen_fds_with_names(PyObject *self _unused_, PyObject *args, 
                 return NULL;
         }
 	for (int i = 0; i < r && names[i] != NULL; i++) {
-                item = unicode_FromString(names[i]);
+                item = PyUnicode_FromString(names[i]);
                 if (PyTuple_SetItem(tpl, 1+i, item) < 0) {
                         Py_DECREF(tpl);
 			free_names(names);

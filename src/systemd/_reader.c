@@ -150,7 +150,7 @@ cleanup:
 }
 
 static int long_as_fd(PyObject *obj, int *fd) {
-        long num = long_AsLong(obj);
+        long num = PyLong_AsLong(obj);
         if (PyErr_Occurred())
                 return -1;
 
@@ -243,7 +243,7 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
         }
 
         if (_path) {
-                if (long_Check(_path)) {
+                if (PyLong_Check(_path)) {
                         int fd;
 
                         if (long_as_fd(_path, &fd) < 0)
@@ -341,7 +341,7 @@ static PyObject* Reader_fileno(Reader *self, PyObject *args) {
         set_error(fd, NULL, NULL);
         if (fd < 0)
                 return NULL;
-        return long_FromLong(fd);
+        return PyLong_FromLong(fd);
 }
 
 PyDoc_STRVAR(Reader_reliable_fd__doc__,
@@ -375,7 +375,7 @@ static PyObject* Reader_get_events(Reader *self, PyObject *args) {
         r = sd_journal_get_events(self->journal);
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
-        return long_FromLong(r);
+        return PyLong_FromLong(r);
 }
 
 PyDoc_STRVAR(Reader_get_timeout__doc__,
@@ -547,7 +547,7 @@ static int extract(const char* msg, size_t msg_len,
         }
 
         if (key) {
-                k = unicode_FromStringAndSize(msg, delim_ptr - (const char*) msg);
+                k = PyUnicode_FromStringAndSize(msg, delim_ptr - (const char*) msg);
                 if (!k)
                         return -1;
         }
@@ -957,7 +957,7 @@ static PyObject* Reader_process(Reader *self, PyObject *args) {
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
 
-        return long_FromLong(r);
+        return PyLong_FromLong(r);
 }
 
 PyDoc_STRVAR(Reader_wait__doc__,
@@ -984,7 +984,7 @@ static PyObject* Reader_wait(Reader *self, PyObject *args) {
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
 
-        return long_FromLong(r);
+        return PyLong_FromLong(r);
 }
 
 PyDoc_STRVAR(Reader_seek_cursor__doc__,
@@ -1022,7 +1022,7 @@ static PyObject* Reader_get_cursor(Reader *self, PyObject *args) {
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
 
-        return unicode_FromString(cursor);
+        return PyUnicode_FromString(cursor);
 }
 
 PyDoc_STRVAR(Reader_test_cursor__doc__,
@@ -1073,7 +1073,7 @@ static PyObject* Reader_query_unique(Reader *self, PyObject *args) {
         if (!value_set)
                 return NULL;
 
-        key = unicode_FromString(query);
+        key = PyUnicode_FromString(query);
         if (!key)
                 return NULL;
 
@@ -1232,7 +1232,7 @@ static PyObject* Reader_get_catalog(Reader *self, PyObject *args) {
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
 
-        return unicode_FromString(msg);
+        return PyUnicode_FromString(msg);
 }
 
 PyDoc_STRVAR(get_catalog__doc__,
@@ -1261,7 +1261,7 @@ static PyObject* get_catalog(PyObject *self _unused_, PyObject *args) {
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
 
-        return unicode_FromString(msg);
+        return PyUnicode_FromString(msg);
 }
 
 PyDoc_STRVAR(data_threshold__doc__,
@@ -1279,7 +1279,7 @@ static PyObject* Reader_get_data_threshold(Reader *self, void *closure _unused_)
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
 
-        return long_FromSize_t(cvalue);
+        return PyLong_FromSize_t(cvalue);
 }
 
 static int Reader_set_data_threshold(Reader *self, PyObject *value, void *closure _unused_) {
@@ -1292,12 +1292,12 @@ static int Reader_set_data_threshold(Reader *self, PyObject *value, void *closur
                 return -1;
         }
 
-        if (!long_Check(value)){
+        if (!PyLong_Check(value)){
                 PyErr_SetString(PyExc_TypeError, "Data threshold must be an int");
                 return -1;
         }
 
-        r = sd_journal_set_data_threshold(self->journal, (size_t) long_AsLong(value));
+        r = sd_journal_set_data_threshold(self->journal, (size_t) PyLong_AsLong(value));
         return set_error(r, NULL, NULL);
 }
 
