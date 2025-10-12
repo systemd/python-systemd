@@ -1,22 +1,17 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
-#define PY_SSIZE_T_CLEAN
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wredundant-decls"
-#include <Python.h>
-#pragma GCC diagnostic pop
-
-#include <structmember.h>
-#include <datetime.h>
-#include <time.h>
-#include <stdio.h>
 #include <stdbool.h>
-
-#include "systemd/sd-journal.h"
+#include <stdio.h>
+#include <string.h>
+#include <time.h>
+#include <systemd/sd-journal.h>
 
 #include "pyutil.h"
 #include "macro.h"
 #include "strv.h"
+
+/* This needs to be below Python.h include for some reason */
+#include <datetime.h>
 
 #if defined(LIBSYSTEMD_VERSION) || LIBSYSTEMD_JOURNAL_VERSION > 204
 #  define HAVE_JOURNAL_OPEN_FILES 1

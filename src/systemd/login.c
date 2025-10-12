@@ -1,12 +1,7 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
-#define PY_SSIZE_T_CLEAN
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wredundant-decls"
-#include <Python.h>
-#pragma GCC diagnostic pop
+#include <systemd/sd-login.h>
 
-#include "systemd/sd-login.h"
 #include "pyutil.h"
 #include "strv.h"
 

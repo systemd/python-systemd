@@ -1,13 +1,12 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
-#include <Python.h>
-
 #include <alloca.h>
 
 #define SD_JOURNAL_SUPPRESS_LOCATION
 #include "systemd/sd-journal.h"
 
 #include "macro.h"
+#include "pyutil.h"
 
 PyDoc_STRVAR(journal_sendv__doc__,
              "sendv('FIELD=value', 'FIELD=value', ...) -> None\n\n"

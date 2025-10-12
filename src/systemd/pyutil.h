@@ -2,10 +2,8 @@
 
 #pragma once
 
-#ifndef Py_TYPE
-/* avoid duplication warnings from errors in Python 2.7 headers */
-# include <Python.h>
-#endif
+#define PY_SSIZE_T_CLEAN
+#include <Python.h>
 
 void cleanup_Py_DECREFp(PyObject **p);
 PyObject* absolute_timeout(uint64_t t);

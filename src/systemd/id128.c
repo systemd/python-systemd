@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
-#include <Python.h>
-
 /* Our include is first, so that our defines are replaced by the ones
  * from the system header. If the system header has the same definitions
  * (or does not have them at all), this replacement is silent. If the
@@ -12,8 +10,8 @@
 #include "id128-defines.h"
 #include <systemd/sd-messages.h>
 
-#include "pyutil.h"
 #include "macro.h"
+#include "pyutil.h"
 
 #define HAVE_SD_ID128_GET_MACHINE_APP_SPECIFIC (LIBSYSTEMD_VERSION >= 240)
 

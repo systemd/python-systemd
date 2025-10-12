@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <stdlib.h>
+
 #define DISABLE_WARNING_MISSING_PROTOTYPES                              \
         _Pragma("GCC diagnostic push");                                 \
         _Pragma("GCC diagnostic ignored \"-Wmissing-prototypes\"")
