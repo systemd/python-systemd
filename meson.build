@@ -15,9 +15,10 @@ python_dep = python.dependency()
 
 libsystemd_dep = dependency('libsystemd')
 
-common_c_args = [
+add_project_arguments(
         '-DPACKAGE_VERSION="@0@"'.format(meson.project_version()),
         '-DLIBSYSTEMD_VERSION=@0@'.format(libsystemd_dep.version()),
-]
+        language : 'c',
+)
 
 subdir('src/systemd')
