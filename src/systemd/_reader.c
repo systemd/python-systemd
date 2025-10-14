@@ -76,13 +76,13 @@ static PyStructSequence_Desc Monotonic_desc = {
  * Returns NULL on error.
  */
 static char* str_converter(PyObject *str, PyObject **bytes) {
-                int r;
+        int r;
 
-                r = PyUnicode_FSConverter(str, bytes);
-                if (r == 0)
-                        return NULL;
+        r = PyUnicode_FSConverter(str, bytes);
+        if (r == 0)
+                return NULL;
 
-                return PyBytes_AsString(*bytes);
+        return PyBytes_AsString(*bytes);
 }
 
 /**
