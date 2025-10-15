@@ -28,4 +28,15 @@ update_constants_py = files('update-constants.py')
 
 subdir('src/systemd')
 
+test(
+        'unit',
+        find_program(python.full_path()),
+        args: [
+                '-m', 'pytest',
+                '-v',
+                python_test_dir,
+              ],
+        env: { 'PYTHONPATH': meson.current_build_dir() / 'src' },
+)
+
 alias_target('update-constants', update_constants)

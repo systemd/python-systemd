@@ -58,6 +58,7 @@ foreach file: py_files
 endforeach
 
 # Test code
+python_test_dir = meson.current_source_dir() / 'test'
 python.install_sources(
         'test/test_daemon.py',
         'test/test_journal.py',
