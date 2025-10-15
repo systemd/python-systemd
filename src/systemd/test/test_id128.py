@@ -23,8 +23,7 @@ def test_randomize():
     assert u1 != u2
 
 def test_get_machine():
-    # yikes, python2 doesn't know ENOMEDIUM
-    with skip_oserror(errno.ENOENT, errno.ENOSYS, 123):
+    with skip_oserror(errno.ENOENT, errno.ENOSYS, errno.ENOMEDIUM):
         u1 = id128.get_machine()
 
     u2 = id128.get_machine()
