@@ -331,9 +331,7 @@ def test_notify_with_socket(tmpdir):
         sock.bind(path)
     except socket.error as e:
         pytest.xfail('failed to bind socket (%s)' % e)
-    # SO_PASSCRED is not defined in python2.7
-    SO_PASSCRED = getattr(socket, 'SO_PASSCRED', 16)
-    sock.setsockopt(socket.SOL_SOCKET, SO_PASSCRED, 1)
+    sock.setsockopt(socket.SOL_SOCKET, socket.SO_PASSCRED, 1)
     os.environ['NOTIFY_SOCKET'] = path
 
     assert notify('READY=1')
