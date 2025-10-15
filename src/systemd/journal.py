@@ -287,13 +287,7 @@ class Reader(_Reader):
         >>> j.seek_realtime(yesterday)
         """
         if isinstance(realtime, _datetime.datetime):
-            try:
-                realtime = realtime.astimezone()
-            except TypeError:
-                # With python2: Required argument 'tz' (pos 1) not found
-                pass
-
-            realtime = int(float(realtime.strftime("%s.%f")) * 1000000)
+            realtime = int(realtime.astimezone().timestamp() * 1000000)
         elif not isinstance(realtime, int):
             realtime = int(realtime * 1000000)
         return super(Reader, self).seek_realtime(realtime)
