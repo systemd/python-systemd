@@ -13,6 +13,8 @@ project(
 python = import('python').find_installation('python3', pure: false)
 python_dep = python.dependency()
 
+fs = import('fs')
+
 libsystemd_dep = dependency('libsystemd')
 
 add_project_arguments(

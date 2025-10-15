@@ -46,14 +46,18 @@ python.extension_module(
 )
 
 # Install Python modules
-python.install_sources(
+py_files = files(
         '__init__.py',
         'journal.py',
         'daemon.py',
-        subdir: 'systemd',
 )
 
-# Install test modules
+python.install_sources(py_files, subdir: 'systemd')
+foreach file: py_files
+        fs.copyfile(file)
+endforeach
+
+# Test code
 python.install_sources(
         'test/test_daemon.py',
         'test/test_journal.py',
@@ -62,6 +66,7 @@ python.install_sources(
         subdir: 'systemd/test',
 )
 
+# The 'update-constants' target
 include_dir = libsystemd_dep.get_variable(pkgconfig: 'includedir')
 
 update_constants = custom_target(
