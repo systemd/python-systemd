@@ -2,9 +2,15 @@
 
 #pragma once
 
+#include <stdlib.h>
+
 #define DISABLE_WARNING_MISSING_PROTOTYPES                              \
         _Pragma("GCC diagnostic push");                                 \
         _Pragma("GCC diagnostic ignored \"-Wmissing-prototypes\"")
+
+#define DISABLE_WARNING_CAST_FUNCTION_TYPE                              \
+        _Pragma("GCC diagnostic push");                                 \
+        _Pragma("GCC diagnostic ignored \"-Wcast-function-type\"")
 
 #define REENABLE_WARNING                                                \
         _Pragma("GCC diagnostic pop")
@@ -25,6 +31,7 @@
                 (void *) memset(_new_, 0, _len_);       \
         })
 
+#define _unused_ __attribute__((__unused__))
 #define _cleanup_(x) __attribute__((cleanup(x)))
 
 static inline void freep(void *p) {

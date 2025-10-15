@@ -5,7 +5,6 @@ python.extension_module(
         '_journal',
         ['_journal.c', 'pyutil.c'],
         dependencies: [libsystemd_dep],
-        c_args: common_c_args,
         install: true,
         subdir: 'systemd',
 )
@@ -15,7 +14,6 @@ python.extension_module(
         '_reader',
         ['_reader.c', 'pyutil.c', 'strv.c'],
         dependencies: [libsystemd_dep],
-        c_args: common_c_args,
         install: true,
         subdir: 'systemd',
 )
@@ -25,7 +23,6 @@ python.extension_module(
         '_daemon',
         ['_daemon.c', 'pyutil.c', 'util.c'],
         dependencies: [libsystemd_dep],
-        c_args: common_c_args,
         install: true,
         subdir: 'systemd',
 )
@@ -35,7 +32,6 @@ python.extension_module(
         'id128',
         ['id128.c', 'pyutil.c'],
         dependencies: [libsystemd_dep],
-        c_args: common_c_args,
         install: true,
         subdir: 'systemd',
 )
@@ -45,7 +41,6 @@ python.extension_module(
         'login',
         ['login.c', 'pyutil.c', 'strv.c'],
         dependencies: [libsystemd_dep],
-        c_args: common_c_args,
         install: true,
         subdir: 'systemd',
 )

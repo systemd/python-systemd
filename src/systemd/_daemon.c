@@ -35,8 +35,9 @@ PyDoc_STRVAR(booted__doc__,
              "Wraps sd_booted(3)."
 );
 
-static PyObject* booted(PyObject *self, PyObject *args) {
+static PyObject* booted(PyObject *self _unused_, PyObject *args) {
         int r;
+
         assert(!args);
 
         r = sd_booted();
@@ -55,7 +56,7 @@ PyDoc_STRVAR(notify__doc__,
              "Send a message to the init system about a status change.\n"
              "Wraps sd_notify(3).");
 
-static PyObject* notify(PyObject *self, PyObject *args, PyObject *keywds) {
+static PyObject* notify(PyObject *self _unused_, PyObject *args, PyObject *keywds) {
         int r;
         const char* msg;
         int unset = false, n_fds;
@@ -142,7 +143,7 @@ PyDoc_STRVAR(listen_fds__doc__,
              "Wraps sd_listen_fds(3)."
 );
 
-static PyObject* listen_fds(PyObject *self, PyObject *args, PyObject *keywds) {
+static PyObject* listen_fds(PyObject *self _unused_, PyObject *args, PyObject *keywds) {
         int r;
         int unset = true;
 
@@ -155,7 +156,7 @@ static PyObject* listen_fds(PyObject *self, PyObject *args, PyObject *keywds) {
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
 
-        return long_FromLong(r);
+        return PyLong_FromLong(r);
 }
 
 PyDoc_STRVAR(listen_fds_with_names__doc__,
@@ -176,7 +177,8 @@ static void free_names(char **names) {
                 free(*n);
         free(names);
 }
-static PyObject* listen_fds_with_names(PyObject *self, PyObject *args, PyObject *keywds) {
+
+static PyObject* listen_fds_with_names(PyObject *self _unused_, PyObject *args, PyObject *keywds) {
         int r;
         int unset = false;
         char **names = NULL;
@@ -196,7 +198,7 @@ static PyObject* listen_fds_with_names(PyObject *self, PyObject *args, PyObject 
         if (tpl == NULL)
                 return NULL;
 
-        item = long_FromLong(r);
+        item = PyLong_FromLong(r);
         if (item == NULL) {
                 Py_DECREF(tpl);
                 return NULL;
@@ -206,7 +208,7 @@ static PyObject* listen_fds_with_names(PyObject *self, PyObject *args, PyObject 
                 return NULL;
         }
 	for (int i = 0; i < r && names[i] != NULL; i++) {
-                item = unicode_FromString(names[i]);
+                item = PyUnicode_FromString(names[i]);
                 if (PyTuple_SetItem(tpl, 1+i, item) < 0) {
                         Py_DECREF(tpl);
 			free_names(names);
@@ -228,7 +230,7 @@ PyDoc_STRVAR(is_fifo__doc__,
 );
 
 
-static PyObject* is_fifo(PyObject *self, PyObject *args) {
+static PyObject* is_fifo(PyObject *self _unused_, PyObject *args) {
         int r;
         int fd;
         const char *path = NULL;
@@ -254,7 +256,7 @@ PyDoc_STRVAR(is_mq__doc__,
              "Wraps sd_is_mq(3)."
 );
 
-static PyObject* is_mq(PyObject *self, PyObject *args) {
+static PyObject* is_mq(PyObject *self _unused_, PyObject *args) {
         int r;
         int fd;
         const char *path = NULL;
@@ -282,7 +284,7 @@ PyDoc_STRVAR(is_socket__doc__,
              "Constants for `family` are defined in the socket module."
 );
 
-static PyObject* is_socket(PyObject *self, PyObject *args) {
+static PyObject* is_socket(PyObject *self _unused_, PyObject *args) {
         int r;
         int fd, family = AF_UNSPEC, type = 0, listening = -1;
 
@@ -304,7 +306,7 @@ PyDoc_STRVAR(is_socket_inet__doc__,
              "Constants for `family` are defined in the socket module."
 );
 
-static PyObject* is_socket_inet(PyObject *self, PyObject *args) {
+static PyObject* is_socket_inet(PyObject *self _unused_, PyObject *args) {
         int r;
         int fd, family = AF_UNSPEC, type = 0, listening = -1, port = 0;
 
@@ -337,7 +339,7 @@ PyDoc_STRVAR(is_socket_sockaddr__doc__,
 #endif
 );
 
-static PyObject* is_socket_sockaddr(PyObject *self, PyObject *args) {
+static PyObject* is_socket_sockaddr(PyObject *self _unused_, PyObject *args) {
         int r;
         int fd, type = 0, flowinfo = 0, listening = -1;
         const char *address;
@@ -384,7 +386,7 @@ PyDoc_STRVAR(is_socket_unix__doc__,
              "Wraps sd_is_socket_unix(3)."
 );
 
-static PyObject* is_socket_unix(PyObject *self, PyObject *args) {
+static PyObject* is_socket_unix(PyObject *self _unused_, PyObject *args) {
         int r;
         int fd, type = 0, listening = -1;
         char* path = NULL;
@@ -408,20 +410,22 @@ static PyObject* is_socket_unix(PyObject *self, PyObject *args) {
 }
 
 
+DISABLE_WARNING_CAST_FUNCTION_TYPE;
 static PyMethodDef methods[] = {
-        { "booted", booted, METH_NOARGS, booted__doc__},
-        { "notify", (PyCFunction) notify, METH_VARARGS | METH_KEYWORDS, notify__doc__},
-        { "_listen_fds", (PyCFunction) listen_fds, METH_VARARGS | METH_KEYWORDS, listen_fds__doc__},
+        { "booted",                 booted,                   METH_NOARGS,                  booted__doc__                },
+        { "notify",                 (PyCFunction) notify,     METH_VARARGS | METH_KEYWORDS, notify__doc__                },
+        { "_listen_fds",            (PyCFunction) listen_fds, METH_VARARGS | METH_KEYWORDS, listen_fds__doc__            },
         { "_listen_fds_with_names", (PyCFunction) listen_fds_with_names,
-                METH_VARARGS | METH_KEYWORDS, listen_fds_with_names__doc__},
-        { "_is_fifo", is_fifo, METH_VARARGS, is_fifo__doc__},
-        { "_is_mq", is_mq, METH_VARARGS, is_mq__doc__},
-        { "_is_socket", is_socket, METH_VARARGS, is_socket__doc__},
-        { "_is_socket_inet", is_socket_inet, METH_VARARGS, is_socket_inet__doc__},
-        { "_is_socket_sockaddr", is_socket_sockaddr, METH_VARARGS, is_socket_sockaddr__doc__},
-        { "_is_socket_unix", is_socket_unix, METH_VARARGS, is_socket_unix__doc__},
+                                                              METH_VARARGS | METH_KEYWORDS, listen_fds_with_names__doc__ },
+        { "_is_fifo",               is_fifo,                  METH_VARARGS,                 is_fifo__doc__               },
+        { "_is_mq",                 is_mq,                    METH_VARARGS,                 is_mq__doc__                 },
+        { "_is_socket",             is_socket,                METH_VARARGS,                 is_socket__doc__             },
+        { "_is_socket_inet",        is_socket_inet,           METH_VARARGS,                 is_socket_inet__doc__        },
+        { "_is_socket_sockaddr",    is_socket_sockaddr,       METH_VARARGS,                 is_socket_sockaddr__doc__    },
+        { "_is_socket_unix",        is_socket_unix,           METH_VARARGS,                 is_socket_unix__doc__        },
         {}        /* Sentinel */
 };
+REENABLE_WARNING;
 
 static struct PyModuleDef module = {
         PyModuleDef_HEAD_INIT,

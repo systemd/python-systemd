@@ -11,7 +11,7 @@ from systemd import id128
 def skip_oserror(*errnos):
     try:
         yield
-    except (OSError, IOError) as e:
+    except OSError as e:
         if e.errno in errnos:
             pytest.skip()
         raise

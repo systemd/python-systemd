@@ -1,7 +1,5 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
-#include <Python.h>
-
 /* Our include is first, so that our defines are replaced by the ones
  * from the system header. If the system header has the same definitions
  * (or does not have them at all), this replacement is silent. If the
@@ -12,8 +10,8 @@
 #include "id128-defines.h"
 #include <systemd/sd-messages.h>
 
-#include "pyutil.h"
 #include "macro.h"
+#include "pyutil.h"
 
 #define HAVE_SD_ID128_GET_MACHINE_APP_SPECIFIC (LIBSYSTEMD_VERSION >= 240)
 
@@ -69,27 +67,27 @@ static PyObject* make_uuid(sd_id128_t id) {
         return PyObject_Call(UUID, args, kwargs);
 }
 
-#define helper(name)                                                    \
-        static PyObject *name(PyObject *self, PyObject *args) {         \
-                sd_id128_t id;                                          \
-                int r;                                                  \
-                                                                        \
-                assert(!args);                                          \
-                                                                        \
-                r = sd_id128_##name(&id);                               \
-                if (r < 0) {                                            \
-                        errno = -r;                                     \
-                        return PyErr_SetFromErrno(PyExc_IOError);       \
-                }                                                       \
-                                                                        \
-                return make_uuid(id);                                   \
+#define helper(name)                                                     \
+        static PyObject *name(PyObject *self _unused_, PyObject *args) { \
+                sd_id128_t id;                                           \
+                int r;                                                   \
+                                                                         \
+                assert(!args);                                           \
+                                                                         \
+                r = sd_id128_##name(&id);                                \
+                if (r < 0) {                                             \
+                        errno = -r;                                      \
+                        return PyErr_SetFromErrno(PyExc_OSError);        \
+                }                                                        \
+                                                                         \
+                return make_uuid(id);                                    \
         }
 
 helper(randomize)
 helper(get_machine)
 helper(get_boot)
 
-static PyObject *get_machine_app_specific(PyObject *self, PyObject *args) {
+static PyObject *get_machine_app_specific(PyObject *self _unused_, PyObject *args) {
         _cleanup_Py_DECREF_ PyObject *uuid_bytes = NULL;
 
         uuid_bytes = PyObject_GetAttrString(args, "bytes");
@@ -114,7 +112,7 @@ static PyObject *get_machine_app_specific(PyObject *self, PyObject *args) {
         PyBuffer_Release(&buffer);
         if (r < 0) {
                 errno = -r;
-                return PyErr_SetFromErrno(PyExc_IOError);
+                return PyErr_SetFromErrno(PyExc_OSError);
         }
 
         return make_uuid(app_id);
@@ -126,10 +124,10 @@ static PyObject *get_machine_app_specific(PyObject *self, PyObject *args) {
 }
 
 static PyMethodDef methods[] = {
-        { "randomize", randomize, METH_NOARGS, randomize__doc__},
-        { "get_machine", get_machine, METH_NOARGS, get_machine__doc__},
-        { "get_machine_app_specific", get_machine_app_specific, METH_O, get_machine_app_specific__doc__},
-        { "get_boot", get_boot, METH_NOARGS, get_boot__doc__},
+        { "randomize",                randomize,                METH_NOARGS, randomize__doc__                },
+        { "get_machine",              get_machine,              METH_NOARGS, get_machine__doc__              },
+        { "get_machine_app_specific", get_machine_app_specific, METH_O,      get_machine_app_specific__doc__ },
+        { "get_boot",                 get_boot,                 METH_NOARGS, get_boot__doc__                 },
         {}        /* Sentinel */
 };
 

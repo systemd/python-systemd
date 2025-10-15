@@ -1,6 +1,5 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
-#include <Python.h>
 #include "pyutil.h"
 
 void cleanup_Py_DECREFp(PyObject **p) {

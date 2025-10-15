@@ -1,12 +1,7 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
-#define PY_SSIZE_T_CLEAN
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wredundant-decls"
-#include <Python.h>
-#pragma GCC diagnostic pop
+#include <systemd/sd-login.h>
 
-#include "systemd/sd-login.h"
 #include "pyutil.h"
 #include "strv.h"
 
@@ -15,25 +10,24 @@ PyDoc_STRVAR(module__doc__,
 );
 
 #define helper(name)                                                    \
-static PyObject* name(PyObject *self, PyObject *args) {                 \
+static PyObject* name(PyObject *self _unused_, PyObject *args) {        \
         _cleanup_strv_free_ char **list = NULL;                         \
         int r;                                                          \
-        PyObject *ans;                                                  \
                                                                         \
         assert(!args);                                                  \
                                                                         \
         r = sd_get_##name(&list);                                       \
         if (r < 0) {                                                    \
                 errno = -r;                                             \
-                return PyErr_SetFromErrno(PyExc_IOError);               \
+                return PyErr_SetFromErrno(PyExc_OSError);               \
         }                                                               \
                                                                         \
-        ans = PyList_New(r);                                            \
+        PyObject *ans = PyList_New(r);                                  \
         if (!ans)                                                       \
                 return NULL;                                            \
                                                                         \
         for (r--; r >= 0; r--) {                                        \
-                PyObject *s = unicode_FromString(list[r]);              \
+                PyObject *s = PyUnicode_FromString(list[r]);              \
                 if (!s) {                                               \
                         Py_DECREF(ans);                                 \
                         return NULL;                                    \
@@ -50,25 +44,24 @@ helper(sessions)
 helper(machine_names)
 #undef helper
 
-static PyObject* uids(PyObject *self, PyObject *args) {
+static PyObject* uids(PyObject *self _unused_, PyObject *args) {
         _cleanup_free_ uid_t *list = NULL;
         int r;
-        PyObject *ans;
 
         assert(!args);
 
         r = sd_get_uids(&list);
         if (r < 0) {
                 errno = -r;
-                return PyErr_SetFromErrno(PyExc_IOError);
+                return PyErr_SetFromErrno(PyExc_OSError);
         }
 
-        ans = PyList_New(r);
+        PyObject *ans = PyList_New(r);
         if (!ans)
                 return NULL;
 
         for (r--; r >= 0; r--) {
-                PyObject *s = long_FromLong(list[r]);
+                PyObject *s = PyLong_FromLong(list[r]);
                 if (!s) {
                         Py_DECREF(ans);
                         return NULL;
@@ -106,10 +99,10 @@ PyDoc_STRVAR(uids__doc__,
 );
 
 static PyMethodDef methods[] = {
-        { "seats", seats, METH_NOARGS, seats__doc__},
-        { "sessions", sessions, METH_NOARGS, sessions__doc__},
-        { "machine_names", machine_names, METH_NOARGS, machine_names__doc__},
-        { "uids", uids, METH_NOARGS, uids__doc__},
+        { "seats",         seats,         METH_NOARGS, seats__doc__         },
+        { "sessions",      sessions,      METH_NOARGS, sessions__doc__      },
+        { "machine_names", machine_names, METH_NOARGS, machine_names__doc__ },
+        { "uids",          uids,          METH_NOARGS, uids__doc__          },
         {} /* Sentinel */
 };
 
@@ -121,7 +114,7 @@ typedef struct {
 static PyTypeObject MonitorType;
 
 static void Monitor_dealloc(Monitor* self) {
-        sd_login_monitor_unref(self->monitor);
+        self->monitor = sd_login_monitor_unref(self->monitor);
         Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
@@ -153,11 +146,14 @@ PyDoc_STRVAR(Monitor_fileno__doc__,
              "Get a file descriptor to poll for events.\n"
              "This method wraps sd_login_monitor_get_fd(3).");
 static PyObject* Monitor_fileno(Monitor *self, PyObject *args) {
+        assert(self);
+        assert(!args);
+
         int fd = sd_login_monitor_get_fd(self->monitor);
         set_error(fd, NULL, NULL);
         if (fd < 0)
                 return NULL;
-        return long_FromLong(fd);
+        return PyLong_FromLong(fd);
 }
 
 
@@ -167,11 +163,16 @@ PyDoc_STRVAR(Monitor_get_events__doc__,
              "by .fileno().\n\n"
              "See :manpage:`sd_login_monitor_get_events(3)` for further discussion.");
 static PyObject* Monitor_get_events(Monitor *self, PyObject *args) {
-        int r = sd_login_monitor_get_events(self->monitor);
+        int r;
+
+        assert(self);
+        assert(!args);
+
+        r = sd_login_monitor_get_events(self->monitor);
         set_error(r, NULL, NULL);
         if (r < 0)
                 return NULL;
-        return long_FromLong(r);
+        return PyLong_FromLong(r);
 }
 
 
@@ -186,6 +187,9 @@ PyDoc_STRVAR(Monitor_get_timeout__doc__,
 static PyObject* Monitor_get_timeout(Monitor *self, PyObject *args) {
         int r;
         uint64_t t;
+
+        assert(self);
+        assert(!args);
 
         r = sd_login_monitor_get_timeout(self->monitor, &t);
         set_error(r, NULL, NULL);
@@ -209,6 +213,9 @@ static PyObject* Monitor_get_timeout_ms(Monitor *self, PyObject *args) {
         int r;
         uint64_t t;
 
+        assert(self);
+        assert(!args);
+
         r = sd_login_monitor_get_timeout(self->monitor, &t);
         set_error(r, NULL, NULL);
         if (r < 0)
@@ -227,8 +234,7 @@ static PyObject* Monitor_close(Monitor *self, PyObject *args) {
         assert(self);
         assert(!args);
 
-        sd_login_monitor_unref(self->monitor);
-        self->monitor = NULL;
+        self->monitor = sd_login_monitor_unref(self->monitor);
         Py_RETURN_NONE;
 }
 
@@ -267,19 +273,22 @@ PyDoc_STRVAR(Monitor___exit____doc__,
              "Part of the context manager protocol.\n"
              "Closes the monitor..\n");
 static PyObject* Monitor___exit__(Monitor *self, PyObject *args) {
+        assert(self);
+        assert(!args);
+
         return Monitor_close(self, args);
 }
 
 
 static PyMethodDef Monitor_methods[] = {
-        {"fileno",          (PyCFunction) Monitor_fileno, METH_NOARGS, Monitor_fileno__doc__},
-        {"get_events",      (PyCFunction) Monitor_get_events, METH_NOARGS, Monitor_get_events__doc__},
-        {"get_timeout",     (PyCFunction) Monitor_get_timeout, METH_NOARGS, Monitor_get_timeout__doc__},
-        {"get_timeout_ms",  (PyCFunction) Monitor_get_timeout_ms, METH_NOARGS, Monitor_get_timeout_ms__doc__},
-        {"close",           (PyCFunction) Monitor_close, METH_NOARGS, Monitor_close__doc__},
-        {"flush",           (PyCFunction) Monitor_flush, METH_NOARGS, Monitor_flush__doc__},
-        {"__enter__",       (PyCFunction) Monitor___enter__, METH_NOARGS, Monitor___enter____doc__},
-        {"__exit__",        (PyCFunction) Monitor___exit__, METH_VARARGS, Monitor___exit____doc__},
+        { "fileno",          (PyCFunction) Monitor_fileno,         METH_NOARGS,  Monitor_fileno__doc__         },
+        { "get_events",      (PyCFunction) Monitor_get_events,     METH_NOARGS,  Monitor_get_events__doc__     },
+        { "get_timeout",     (PyCFunction) Monitor_get_timeout,    METH_NOARGS,  Monitor_get_timeout__doc__    },
+        { "get_timeout_ms",  (PyCFunction) Monitor_get_timeout_ms, METH_NOARGS,  Monitor_get_timeout_ms__doc__ },
+        { "close",           (PyCFunction) Monitor_close,          METH_NOARGS,  Monitor_close__doc__          },
+        { "flush",           (PyCFunction) Monitor_flush,          METH_NOARGS,  Monitor_flush__doc__          },
+        { "__enter__",       (PyCFunction) Monitor___enter__,      METH_NOARGS,  Monitor___enter____doc__      },
+        { "__exit__",        (PyCFunction) Monitor___exit__,       METH_VARARGS, Monitor___exit____doc__       },
         {}  /* Sentinel */
 };
 
@@ -297,10 +306,11 @@ static PyTypeObject MonitorType = {
 
 static struct PyModuleDef module = {
         PyModuleDef_HEAD_INIT,
-        "login", /* name of module */
-        module__doc__, /* module documentation, may be NULL */
-        -1, /* size of per-interpreter state of the module */
-        methods
+        .m_name = "login",      /* name of module */
+        .m_doc = module__doc__, /* module documentation, may be NULL */
+        .m_size = -1,           /* size of per-interpreter state of the module */
+        .m_methods = methods,
+        .m_slots = NULL,
 };
 
 DISABLE_WARNING_MISSING_PROTOTYPES;

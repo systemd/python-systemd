@@ -1,35 +1,31 @@
 /* SPDX-License-Identifier: LGPL-2.1-or-later */
 
-#include <Python.h>
-
 #include <alloca.h>
 
 #define SD_JOURNAL_SUPPRESS_LOCATION
 #include "systemd/sd-journal.h"
 
 #include "macro.h"
+#include "pyutil.h"
 
 PyDoc_STRVAR(journal_sendv__doc__,
              "sendv('FIELD=value', 'FIELD=value', ...) -> None\n\n"
              "Send an entry to the journal."
 );
 
-static PyObject *journal_sendv(PyObject *self, PyObject *args) {
-        struct iovec *iov = NULL;
-        int argc;
-        int i, r;
+static PyObject* journal_sendv(PyObject *self _unused_, PyObject *args) {
         PyObject *ret = NULL;
-        PyObject **encoded;
+        int r;
 
         /* Allocate an array for the argument strings */
-        argc = PyTuple_Size(args);
-        encoded = alloca0(argc * sizeof(PyObject*));
+        int argc = PyTuple_Size(args);
+        PyObject **encoded = alloca0(argc * sizeof(PyObject*));
 
         /* Allocate sufficient iovector space for the arguments. */
-        iov = alloca(argc * sizeof(struct iovec));
+        struct iovec *iov = alloca(argc * sizeof(struct iovec));
 
         /* Iterate through the Python arguments and fill the iovector. */
-        for (i = 0; i < argc; ++i) {
+        for (int i = 0; i < argc; ++i) {
                 PyObject *item = PyTuple_GetItem(args, i);
                 char *stritem;
                 Py_ssize_t length;
@@ -51,7 +47,7 @@ static PyObject *journal_sendv(PyObject *self, PyObject *args) {
         r = sd_journal_sendv(iov, argc);
         if (r < 0) {
                 errno = -r;
-                PyErr_SetFromErrno(PyExc_IOError);
+                PyErr_SetFromErrno(PyExc_OSError);
                 goto out;
         }
 
@@ -60,7 +56,7 @@ static PyObject *journal_sendv(PyObject *self, PyObject *args) {
         ret = Py_None;
 
 out:
-        for (i = 0; i < argc; ++i)
+        for (int i = 0; i < argc; i++)
                 Py_XDECREF(encoded[i]);
 
         return ret;
@@ -71,7 +67,7 @@ PyDoc_STRVAR(journal_stream_fd__doc__,
              "Open a stream to journal by calling sd_journal_stream_fd(3)."
 );
 
-static PyObject* journal_stream_fd(PyObject *self, PyObject *args) {
+static PyObject* journal_stream_fd(PyObject *self _unused_, PyObject *args) {
         const char* identifier;
         int priority, level_prefix;
         int fd;
@@ -83,14 +79,14 @@ static PyObject* journal_stream_fd(PyObject *self, PyObject *args) {
         fd = sd_journal_stream_fd(identifier, priority, level_prefix);
         if (fd < 0) {
                 errno = -fd;
-                return PyErr_SetFromErrno(PyExc_IOError);
+                return PyErr_SetFromErrno(PyExc_OSError);
         }
 
         return PyLong_FromLong(fd);
 }
 
 static PyMethodDef methods[] = {
-        { "sendv",  journal_sendv, METH_VARARGS, journal_sendv__doc__ },
+        { "sendv",     journal_sendv,     METH_VARARGS, journal_sendv__doc__     },
         { "stream_fd", journal_stream_fd, METH_VARARGS, journal_stream_fd__doc__ },
         {}        /* Sentinel */
 };
