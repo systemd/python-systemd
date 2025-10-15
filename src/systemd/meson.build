@@ -65,7 +65,7 @@ python.install_sources(
 include_dir = libsystemd_dep.get_variable(pkgconfig: 'includedir')
 
 update_constants = custom_target(
-        output: 'update-constants-impl',
+        output: 'update-constants',
         command: [
                 update_constants_py,
                 meson.current_source_dir() / 'id128-constants.h',
