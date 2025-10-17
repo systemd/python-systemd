@@ -40,3 +40,19 @@ test(
 )
 
 alias_target('update-constants', update_constants)
+
+# Docs
+sphinx_build = find_program('sphinx-build', disabler: true, required: get_option('docs'))
+sphinx_args = ['-Dversion=' + meson.project_version(), '-Drelease=' + meson.project_version()]
+
+input_dir = meson.current_source_dir() / 'docs'
+output_dir = meson.current_build_dir() / 'html'
+doc_target = custom_target('docs',
+        output: 'html',
+        input: files('docs/conf.py'),
+        command: [sphinx_build, '-b', 'html', sphinx_args, input_dir, output_dir],
+        env: { 'PYTHONPATH': meson.current_build_dir() / 'src' },
+        build_by_default: get_option('docs'),
+        install: get_option('docs'),
+        install_dir: get_option('datadir') / 'doc' / meson.project_name()
+)

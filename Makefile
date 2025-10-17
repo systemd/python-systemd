@@ -29,13 +29,6 @@ clean:
 distclean: clean
 	rm -rf dist MANIFEST
 
-SPHINXOPTS += -D version=$(VERSION) -D release=$(VERSION)
-sphinx-%: install
-	mkdir $(BUILD_DIR) && cd $(BUILD_DIR) && $(PYTHON) -m sphinx -b $* $(SPHINXOPTS) ../docs $*
-	@echo Output has been generated in $(BUILD_DIR)/$*
-
-doc: sphinx-html
-
 check: build install
 	($(PYTHON) -m pytest src/systemd/test docs $(TESTFLAGS))
 
