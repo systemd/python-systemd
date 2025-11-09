@@ -3,7 +3,7 @@
 project(
         'python-systemd',
         'c',
-        version: '236',
+        version: run_command(meson.project_source_root() / 'generate_version.py', check: true).stdout().strip(),
         license: 'LGPL-2.1-or-later',
         default_options: ['warning_level=2', 'c_std=c99'],
         meson_version: '>= 1.8.0',
