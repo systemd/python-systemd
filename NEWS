@@ -1,5 +1,36 @@
 Python wrappers for libsystemd API
 
+CHANGES WITH 236:
+
+        * Building python-systemd has been modernized and the project now uses
+          pyproject.toml instead of setup.py. Meson has been adopted as the
+          project's build system.
+
+          Note to packagers: meson-python is now a build dependency of
+          python-systemd.
+
+        * The running of tests and building documentation has been integrated
+          with meson.
+
+          Tests can be run as
+
+              meson test -C build
+
+          and the documentation can be built with
+
+              meson compile -C build html
+
+        * Support for Python 2 as well as Python 3.7 and 3.8 has been dropped.
+
+        * Various build warnings have been addressed and a fresh build should
+          be clean now.
+
+        * All files use SPDX license headers now.
+
+        Contributions from: Eric T. Johnson, Frantisek Sumsal, Guiorgy,
+        Jelle van der Waa, Jörg Behrmann, Nguyễn Hồng Quân,
+        Zbigniew Jędrzejewski-Szmek
+
 CHANGES WITH 235:
 
         * Adapt the rename of systemd-activate to systemd-socket-activate
