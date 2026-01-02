@@ -20,6 +20,9 @@ import sys, os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
 
+# Ignore stub files when generating documentation for extension modules.
+os.environ['SPHINX_AUTODOC_IGNORE_NATIVE_MODULE_TYPE_STUBS'] = '1'
+
 # -- General configuration -----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.

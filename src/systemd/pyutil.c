@@ -3,10 +3,7 @@
 #include "pyutil.h"
 
 void cleanup_Py_DECREFp(PyObject **p) {
-        if (!*p)
-                return;
-
-        Py_DECREF(*p);
+        Py_XDECREF(*p);
 }
 
 PyObject* absolute_timeout(uint64_t t) {
@@ -49,7 +46,7 @@ int Unicode_FSConverter(PyObject* obj, void *_result) {
                  * we can assume that it was PyUnicode_FSConverter. */
                 return PyUnicode_FSConverter(obj, result);
 
-        if (obj == Py_None) {
+        if (Py_IsNone(obj)) {
                 *result = NULL;
                 return 1;
         }

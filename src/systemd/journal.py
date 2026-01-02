@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: LGPL-2.1-or-later
+from __future__ import annotations
 
 import sys as _sys
 import datetime as _datetime
@@ -6,24 +7,31 @@ import uuid as _uuid
 import traceback as _traceback
 import os as _os
 import logging as _logging
+import typing as _typing
 from syslog import (LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR,
                     LOG_WARNING, LOG_NOTICE, LOG_INFO, LOG_DEBUG)
 
 from ._journal import __version__, sendv, stream_fd
-from ._reader import (_Reader, NOP, APPEND, INVALIDATE,
-                      LOCAL_ONLY, RUNTIME_ONLY,
-                      SYSTEM, SYSTEM_ONLY, CURRENT_USER,
-                      OS_ROOT,
+from ._reader import (_Reader, WakeupEventType, NOP, APPEND, INVALIDATE,
+                      OpenFlag, LOCAL_ONLY, RUNTIME_ONLY, SYSTEM,
+                      CURRENT_USER, OS_ROOT, ALL_NAMESPACES,
+                      INCLUDE_DEFAULT_NAMESPACE, TAKE_DIRECTORY_FD,
+                      ASSUME_IMMUTABLE, SYSTEM_ONLY,
                       _get_catalog, Monotonic)
 from . import id128 as _id128
 
+if _typing.TYPE_CHECKING:
+    import typing_extensions as _typing_extensions
+    import _typeshed
+    import io as _io
+    _T = _typing.TypeVar('_T')
 
-def _convert_monotonic(m):
-    return Monotonic((_datetime.timedelta(microseconds=m[0]),
-                      _uuid.UUID(bytes=m[1])))
+
+def _convert_monotonic(m: Monotonic[int, bytes]) -> Monotonic[_datetime.timedelta, _uuid.UUID]:
+    return Monotonic((_datetime.timedelta(microseconds=m[0]), _uuid.UUID(bytes=m[1])))
 
 
-def _convert_source_monotonic(s):
+def _convert_source_monotonic(s: bytes) -> _datetime.timedelta:
     return _datetime.timedelta(microseconds=int(s))
 
 try:
@@ -31,22 +39,22 @@ try:
 except TypeError:
     _LOCAL_TIMEZONE = None
 
-def _convert_realtime(t):
+def _convert_realtime(t: int) -> _datetime.datetime:
     return _datetime.datetime.fromtimestamp(t / 1000000, _LOCAL_TIMEZONE)
 
-def _convert_timestamp(s):
+def _convert_timestamp(s: bytes) -> _datetime.datetime:
     return _datetime.datetime.fromtimestamp(int(s) / 1000000, _LOCAL_TIMEZONE)
 
 
-def _convert_trivial(x):
+def _convert_trivial(x: _T) -> _T:
     return x
 
 
-def _convert_uuid(s):
+def _convert_uuid(s: bytes) -> _uuid.UUID:
     return _uuid.UUID(s.decode())
 
 
-DEFAULT_CONVERTERS = {
+DEFAULT_CONVERTERS: _typing.Final[dict[str, _typing.Callable[[_typing.Any], _typing.Any]]] = {
     'MESSAGE_ID': _convert_uuid,
     '_MACHINE_ID': _convert_uuid,
     '_BOOT_ID': _convert_uuid,
@@ -82,10 +90,10 @@ DEFAULT_CONVERTERS = {
     'COREDUMP_TIMESTAMP': _convert_timestamp,
 }
 
-_IDENT_CHARACTER = set('ABCDEFGHIJKLMNOPQRTSUVWXYZ_0123456789')
+_IDENT_CHARACTER: _typing.Final[set[str]] = set('ABCDEFGHIJKLMNOPQRTSUVWXYZ_0123456789')
 
 
-def _valid_field_name(s):
+def _valid_field_name(s: str) -> bool:
     return not (set(s) - _IDENT_CHARACTER)
 
 
@@ -115,7 +123,31 @@ class Reader(_Reader):
     journal.
 
     """
-    def __init__(self, flags=None, path=None, files=None, converters=None, namespace=None):
+    @_typing.overload
+    def __init__(self,
+                 flags: OpenFlag | None = None,
+                 *,
+                 files: _typing.Sequence[_typeshed.FileDescriptorOrPath],
+                 converters: dict[str, _typing.Callable[[_typing.Any], _typing.Any]] | None = None) -> None: ...
+    @_typing.overload
+    def __init__(self,
+                 flags: OpenFlag | None = None,
+                 *,
+                 namespace: _typeshed.StrOrBytesPath,
+                 converters: dict[str, _typing.Callable[[_typing.Any], _typing.Any]] | None = None) -> None: ...
+    @_typing.overload
+    def __init__(self,
+                 flags: OpenFlag | None = None,
+                 path: _typeshed.FileDescriptorOrPath | None = None,
+                 files: None = None,
+                 converters: dict[str, _typing.Callable[[_typing.Any], _typing.Any]] | None = None,
+                 namespace: None = None) -> None: ...
+    def __init__(self,
+                 flags: _typing.SupportsIndex | None = None,
+                 path: _typeshed.FileDescriptorOrPath | None = None,
+                 files: _typing.Sequence[_typeshed.FileDescriptorOrPath] | None = None,
+                 converters: dict[str, _typing.Callable[[_typing.Any], _typing.Any]] | None = None,
+                 namespace: _typeshed.StrOrBytesPath | None = None) -> None:
         """Create a new Reader.
 
         Argument `flags` defines the open flags of the journal, which can be one
@@ -144,14 +176,14 @@ class Reader(_Reader):
                 # This mimics journalctl behaviour of default to local journal only
                 flags = LOCAL_ONLY
             else:
-                flags = 0
+                flags = OpenFlag(0)
 
-        super(Reader, self).__init__(flags, path, files, namespace)
+        super(Reader, self).__init__(flags, path, files, namespace) # type: ignore[misc, arg-type]
         self.converters = DEFAULT_CONVERTERS.copy()
         if converters is not None:
             self.converters.update(converters)
 
-    def _convert_field(self, key, value):
+    def _convert_field(self, key: str, value: _typing.Any) -> _typing.Any:
         """Convert value using self.converters[key].
 
         If `key` is not present in self.converters, a standard unicode decoding
@@ -166,7 +198,7 @@ class Reader(_Reader):
             # Leave in default bytes
             return value
 
-    def _convert_entry(self, entry):
+    def _convert_entry(self, entry: dict[str, _typing.Any]) -> dict[str, _typing.Any]:
         """Convert entire journal entry utilising _convert_field."""
         result = {}
         for key, value in entry.items():
@@ -176,14 +208,14 @@ class Reader(_Reader):
                 result[key] = self._convert_field(key, value)
         return result
 
-    def __iter__(self):
+    def __iter__(self) -> _typing_extensions.Self:
         """Return self.
 
         Part of the iterator protocol.
         """
         return self
 
-    def __next__(self):
+    def __next__(self) -> dict[str, _typing.Any]:
         """Return the next entry in the journal.
 
         Returns self.get_next() or raises StopIteration.
@@ -196,7 +228,7 @@ class Reader(_Reader):
         else:
             raise StopIteration()
 
-    def add_match(self, *args, **kwargs):
+    def add_match(self, *args: str | bytes, **kwargs: _typing.Any) -> None:
         """Add one or more matches to the filter journal log entries.
 
         All matches of different field are combined with logical AND, and
@@ -204,12 +236,12 @@ class Reader(_Reader):
         Matches can be passed as strings of form "FIELD=value", or keyword
         arguments FIELD="value".
         """
-        args = list(args)
-        args.extend(_make_line(key, val) for key, val in kwargs.items())
         for arg in args:
             super(Reader, self).add_match(arg)
+        for key, val in kwargs.items():
+            super(Reader, self).add_match(_make_line(key, val))
 
-    def get_next(self, skip=1):
+    def get_next(self, skip: int = 1) -> dict[str, _typing.Any]:
         r"""Return the next log entry as a dictionary.
 
         Entries will be processed with converters specified during Reader
@@ -222,7 +254,7 @@ class Reader(_Reader):
         calling code should not make assumptions about a specific type.
         """
         if super(Reader, self)._next(skip):
-            entry = super(Reader, self)._get_all()
+            entry: dict[str, _typing.Any] = super(Reader, self)._get_all()
             if entry:
                 entry['__REALTIME_TIMESTAMP'] = self._get_realtime()
                 entry['__MONOTONIC_TIMESTAMP'] = self._get_monotonic()
@@ -230,7 +262,7 @@ class Reader(_Reader):
                 return self._convert_entry(entry)
         return dict()
 
-    def get_previous(self, skip=1):
+    def get_previous(self, skip: int = 1) -> dict[str, _typing.Any]:
         r"""Return the previous log entry.
 
         Equivalent to get_next(-skip).
@@ -246,7 +278,7 @@ class Reader(_Reader):
         """
         return self.get_next(-skip)
 
-    def query_unique(self, field):
+    def query_unique(self, field: str) -> set[_typing.Any]:
         """Return a list of unique values appearing in the journal for the given
         `field`.
 
@@ -258,7 +290,7 @@ class Reader(_Reader):
         return set(self._convert_field(field, value)
                    for value in super(Reader, self).query_unique(field))
 
-    def wait(self, timeout=None):
+    def wait(self, timeout: float | None = None) -> WakeupEventType: # type: ignore[override]
         """Wait for a change in the journal.
 
         `timeout` is the maximum time in seconds to wait, or None which
@@ -271,7 +303,8 @@ class Reader(_Reader):
         us = -1 if timeout is None else int(timeout * 1000000)
         return super(Reader, self).wait(us)
 
-    def seek_realtime(self, realtime):
+    def seek_realtime(self, # type: ignore[override]
+                      realtime: _datetime.datetime | _typeshed.SupportsMul[int, _typeshed.ConvertibleToInt]) -> None:
         """Seek to a matching journal entry nearest to `timestamp` time.
 
         Argument `realtime` must be either an integer UNIX timestamp (in
@@ -292,15 +325,17 @@ class Reader(_Reader):
             realtime = int(realtime * 1000000)
         return super(Reader, self).seek_realtime(realtime)
 
-    def get_start(self):
+    def get_start(self) -> _datetime.datetime:
         start = super(Reader, self)._get_start()
         return _convert_realtime(start)
 
-    def get_end(self):
+    def get_end(self) -> _datetime.datetime:
         end = super(Reader, self)._get_end()
         return _convert_realtime(end)
 
-    def seek_monotonic(self, monotonic, bootid=None):
+    def seek_monotonic(self, # type: ignore[override]
+                       monotonic: _datetime.timedelta | _typeshed.SupportsMul[int, _typeshed.ConvertibleToInt],
+                       bootid: _uuid.UUID | str | None = None) -> None:
         """Seek to a matching journal entry nearest to `monotonic` time.
 
         Argument `monotonic` is a timestamp from boot in either seconds or a
@@ -315,7 +350,7 @@ class Reader(_Reader):
             bootid = bootid.hex
         return super(Reader, self).seek_monotonic(monotonic, bootid)
 
-    def log_level(self, level):
+    def log_level(self, level: _typing.Literal[0, 1, 2, 3, 4, 5, 6, 7]) -> None:
         """Set maximum log `level` by setting matches for PRIORITY.
         """
         if 0 <= level <= 7:
@@ -324,7 +359,7 @@ class Reader(_Reader):
         else:
             raise ValueError("Log level must be 0 <= level <= 7")
 
-    def messageid_match(self, messageid):
+    def messageid_match(self, messageid: _uuid.UUID | str) -> None:
         """Add match for log entries with specified `messageid`.
 
         `messageid` can be string of hexadicimal digits or a UUID
@@ -336,7 +371,7 @@ class Reader(_Reader):
             messageid = messageid.hex
         self.add_match(MESSAGE_ID=messageid)
 
-    def this_boot(self, bootid=None):
+    def this_boot(self, bootid: _uuid.UUID | str | None = None) -> None:
         """Add match for _BOOT_ID for current boot or the specified boot ID.
 
         If specified, bootid should be either a UUID or a 32 digit hex number.
@@ -345,11 +380,11 @@ class Reader(_Reader):
         """
         if bootid is None:
             bootid = _id128.get_boot().hex
-        else:
-            bootid = getattr(bootid, 'hex', bootid)
+        elif isinstance(bootid, _uuid.UUID):
+            bootid = bootid.hex
         self.add_match(_BOOT_ID=bootid)
 
-    def this_machine(self, machineid=None):
+    def this_machine(self, machineid: _uuid.UUID | str | None = None) -> None:
         """Add match for _MACHINE_ID equal to the ID of this machine.
 
         If specified, machineid should be either a UUID or a 32 digit hex
@@ -359,12 +394,12 @@ class Reader(_Reader):
         """
         if machineid is None:
             machineid = _id128.get_machine().hex
-        else:
-            machineid = getattr(machineid, 'hex', machineid)
+        elif isinstance(machineid, _uuid.UUID):
+            machineid = machineid.hex
         self.add_match(_MACHINE_ID=machineid)
 
 
-def get_catalog(mid):
+def get_catalog(mid: _uuid.UUID | str) -> str:
     """Return catalog entry for the specified ID.
 
     `mid` should be either a UUID or a 32 digit hex number.
@@ -374,7 +409,7 @@ def get_catalog(mid):
     return _get_catalog(mid)
 
 
-def _make_line(field, value):
+def _make_line(field: str, value: _typing.Any) -> bytes | str:
     if isinstance(value, bytes):
         return field.encode('utf-8') + b'=' + value
     elif isinstance(value, str):
@@ -383,9 +418,12 @@ def _make_line(field, value):
         return field + '=' + str(value)
 
 
-def send(MESSAGE, MESSAGE_ID=None,
-         CODE_FILE=None, CODE_LINE=None, CODE_FUNC=None,
-         **kwargs):
+def send(MESSAGE: str,
+         MESSAGE_ID: str | _uuid.UUID | None = None,
+         CODE_FILE: str | None = None,
+         CODE_LINE: int | None = None,
+         CODE_FUNC: str | None = None,
+         **kwargs: str | bytes) -> None:
     r"""Send a message to the journal.
 
     >>> from systemd import journal
@@ -412,13 +450,16 @@ def send(MESSAGE, MESSAGE_ID=None,
     SYSLOG_PID.
     """
 
-    args = ['MESSAGE=' + MESSAGE]
+    args: list[str | bytes] = ['MESSAGE=' + MESSAGE]
 
     if MESSAGE_ID is not None:
-        id = getattr(MESSAGE_ID, 'hex', MESSAGE_ID)
+        if isinstance(MESSAGE_ID, _uuid.UUID):
+            id = MESSAGE_ID.hex
+        else:
+            id = MESSAGE_ID
         args.append('MESSAGE_ID=' + id)
 
-    if CODE_LINE is CODE_FILE is CODE_FUNC is None:
+    if CODE_LINE is CODE_FILE is CODE_FUNC is None: # type: ignore[comparison-overlap]
         CODE_FILE, CODE_LINE, CODE_FUNC = _traceback.extract_stack(limit=2)[0][:3]
     if CODE_FILE is not None:
         args.append('CODE_FILE=' + CODE_FILE)
@@ -431,10 +472,12 @@ def send(MESSAGE, MESSAGE_ID=None,
     return sendv(*args)
 
 
-def stream(identifier=None, priority=LOG_INFO, level_prefix=False):
+def stream(identifier: str | None = None,
+           priority: _typing.Literal[0, 1, 2, 3, 4, 5, 6, 7] = LOG_INFO,
+           level_prefix: bool = False) -> _io.TextIOWrapper:
     r"""Return a file object wrapping a stream to journal.
 
-    Log messages written to this file as simple newline sepearted text strings
+    Log messages written to this file as simple newline separated text strings
     are written to the journal.
 
     The file will be line buffered, so messages are actually sent after a
@@ -472,6 +515,10 @@ def stream(identifier=None, priority=LOG_INFO, level_prefix=False):
 
     fd = stream_fd(identifier, priority, level_prefix)
     return _os.fdopen(fd, 'w', 1)
+
+if _typing.TYPE_CHECKING:
+    class SenderFunction(_typing.Protocol):
+        def __call__(self, MESSAGE: str, **kwargs: _typing.Any) -> None: ...
 
 
 class JournalHandler(_logging.Handler):
@@ -526,7 +573,10 @@ class JournalHandler(_logging.Handler):
     the `sender_function` parameter.
     """
 
-    def __init__(self, level=_logging.NOTSET, sender_function=send, **kwargs):
+    def __init__(self,
+                 level: int = _logging.NOTSET,
+                 sender_function: SenderFunction = send,
+                 **kwargs: _typing.Any) -> None:
         super(JournalHandler, self).__init__(level)
 
         for name in kwargs:
@@ -539,7 +589,7 @@ class JournalHandler(_logging.Handler):
         self._extra = kwargs
 
     @classmethod
-    def with_args(cls, config=None):
+    def with_args(cls, config: dict[str, _typing.Any] | None = None) -> _typing_extensions.Self:
         """Create a JournalHandler with a configuration dictionary
 
         This creates a JournalHandler instance, but accepts the parameters through
@@ -552,7 +602,7 @@ class JournalHandler(_logging.Handler):
         """
         return cls(**(config or {}))
 
-    def emit(self, record):
+    def emit(self, record: _logging.LogRecord) -> None:
         """Write `record` as a journal event.
 
         MESSAGE is taken from the message provided by the user, and PRIORITY,
@@ -591,7 +641,7 @@ class JournalHandler(_logging.Handler):
             self.handleError(record)
 
     @staticmethod
-    def map_priority(levelno):
+    def map_priority(levelno: int) -> _typing.Literal[1, 2, 3, 4, 6, 7]:
         """Map logging levels to journald priorities.
 
         Since Python log level numbers are "sparse", we have to map numbers in

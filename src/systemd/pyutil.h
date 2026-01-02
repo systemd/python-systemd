@@ -3,7 +3,7 @@
 #pragma once
 
 #define PY_SSIZE_T_CLEAN
-#include <Python.h>
+#include "pythoncapi_compat.h"
 
 void cleanup_Py_DECREFp(PyObject **p);
 PyObject* absolute_timeout(uint64_t t);

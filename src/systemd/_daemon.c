@@ -429,7 +429,7 @@ REENABLE_WARNING;
 
 static struct PyModuleDef module = {
         PyModuleDef_HEAD_INIT,
-        .m_name = "_daemon", /* name of module */
+        .m_name = "systemd._daemon", /* name of module */
         .m_doc = module__doc__, /* module documentation, may be NULL */
         .m_size = 0, /* size of per-interpreter state of the module */
         .m_methods = methods,

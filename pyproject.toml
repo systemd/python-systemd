@@ -43,6 +43,7 @@ build = [
     "meson>=1.8.2",
     "twine>=4.0.2",
 ]
+typing = ["mypy"]
 
 [build-system]
 requires = ["meson-python"]

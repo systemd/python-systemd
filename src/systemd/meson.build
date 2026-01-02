@@ -50,6 +50,12 @@ py_files = files(
         '__init__.py',
         'journal.py',
         'daemon.py',
+        '_daemon.pyi',
+        '_journal.pyi',
+        '_reader.pyi',
+        'id128.pyi',
+        'login.pyi',
+        'py.typed',
 )
 
 python.install_sources(py_files, subdir: 'systemd')
@@ -76,6 +82,7 @@ update_constants = custom_target(
                 update_constants_py,
                 meson.current_source_dir() / 'id128-constants.h',
                 meson.project_source_root() / 'docs/id128.rst',
+                meson.current_source_dir() / 'id128.pyi',
                 meson.current_source_dir() / 'id128-defines.h',
                 include_dir / 'systemd/sd-messages.h',
         ])

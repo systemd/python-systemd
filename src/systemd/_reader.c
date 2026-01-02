@@ -10,9 +10,6 @@
 #include "macro.h"
 #include "strv.h"
 
-/* This needs to be below Python.h include for some reason */
-#include <datetime.h>
-
 #if defined(LIBSYSTEMD_VERSION) || LIBSYSTEMD_JOURNAL_VERSION > 204
 #  define HAVE_JOURNAL_OPEN_FILES 1
 #else
@@ -25,9 +22,19 @@
 #define HAVE_HAS_RUNTIME_FILES     (LIBSYSTEMD_VERSION >= 229)
 #define HAVE_HAS_PERSISTENT_FILES  (LIBSYSTEMD_VERSION >= 229)
 
+#if LIBSYSTEMD_VERSION < 256
+#  define SD_JOURNAL_ASSUME_IMMUTABLE  (1 << 8)
+#endif
+
+#if LIBSYSTEMD_VERSION < 254
+#  define SD_JOURNAL_TAKE_DIRECTORY_FD  (1 << 7)
+#endif
+
 #if LIBSYSTEMD_VERSION >= 245
 #  define HAVE_JOURNAL_OPEN_NAMESPACE 1
 #else
+#  define SD_JOURNAL_ALL_NAMESPACES             (1 << 5)
+#  define SD_JOURNAL_INCLUDE_DEFAULT_NAMESPACE  (1 << 6)
 #  define HAVE_JOURNAL_OPEN_NAMESPACE 0
 #endif
 
@@ -37,6 +44,8 @@
 #  define SD_JOURNAL_OS_ROOT       (1 << 4)
 #  define HAVE_JOURNAL_OPEN_DIRECTORY_FD 0
 #endif
+
+static PyModuleDef module;
 
 typedef struct {
         PyObject_HEAD
@@ -60,7 +69,7 @@ static PyStructSequence_Field MonotonicType_fields[] = {
 };
 
 static PyStructSequence_Desc Monotonic_desc = {
-        (char*) "journal.Monotonic",
+        (char*) "systemd.journal.Monotonic",
         MonotonicType__doc__,
         MonotonicType_fields,
         2,
@@ -91,7 +100,7 @@ static int null_converter(PyObject* obj, void *_result) {
         if (!obj)
                 return 0;
 
-        if (obj == Py_None)
+        if (Py_IsNone(obj))
                 *result = NULL;
         else
                 *result = obj;
@@ -110,6 +119,10 @@ static int strv_converter(PyObject* obj, void *_result) {
                 return 0;
 
         Py_ssize_t len = PySequence_Length(obj);
+        if (len < 0) {
+                return 0;
+        }
+
         *result = new0(char*, len + 1);
         if (!*result) {
                 set_error(-ENOMEM, NULL, NULL);
@@ -169,6 +182,10 @@ static int intlist_converter(PyObject* obj, int **_result, size_t *_len) {
                 return 0;
 
         Py_ssize_t len = PySequence_Length(obj);
+        if (len < 0) {
+                return 0;
+        }
+
         _cleanup_free_ int *result = new0(int, len);
 
         if (!result) {
@@ -214,8 +231,8 @@ PyDoc_STRVAR(Reader__doc__,
              "(supported since systemd v245). Instead of opening the system journal, argument\n"
              "`path` may specify a directory which contains the journal. It maybe be either\n"
              "a file system path (a string), or a file descriptor (an integer). Alternatively,\n"
-             "argument `files` may specify a list of journal file names. Note that `flags`, `path`,\n"
-             "`files`, `directory_fd`, `namespace` are exclusive.\n\n"
+             "argument `files` may specify a list of journal file names. Note that `path`, `files`,\n"
+             "and `namespace` are exclusive.\n\n"
              "_Reader implements the context manager protocol: the journal will be closed when\n"
              "exiting the block.");
 static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
@@ -231,9 +248,9 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
                                          null_converter, &_namespace))
                 return -1;
 
-        if (!!_path + !!_files > 1) {
+        if (!!_path + !!_files + !!_namespace > 1) {
                 PyErr_SetString(PyExc_ValueError,
-                                "path and files cannot be specified simultaneously");
+                                "path, files, and namespace cannot be specified simultaneously");
                 return -1;
         }
 
@@ -267,6 +284,9 @@ static int Reader_init(Reader *self, PyObject *args, PyObject *keywds) {
                 _cleanup_Py_DECREF_ PyObject *item0 = NULL;
 
                 item0 = PySequence_GetItem(_files, 0);
+                if (!item0) {
+                        PyErr_Clear();
+                }
                 if (!item0 || !PyLong_Check(item0)) {
                         _cleanup_strv_free_ char **files = NULL;
 
@@ -934,7 +954,7 @@ static PyObject* Reader_get_end(Reader *self, PyObject *args) {
 
 
 PyDoc_STRVAR(Reader_process__doc__,
-             "process() -> state change (integer)\n\n"
+             "process() -> WakeupEventType\n\n"
              "Process events and reset the readability state of the file\n"
              "descriptor returned by .fileno().\n\n"
              "Will return constants: NOP if no change; APPEND if new\n"
@@ -943,6 +963,7 @@ PyDoc_STRVAR(Reader_process__doc__,
              "See :manpage:`sd_journal_process(3)` for further discussion.");
 static PyObject* Reader_process(Reader *self, PyObject *args) {
         int r;
+        _cleanup_Py_DECREF_ PyObject *wakeup_event_type = NULL;
 
         assert(!args);
 
@@ -952,11 +973,19 @@ static PyObject* Reader_process(Reader *self, PyObject *args) {
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
 
-        return PyLong_FromLong(r);
+        PyObject *mod = PyState_FindModule(&module);
+        if (!mod)
+                return NULL;
+
+        wakeup_event_type = PyObject_GetAttrString(mod, "WakeupEventType");
+        if (!wakeup_event_type)
+                return NULL;
+
+        return PyObject_CallFunction(wakeup_event_type, "i", r);
 }
 
 PyDoc_STRVAR(Reader_wait__doc__,
-             "wait([timeout]) -> state change (integer)\n\n"
+             "wait([timeout]) -> WakeupEventType\n\n"
              "Wait for a change in the journal. Argument `timeout` specifies\n"
              "the maximum number of microseconds to wait before returning\n"
              "regardless of whether the journal has changed. If `timeout` is -1,\n"
@@ -968,6 +997,7 @@ PyDoc_STRVAR(Reader_wait__doc__,
 static PyObject* Reader_wait(Reader *self, PyObject *args) {
         int r;
         int64_t timeout = -1;
+        _cleanup_Py_DECREF_ PyObject *wakeup_event_type = NULL;
 
         if (!PyArg_ParseTuple(args, "|L:wait", &timeout))
                 return NULL;
@@ -979,7 +1009,15 @@ static PyObject* Reader_wait(Reader *self, PyObject *args) {
         if (set_error(r, NULL, NULL) < 0)
                 return NULL;
 
-        return PyLong_FromLong(r);
+        PyObject *mod = PyState_FindModule(&module);
+        if (!mod)
+                return NULL;
+
+        wakeup_event_type = PyObject_GetAttrString(mod, "WakeupEventType");
+        if (!wakeup_event_type)
+                return NULL;
+
+        return PyObject_CallFunction(wakeup_event_type, "i", r);
 }
 
 PyDoc_STRVAR(Reader_seek_cursor__doc__,
@@ -1242,7 +1280,7 @@ static PyObject* get_catalog(PyObject *self _unused_, PyObject *args) {
 
         assert(args);
 
-        if (!PyArg_ParseTuple(args, "z:get_catalog", &id_))
+        if (!PyArg_ParseTuple(args, "s:get_catalog", &id_))
                 return NULL;
 
         r = sd_id128_from_string(id_, &id);
@@ -1359,7 +1397,7 @@ static PyMethodDef Reader_methods[] = {
 
 static PyTypeObject ReaderType = {
         PyVarObject_HEAD_INIT(NULL, 0)
-        .tp_name = "_reader._Reader",
+        .tp_name = "systemd._reader._Reader",
         .tp_basicsize = sizeof(Reader),
         .tp_dealloc = (destructor) Reader_dealloc,
         .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
@@ -1370,6 +1408,92 @@ static PyTypeObject ReaderType = {
         .tp_new = PyType_GenericNew,
 };
 
+static int add_enum_members_to_module(PyObject *module, PyObject *_enum) {
+        _cleanup_Py_DECREF_ PyObject *members = NULL;
+
+        PyObject *module_dict = PyModule_GetDict(module);
+        if (!module_dict)
+                return -1;
+
+        members = PyObject_GetAttrString(_enum, "__members__");
+        if (!members)
+                return -1;
+
+        if (PyDict_Update(module_dict, members) < 0)
+                return -1;
+
+        return 0;
+}
+
+static int add_wakeup_event_type_enum(PyObject *module) {
+        _cleanup_Py_DECREF_ PyObject *_enum = NULL, *int_enum = NULL, *args = NULL, *kwargs = NULL, *wakeup_event_type = NULL;
+
+        _enum = PyImport_ImportModule("enum");
+        if (!_enum)
+                return -1;
+
+        int_enum = PyObject_GetAttrString(_enum, "IntEnum");
+        if (!int_enum)
+                return -1;
+
+        args = Py_BuildValue("s, ((sI), (sI), (sI))",
+                "WakeupEventType",
+                "NOP", SD_JOURNAL_NOP,
+                "APPEND", SD_JOURNAL_APPEND,
+                "INVALIDATE", SD_JOURNAL_INVALIDATE);
+        if (!args)
+                return -1;
+
+        kwargs = Py_BuildValue("{s: N}", "module", PyModule_GetNameObject(module));
+        if (!kwargs)
+                return -1;
+
+        wakeup_event_type = PyObject_Call(int_enum, args, kwargs);
+
+        if (PyModule_AddObjectRef(module, "WakeupEventType", wakeup_event_type) < 0)
+                return -1;
+
+        return add_enum_members_to_module(module, wakeup_event_type);
+}
+
+static int add_open_flag_enum(PyObject *module) {
+        _cleanup_Py_DECREF_ PyObject *_enum = NULL, *int_flag = NULL, *args = NULL, *kwargs = NULL, *open_flag_type = NULL;
+
+        _enum = PyImport_ImportModule("enum");
+        if (!_enum)
+                return -1;
+
+        int_flag = PyObject_GetAttrString(_enum, "IntFlag");
+        if (!int_flag)
+                return -1;
+
+        args = Py_BuildValue("s, ((sI), (sI), (sI), (sI), (sI), (sI), (sI), (sI), (sI), (sI))",
+                "OpenFlag",
+                "LOCAL_ONLY", SD_JOURNAL_LOCAL_ONLY,
+                "RUNTIME_ONLY", SD_JOURNAL_RUNTIME_ONLY,
+                "SYSTEM", SD_JOURNAL_SYSTEM,
+                "CURRENT_USER", SD_JOURNAL_CURRENT_USER,
+                "OS_ROOT", SD_JOURNAL_OS_ROOT,
+                "ALL_NAMESPACES", SD_JOURNAL_ALL_NAMESPACES,
+                "INCLUDE_DEFAULT_NAMESPACE", SD_JOURNAL_INCLUDE_DEFAULT_NAMESPACE,
+                "TAKE_DIRECTORY_FD", SD_JOURNAL_TAKE_DIRECTORY_FD,
+                "ASSUME_IMMUTABLE", SD_JOURNAL_ASSUME_IMMUTABLE,
+                "SYSTEM_ONLY", SD_JOURNAL_SYSTEM_ONLY);
+        if (!args)
+                return -1;
+
+        kwargs = Py_BuildValue("{s: N}", "module", PyModule_GetNameObject(module));
+        if (!kwargs)
+                return -1;
+
+        open_flag_type = PyObject_Call(int_flag, args, kwargs);
+
+        if (PyModule_AddObjectRef(module, "OpenFlag", open_flag_type) < 0)
+                return -1;
+
+        return add_enum_members_to_module(module, open_flag_type);
+}
+
 static PyMethodDef methods[] = {
         { "_get_catalog", get_catalog, METH_VARARGS, get_catalog__doc__ },
         {} /* Sentinel */
@@ -1377,7 +1501,7 @@ static PyMethodDef methods[] = {
 
 static PyModuleDef module = {
         PyModuleDef_HEAD_INIT,
-        .m_name = "_reader",
+        .m_name = "systemd._reader",
         .m_doc = module__doc__,
         .m_size = -1,
         .m_methods = methods,
@@ -1391,33 +1515,22 @@ PyInit__reader(void)
 {
         PyObject* m;
 
-        PyDateTime_IMPORT;
-
-        if (PyType_Ready(&ReaderType) < 0)
-                return NULL;
-
         m = PyModule_Create(&module);
         if (!m)
                 return NULL;
 
         if (!initialized) {
-                PyStructSequence_InitType(&MonotonicType, &Monotonic_desc);
+                if (PyStructSequence_InitType2(&MonotonicType, &Monotonic_desc) < 0) {
+                        Py_DECREF(m);
+                        return NULL;
+                }
                 initialized = true;
         }
 
-        Py_INCREF(&ReaderType);
-        Py_INCREF(&MonotonicType);
-        if (PyModule_AddObject(m, "_Reader", (PyObject *) &ReaderType) ||
-            PyModule_AddObject(m, "Monotonic", (PyObject*) &MonotonicType) ||
-            PyModule_AddIntConstant(m, "NOP", SD_JOURNAL_NOP) ||
-            PyModule_AddIntConstant(m, "APPEND", SD_JOURNAL_APPEND) ||
-            PyModule_AddIntConstant(m, "INVALIDATE", SD_JOURNAL_INVALIDATE) ||
-            PyModule_AddIntConstant(m, "LOCAL_ONLY", SD_JOURNAL_LOCAL_ONLY) ||
-            PyModule_AddIntConstant(m, "RUNTIME_ONLY", SD_JOURNAL_RUNTIME_ONLY) ||
-            PyModule_AddIntConstant(m, "SYSTEM", SD_JOURNAL_SYSTEM) ||
-            PyModule_AddIntConstant(m, "SYSTEM_ONLY", SD_JOURNAL_SYSTEM) ||
-            PyModule_AddIntConstant(m, "CURRENT_USER", SD_JOURNAL_CURRENT_USER) ||
-            PyModule_AddIntConstant(m, "OS_ROOT", SD_JOURNAL_OS_ROOT) ||
+        if (PyModule_AddType(m, &ReaderType) ||
+            PyModule_AddType(m, &MonotonicType) ||
+            add_wakeup_event_type_enum(m) ||
+            add_open_flag_enum(m) ||
             PyModule_AddStringConstant(m, "__version__", PACKAGE_VERSION)) {
                 Py_DECREF(m);
                 return NULL;

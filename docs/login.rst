@@ -5,6 +5,7 @@
 
 .. automodule:: systemd.login
    :members:
+   :exclude-members: Monitor
 
 .. autoclass:: Monitor
    :undoc-members:

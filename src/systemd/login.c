@@ -294,7 +294,7 @@ static PyMethodDef Monitor_methods[] = {
 
 static PyTypeObject MonitorType = {
         PyVarObject_HEAD_INIT(NULL, 0)
-        .tp_name = "login.Monitor",
+        .tp_name = "systemd.login.Monitor",
         .tp_basicsize = sizeof(Monitor),
         .tp_dealloc = (destructor) Monitor_dealloc,
         .tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE,
@@ -306,9 +306,9 @@ static PyTypeObject MonitorType = {
 
 static struct PyModuleDef module = {
         PyModuleDef_HEAD_INIT,
-        .m_name = "login",      /* name of module */
-        .m_doc = module__doc__, /* module documentation, may be NULL */
-        .m_size = -1,           /* size of per-interpreter state of the module */
+        .m_name = "systemd.login", /* name of module */
+        .m_doc = module__doc__,    /* module documentation, may be NULL */
+        .m_size = -1,              /* size of per-interpreter state of the module */
         .m_methods = methods,
         .m_slots = NULL,
 };
@@ -317,21 +317,12 @@ DISABLE_WARNING_MISSING_PROTOTYPES;
 PyMODINIT_FUNC PyInit_login(void) {
         PyObject *m;
 
-        if (PyType_Ready(&MonitorType) < 0)
-                return NULL;
-
         m = PyModule_Create(&module);
         if (!m)
                 return NULL;
 
-        if (PyModule_AddStringConstant(m, "__version__", PACKAGE_VERSION)) {
-                Py_DECREF(m);
-                return NULL;
-        }
-
-        Py_INCREF(&MonitorType);
-        if (PyModule_AddObject(m, "Monitor", (PyObject *) &MonitorType)) {
-                Py_DECREF(&MonitorType);
+        if (PyModule_AddType(m, &MonitorType) ||
+            PyModule_AddStringConstant(m, "__version__", PACKAGE_VERSION)) {
                 Py_DECREF(m);
                 return NULL;
         }
