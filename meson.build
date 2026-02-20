@@ -15,14 +15,23 @@ python_dep = python.dependency()
 
 fs = import('fs')
 
-libsystemd_dep = dependency('libsystemd')
+libsystemd_dep = dependency('libsystemd', required: false)
+build_extensions = host_machine.system() == 'linux' and libsystemd_dep.found()
 
-add_project_arguments(
-        '-D_GNU_SOURCE=1',
-        '-DPACKAGE_VERSION="@0@"'.format(meson.project_version()),
-        '-DLIBSYSTEMD_VERSION=@0@'.format(libsystemd_dep.version()),
-        language : 'c',
-)
+if host_machine.system() != 'linux'
+        warning('libsystemd bindings are skipped on non-Linux platforms. This build provides package metadata and pure Python files only.')
+elif not libsystemd_dep.found()
+        warning('libsystemd development files were not found; native extension modules will not be built. Install libsystemd dev packages for full functionality.')
+endif
+
+if build_extensions
+        add_project_arguments(
+                '-D_GNU_SOURCE=1',
+                '-DPACKAGE_VERSION="@0@"'.format(meson.project_version()),
+                '-DLIBSYSTEMD_VERSION=@0@'.format(libsystemd_dep.version()),
+                language : 'c',
+        )
+endif
 
 update_constants_py = files('update-constants.py')
 
@@ -39,7 +48,9 @@ test(
         env: { 'PYTHONPATH': meson.current_build_dir() / 'src' },
 )
 
-alias_target('update-constants', update_constants)
+if build_extensions
+        alias_target('update-constants', update_constants)
+endif
 
 # Docs
 sphinx_build = find_program('sphinx-build', disabler: true, required: get_option('docs'))
