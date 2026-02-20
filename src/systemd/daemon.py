@@ -2,18 +2,25 @@
 
 from socket import AF_UNSPEC as _AF_UNSPEC
 
-from ._daemon import (__version__,
-                      booted,
-                      notify,
-                      _listen_fds,
-                      _listen_fds_with_names,
-                      _is_fifo,
-                      _is_socket,
-                      _is_socket_inet,
-                      _is_socket_sockaddr,
-                      _is_socket_unix,
-                      _is_mq,
-                      LISTEN_FDS_START)
+try:
+    from ._daemon import (__version__,
+                          booted,
+                          notify,
+                          _listen_fds,
+                          _listen_fds_with_names,
+                          _is_fifo,
+                          _is_socket,
+                          _is_socket_inet,
+                          _is_socket_sockaddr,
+                          _is_socket_unix,
+                          _is_mq,
+                          LISTEN_FDS_START)
+except ModuleNotFoundError as e:
+    raise ImportError(
+        "systemd.daemon requires native libsystemd bindings that are not available "
+        "in this build. Build/install on Linux with libsystemd development files "
+        "to enable this module."
+    ) from e
 
 def _convert_fileobj(fileobj):
     try:
