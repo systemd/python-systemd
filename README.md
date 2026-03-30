@@ -12,6 +12,7 @@ is separated into a number of modules:
 - `systemd.login` wraps parts of `libsystemd` used to query logged in users
   and available seats and machines.
 
+
 Installation
 ============
 
@@ -41,14 +42,33 @@ The project is also available on pypi as `systemd-python`:
 To build from source
 --------------------
 
-On CentOS, RHEL, and Fedora:
+### On CentOS, RHEL, and Fedora:
 
     dnf install git python3-pip gcc python3-devel systemd-devel
     pip3 install 'git+https://github.com/systemd/python-systemd.git#egg=systemd-python'
 
-On Debian or Ubuntu:
+### On Debian or Ubuntu:
 
-    apt install libsystemd-{journal,daemon,login,id128}-dev gcc python3-dev pkg-config
+make is mirrored into docker-compose, to turn the build independent of packages installed
+
+    mkdir dist
+    mkdir build
+
+to run make all:
+
+    docker compose run --rm make
+
+to run any make command
+
+    docker compose run --rm make $command
+
+for example
+
+    docker compose run --rm make wheel
+    docker compose run --rm make clean
+    docker compose run --rm make build
+    docker compose run --rm make check
+
 
 Usage
 =====
@@ -133,7 +153,7 @@ Show kernel ring buffer (`journalctl -k`):
         print(entry['MESSAGE'])
 
 Read entries in reverse (`journalctl _EXE=/usr/bin/vim -r`):
-  
+
     from systemd import journal
     class ReverseReader(journal.Reader):
         def __next__(self):

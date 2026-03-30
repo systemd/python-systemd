@@ -1,0 +1,9 @@
+services:
+  make:
+    build: .
+    volumes:
+      - .:/src
+      - ./build:/build
+      - ./dist:/dist
+    entrypoint: /usr/bin/make
+    command: all

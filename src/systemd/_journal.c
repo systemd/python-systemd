@@ -8,6 +8,14 @@
 #include "macro.h"
 #include "pyutil.h"
 
+
+#if defined(SD_JOURNAL_SENDV_UNLOCK_GIL) && (SD_JOURNAL_SENDV_UNLOCK_GIL == 1)
+#define JOURNAL_SENDV_UNLOCK_GIL  1
+#else
+#define JOURNAL_SENDV_UNLOCK_GIL  0
+#endif
+
+
 PyDoc_STRVAR(journal_sendv__doc__,
              "sendv('FIELD=value', 'FIELD=value', ...) -> None\n\n"
              "Send an entry to the journal."
@@ -43,8 +51,14 @@ static PyObject* journal_sendv(PyObject *self _unused_, PyObject *args) {
                 iov[i].iov_len = length;
         }
 
+#if (JOURNAL_SENDV_UNLOCK_GIL == 1)
+        Py_BEGIN_ALLOW_THREADS
+#endif
         /* Send the iovector to the journal. */
         r = sd_journal_sendv(iov, argc);
+#if (JOURNAL_SENDV_UNLOCK_GIL == 1)
+        Py_END_ALLOW_THREADS
+#endif
         if (r < 0) {
                 errno = -r;
                 PyErr_SetFromErrno(PyExc_OSError);
@@ -107,6 +121,11 @@ PyMODINIT_FUNC PyInit__journal(void) {
                 return NULL;
 
         if (PyModule_AddStringConstant(m, "__version__", PACKAGE_VERSION)) {
+                Py_DECREF(m);
+                return NULL;
+        }
+
+        if (PyModule_AddIntConstant(m, "__sendv_unlock_gil__", JOURNAL_SENDV_UNLOCK_GIL)) {
                 Py_DECREF(m);
                 return NULL;
         }
