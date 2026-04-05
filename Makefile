@@ -14,6 +14,14 @@ all: build
 build:
 	$(PYTHON) -m build -Cbuild-dir=$(BUILD_DIR)
 
+wheel:
+	rm -rf $(BUILD_DIR)
+	$(PYTHON) -m build --wheel -Cbuild-dir=$(BUILD_DIR) -Csetup-args="-Djournal_unlock_gil=1"
+
+wheel_gil:
+	rm -rf $(BUILD_DIR)
+	$(PYTHON) -m build --wheel -Cbuild-dir=$(BUILD_DIR) -Csetup-args="-Djournal_unlock_gil=0"
+
 install:
 	$(PYTHON) -m pip install .
 
@@ -24,7 +32,7 @@ sign: dist/systemd-python-$(VERSION).tar.gz
 	gpg --detach-sign -a dist/systemd-python-$(VERSION).tar.gz
 
 clean:
-	rm -rf $(BUILD_DIR) systemd/*.so systemd/*.py[co] *.py[co] systemd/__pycache__
+	rm -rf $(BUILD_DIR) systemd/*.so systemd/*.py[co] *.py[co] systemd/__pycache__ dist
 
 distclean: clean
 	rm -rf dist MANIFEST

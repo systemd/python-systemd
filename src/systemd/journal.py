@@ -9,7 +9,7 @@ import logging as _logging
 from syslog import (LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR,
                     LOG_WARNING, LOG_NOTICE, LOG_INFO, LOG_DEBUG)
 
-from ._journal import __version__, sendv, stream_fd
+from ._journal import __version__, sendv, stream_fd, __sendv_unlock_gil__
 from ._reader import (_Reader, NOP, APPEND, INVALIDATE,
                       LOCAL_ONLY, RUNTIME_ONLY,
                       SYSTEM, SYSTEM_ONLY, CURRENT_USER,
@@ -537,6 +537,15 @@ class JournalHandler(_logging.Handler):
 
         self.send = sender_function
         self._extra = kwargs
+
+    @staticmethod
+    def gil_unlocked():
+        """Return whether the journal send function is configured to unlock the GIL.
+
+        This is useful for logging handlers to determine whether they can safely
+        call the send function without risking deadlocks.
+        """
+        return __sendv_unlock_gil__ == 1
 
     @classmethod
     def with_args(cls, config=None):
