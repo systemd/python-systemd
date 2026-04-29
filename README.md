@@ -48,7 +48,7 @@ On CentOS, RHEL, and Fedora:
 
 On Debian or Ubuntu:
 
-    apt install libsystemd-{journal,daemon,login,id128}-dev gcc python3-dev pkg-config
+    apt install libsystemd-dev gcc python3-dev pkg-config
 
 Usage
 =====
