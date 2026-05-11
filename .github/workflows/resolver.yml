@@ -1,0 +1,78 @@
+---
+# SPDX-License-Identifier: LGPL-2.1-or-later
+#
+name: Resolver compatibility
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  linux-build:
+    runs-on: ubuntu-latest
+    name: Linux build and wheel smoke
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install system and Python build dependencies
+        run: |
+          sudo apt -y update
+          sudo apt -y install gcc libsystemd-dev pkg-config
+          python -m pip install -U pip build
+
+      - name: Build artifacts and wheel
+        run: |
+          python -m build --sdist --wheel
+          python -m pip wheel --use-pep517 --no-deps .
+
+  macos-metadata-lock:
+    runs-on: macos-14
+    name: macOS metadata and lock smoke
+    steps:
+      - name: Repository checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install Python packaging tools
+        run: python -m pip install -U pip build
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: sdist build should not require libsystemd
+        run: python -m build --sdist
+
+      - name: PEP 517 wheel build should not hard-fail without libsystemd
+        run: python -m pip wheel --use-pep517 --no-deps .
+
+      - name: uv lock smoke for linux marker dependency
+        run: |
+          mkdir -p /tmp/uv-lock-smoke
+          cat > /tmp/uv-lock-smoke/pyproject.toml <<'EOF'
+          [project]
+          name = "uv-lock-smoke"
+          version = "0.0.0"
+          dependencies = [
+            "systemd-python; sys_platform == 'linux'",
+          ]
+
+          [tool.uv.sources]
+          systemd-python = { path = "${{ github.workspace }}" }
+          EOF
+          cd /tmp/uv-lock-smoke
+          uv lock
+          grep -q 'name = "systemd-python"' uv.lock

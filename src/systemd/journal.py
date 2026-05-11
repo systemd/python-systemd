@@ -9,13 +9,20 @@ import logging as _logging
 from syslog import (LOG_EMERG, LOG_ALERT, LOG_CRIT, LOG_ERR,
                     LOG_WARNING, LOG_NOTICE, LOG_INFO, LOG_DEBUG)
 
-from ._journal import __version__, sendv, stream_fd
-from ._reader import (_Reader, NOP, APPEND, INVALIDATE,
-                      LOCAL_ONLY, RUNTIME_ONLY,
-                      SYSTEM, SYSTEM_ONLY, CURRENT_USER,
-                      OS_ROOT,
-                      _get_catalog, Monotonic)
-from . import id128 as _id128
+try:
+    from ._journal import __version__, sendv, stream_fd
+    from ._reader import (_Reader, NOP, APPEND, INVALIDATE,
+                          LOCAL_ONLY, RUNTIME_ONLY,
+                          SYSTEM, SYSTEM_ONLY, CURRENT_USER,
+                          OS_ROOT,
+                          _get_catalog, Monotonic)
+    from . import id128 as _id128
+except ModuleNotFoundError as e:
+    raise ImportError(
+        "systemd.journal requires native libsystemd bindings that are not "
+        "available in this build. Build/install on Linux with libsystemd "
+        "development files to enable this module."
+    ) from e
 
 
 def _convert_monotonic(m):
