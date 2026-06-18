@@ -89,6 +89,7 @@
    .. autoattribute:: systemd.id128.SD_MESSAGE_SUSPEND_KEY_LONG_PRESS
    .. autoattribute:: systemd.id128.SD_MESSAGE_SYSCTL_CHANGED
    .. autoattribute:: systemd.id128.SD_MESSAGE_SYSTEMD_UDEV_SETTLE_DEPRECATED
+   .. autoattribute:: systemd.id128.SD_MESSAGE_SYSTEM_ACCOUNT_REQUIRED
    .. autoattribute:: systemd.id128.SD_MESSAGE_SYSTEM_DOCKED
    .. autoattribute:: systemd.id128.SD_MESSAGE_SYSTEM_UNDOCKED
    .. autoattribute:: systemd.id128.SD_MESSAGE_SYSV_GENERATOR_DEPRECATED
@@ -98,6 +99,9 @@
    .. autoattribute:: systemd.id128.SD_MESSAGE_TIME_CHANGE
    .. autoattribute:: systemd.id128.SD_MESSAGE_TIME_SYNC
    .. autoattribute:: systemd.id128.SD_MESSAGE_TPM2_CLEAR_REQUESTED
+   .. autoattribute:: systemd.id128.SD_MESSAGE_TPM_NVINDEX_EXHAUSTED
+   .. autoattribute:: systemd.id128.SD_MESSAGE_TPM_NVPCR_EXTEND
+   .. autoattribute:: systemd.id128.SD_MESSAGE_TPM_NVPCR_UNSUPPORTED
    .. autoattribute:: systemd.id128.SD_MESSAGE_TPM_PCR_EXTEND
    .. autoattribute:: systemd.id128.SD_MESSAGE_TRUNCATED_CORE
    .. autoattribute:: systemd.id128.SD_MESSAGE_UNIT_FAILED
