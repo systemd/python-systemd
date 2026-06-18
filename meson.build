@@ -21,6 +21,7 @@ add_project_arguments(
         '-D_GNU_SOURCE=1',
         '-DPACKAGE_VERSION="@0@"'.format(meson.project_version()),
         '-DLIBSYSTEMD_VERSION=@0@'.format(libsystemd_dep.version()),
+        '-Wno-unused-parameter',
         language : 'c',
 )
 
