@@ -94,19 +94,16 @@ static int assign_address(const char *s,
 
 int parse_sockaddr(const char *s,
                    union sockaddr_union *addr, unsigned *addr_len) {
-
-        char *e, *n;
-        unsigned u;
         int r;
 
         if (*s == '[') {
                 /* IPv6 in [x:.....:z]:p notation */
 
-                e = strchr(s+1, ']');
+                const char *e = strchr(s + 1, ']');
                 if (!e)
                         return -EINVAL;
 
-                n = strndupa(s+1, e-s-1);
+                char *n = strndupa(s+1, e-s-1);
 
                 errno = 0;
                 if (inet_pton(AF_INET6, n, &addr->in6.sin6_addr) <= 0)
@@ -116,8 +113,9 @@ int parse_sockaddr(const char *s,
                 if (*e) {
                         if (*e != ':')
                                 return -EINVAL;
-
                         e++;
+
+                        unsigned u;
                         r = safe_atou(e, &u);
                         if (r < 0)
                                 return r;
@@ -132,19 +130,21 @@ int parse_sockaddr(const char *s,
                 *addr_len = sizeof(struct sockaddr_in6);
 
         } else {
-                e = strchr(s, ':');
+                const char *e = strchr(s, ':');
                 if (e) {
-                        r = safe_atou(e+1, &u);
+                        unsigned u;
+                        r = safe_atou(e + 1, &u);
                         if (r < 0)
                                 return r;
 
                         if (u <= 0 || u > 0xFFFF)
                                 return -EINVAL;
 
-                        n = strndupa(s, e-s);
+                        char *n = strndupa(s, e-s);
                         return assign_address(n, u, addr, addr_len);
 
                 } else {
+                        unsigned u;
                         r = safe_atou(s, &u);
                         if (r < 0)
                                 return assign_address(s, 0, addr, addr_len);

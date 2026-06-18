@@ -3,7 +3,17 @@
 #pragma once
 
 #define PY_SSIZE_T_CLEAN
-#include <Python.h>
+/* Work around bug in Python.h:
+ * it tries to redefine defines already defined by /usr/include/features.h,
+ * without calling #undef first, causing a warning to be emitted.
+ * (https://github.com/python/cpython/issues/61322). */
+#undef _POSIX_C_SOURCE
+#undef _XOPEN_SOURCE
+#  include <Python.h>
+#undef _POSIX_C_SOURCE
+#undef _XOPEN_SOURCE
+#define _XOPEN_SOURCE  800
+#define _POSIX_C_SOURCE 202405L
 
 void cleanup_Py_DECREFp(PyObject **p);
 PyObject* absolute_timeout(uint64_t t);
