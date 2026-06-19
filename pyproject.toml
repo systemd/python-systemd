@@ -5,7 +5,8 @@ name = "systemd-python"
 dynamic = ["version"]
 description = "Python interface for libsystemd"
 readme = "README.md"
-license = { text = "LGPL-2.1-or-later" }
+license = "LGPL-2.1-or-later"
+license-files = [ "LICENSE.txt" ]
 authors = [{ email = "david@davidstrauss.net" }]
 maintainers = [
     { name = "systemd developers", email = "systemd-devel@lists.freedesktop.org" },
@@ -13,7 +14,6 @@ maintainers = [
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: C",
     "Programming Language :: Python :: 3",
