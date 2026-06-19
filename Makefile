@@ -36,8 +36,8 @@ www_target = www.freedesktop.org:/srv/www.freedesktop.org/www/software/systemd/p
 doc-sync:
 	rsync -rlv --delete --omit-dir-times $(BUILD_DIR)/html/ $(www_target)/
 
-upload: dist/systemd-python-$(VERSION).tar.gz dist/systemd-python-$(VERSION).tar.gz.asc
-	twine-3 upload $+
+upload: dist/systemd_python-$(VERSION).tar.gz
+	twine upload $+
 
 TAGS: $(shell git ls-files systemd/*.[ch])
 	$(ETAGS) $+
