@@ -17,17 +17,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-22.04", "ubuntu-24.04"]
+        os: ["ubuntu-22.04", "ubuntu-24.04", "ubuntu-26.04"]
         python: [
           "3.9",
           "3.10",
           "3.11",
           "3.12",
           "3.13",
+          "3.14",
         ]
         exclude:
           - os: "ubuntu-22.04"
             python: "3.13"
+          - os: "ubuntu-22.04"
+            python: "3.14"
+          - os: "ubuntu-26.04"
+            python: "3.9"
     runs-on: ${{ matrix.os }}
     concurrency:
       group: ${{ github.workflow }}-${{ matrix.python }}-${{ matrix.os }}-${{ github.ref }}
