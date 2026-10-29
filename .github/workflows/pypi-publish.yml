@@ -1,0 +1,109 @@
+name: Build and publish Python package to TestPyPI
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  release:
+    types: [published]
+
+jobs:
+  build_wheels:
+    name: Build wheel cp${{ matrix.python }}-${{ matrix.manylinux_platform }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python: 39
+            manylinux_platform: manylinux_x86_64
+          - os: ubuntu-latest
+            python: 310
+            manylinux_platform: manylinux_x86_64
+          - os: ubuntu-latest
+            python: 311
+            manylinux_platform: manylinux_x86_64
+          - os: ubuntu-latest
+            python: 312
+            manylinux_platform: manylinux_x86_64
+          - os: ubuntu-latest
+            python: 313
+            manylinux_platform: manylinux_x86_64
+          - os: ubuntu-latest
+            python: 314
+            manylinux_platform: manylinux_x86_64
+          - os: ubuntu-latest
+            python: 314t
+            manylinux_platform: manylinux_x86_64
+          - os: ubuntu-latest
+            python: 315
+            manylinux_platform: manylinux_x86_64
+          - os: ubuntu-latest
+            python: 315t
+            manylinux_platform: manylinux_x86_64
+
+    steps:
+      - name: Checkout python-systemd for wheel build
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set SOURCE_DATE_EPOCH from source commit
+        run: |
+          printf "SOURCE_DATE_EPOCH=%s\n" "$(git log -1 --pretty=%ct)" >>"$GITHUB_ENV"
+
+      - name: Build  wheels
+        uses: pypa/cibuildwheel@8c2dcd2e96041a619f5ff03c9638d7941e2553a4 # v4.3.3
+        env:
+          SOURCE_DATE_EPOCH: ${{ env.SOURCE_DATE_EPOCH }}
+        with:
+          only: cp${{ matrix.python }}-${{ matrix.manylinux_platform }}
+
+      - name: Store built wheels
+        uses: actions/upload-artifact@v7
+        with:
+          name: cibw-wheels-${{ matrix.os }}-cp${{ matrix.python }}-${{ matrix.manylinux_platform }}
+          path: ./wheelhouse/*.whl
+
+  make_sdist:
+    name: Make sdist
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout python-systemd for source distribution build
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: install libsystemd
+        run: |
+          sudo apt-get --update -y install libsystemd-dev
+
+      - name: Build sdist
+        run: pipx run build --sdist
+
+      - name: Store built sdist
+        uses: actions/upload-artifact@v7
+        with:
+          name: cibw-sdist
+          path: ./dist/*.tar.gz
+
+  upload_all:
+    needs: [build_wheels, make_sdist]
+    environment: pypi
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: cibw-*
+          path: dist
+          merge-multiple: true
+
+      # - name: Publish package distributions to TestPyPI
+      #   uses: pypa/gh-action-pypi-publish@release/v1
+      #   with:
+      #     repository-url: https://test.pypi.org/legacy/

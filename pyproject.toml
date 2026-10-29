@@ -23,6 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: System :: Logging",
     "Topic :: System :: Systems Administration",
@@ -64,3 +65,10 @@ exclude_lines = [
 [tool.pytest.ini_options]
 addopts = "--doctest-modules --doctest-glob=*.rst --ignore=setup.py"
 norecursedirs = ".git build"
+
+[tool.cibuildwheel]
+build-verbosity = 1
+manylinux-x86_64-image = "manylinux_2_34"
+manylinux-i686-image = "manylinux_2_34"
+before-all = "dnf -y install systemd-devel || apt-get --update -y install libsystemd-dev"
+environment-pass = ["SOURCE_DATE_EPOCH"]
